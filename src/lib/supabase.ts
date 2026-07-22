@@ -7,7 +7,7 @@ export const SUPABASE_URL =
 
 export const SUPABASE_ANON_KEY = 
   (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3dG1vdWFndnFoYWZxZXd0a2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MjAxNTAwMDAwMH0.dummy_fallback_key';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3dG1vdWFndnFoYWZxZXd0a2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NTM2ODYsImV4cCI6MjEwMDIyOTY4Nn0.xbtMuehY4yjwEi-87CY-u1yOE5q_ckfg8b2TiisHvDo';
 
 // Initialize Production Supabase Client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
