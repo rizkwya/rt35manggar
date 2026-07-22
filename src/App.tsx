@@ -14,8 +14,12 @@ import { ProkerSection } from './components/landing/ProkerSection';
 import { NewsSection } from './components/landing/NewsSection';
 import { GallerySection } from './components/landing/GallerySection';
 import { ContactSection } from './components/landing/ContactSection';
+import { LoadingSplashScreen } from './components/common/LoadingSplashScreen';
 
 export const App: React.FC = () => {
+  // SPLASH SCREEN LOADING STATE FOR SMOOTH PAGE TRANSITION
+  const [showSplashScreen, setShowSplashScreen] = useState<boolean>(true);
+
   // BROWSER PATH ROUTING STATE (/home, /login, /presensi, /admin)
   const [currentPath, setCurrentPath] = useState<string>(() => {
     const path = window.location.pathname;
@@ -216,7 +220,11 @@ export const App: React.FC = () => {
 
   // ROUTE 5: DEFAULT LANDING PAGE (/home or /)
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
+    <>
+      {showSplashScreen && (
+        <LoadingSplashScreen onFinished={() => setShowSplashScreen(false)} />
+      )}
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
       
       {/* NAVBAR */}
       <Navbar
@@ -271,7 +279,8 @@ export const App: React.FC = () => {
       <Footer />
 
     </div>
-  );
+  </>
+);
 };
 
 export default App;
