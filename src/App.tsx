@@ -4,7 +4,7 @@ import { SupabaseService, INITIAL_PROKER, INITIAL_KKN_TEAM, INITIAL_SETTINGS, IN
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { ArrowLeft } from 'lucide-react';
-import { stripHtml } from './lib/utils';
+import { stripHtml, getPreviewText } from './lib/utils';
 
 // Page imports (Clean routing layout)
 import { LandingPage } from './pages/public/LandingPage';
@@ -514,7 +514,7 @@ export const App: React.FC<AppProps> = () => {
                             {item.title}
                           </h4>
                           <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-3">
-                            {stripHtml(item.description)}
+                            {getPreviewText(item.description)}
                           </p>
                         </div>
                       </div>

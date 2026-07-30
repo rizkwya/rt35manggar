@@ -29,3 +29,24 @@ export const stripHtml = (htmlString: string): string => {
   // Collapse whitespace and trim
   return text.replace(/\s+/g, ' ').trim();
 };
+
+/**
+ * Extracts a professional preview snippet from HTML content.
+ * It ignores heading tags (h1-h6) because they repeat the article title,
+ * and extracts text from paragraphs and other body elements.
+ */
+export const getPreviewText = (htmlString: string): string => {
+  if (!htmlString) return '';
+
+  // If it doesn't look like HTML, just return it trimmed
+  if (!/<[a-z][\s\S]*>/i.test(htmlString)) {
+    return htmlString.trim();
+  }
+
+  // Remove heading elements and their contents
+  const cleanHtml = htmlString.replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, ' ');
+
+  // Strip remaining HTML tags and clean up whitespace
+  return stripHtml(cleanHtml);
+};
+

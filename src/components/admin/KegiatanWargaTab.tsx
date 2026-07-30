@@ -3,7 +3,7 @@ import { Plus, Edit, Trash2, Save, Activity } from 'lucide-react';
 import { NavigationItem } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 import { TiptapEditor } from './TiptapEditor';
-import { stripHtml } from '../../lib/utils';
+import { getPreviewText } from '../../lib/utils';
 
 interface KegiatanWargaTabProps {
   navItems: NavigationItem[];
@@ -406,7 +406,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                             <span className="px-2 py-0.5 text-[9px] font-extrabold bg-[#85A389]/10 text-[#5F8D4E] rounded border border-[#85A389]/20 uppercase tracking-wider shrink-0">{item.badge}</span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2">{stripHtml(item.description)}</p>
+                        <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2">{getPreviewText(item.description)}</p>
                       </div>
                     </div>
 

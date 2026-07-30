@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Camera, Calendar, ArrowRight, BookOpen, Compass } from 'lucide-react';
 import { SupabaseService } from '../../lib/supabase';
 import { NavigationItem } from '../../types/database';
-import { stripHtml } from '../../lib/utils';
+import { getPreviewText } from '../../lib/utils';
 
 interface LatestActivitiesSectionProps {
   navigateTo: (path: string) => void;
@@ -119,7 +119,7 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
                       {item.title}
                     </h4>
                     <p className="text-xs text-slate-500 font-semibold leading-relaxed line-clamp-3">
-                      {stripHtml(item.description)}
+                      {getPreviewText(item.description)}
                     </p>
                   </div>
                 </div>
