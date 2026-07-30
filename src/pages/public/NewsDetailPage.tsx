@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NewsPost } from '../types/database';
+import { NewsPost } from '../../types/database';
 import { ArrowLeft, Calendar, User, Share2, Copy, Check, Waves, MessageCircle } from 'lucide-react';
 
 interface NewsDetailPageProps {
@@ -187,10 +187,11 @@ export const NewsDetailPage: React.FC<NewsDetailPageProps> = ({
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-slate-900 border-t border-slate-800 py-6 text-center text-xs text-slate-500 font-medium">
+      <footer className="bg-slate-900 border-t border-slate-800 py-6 text-center text-xs text-slate-505 font-medium">
         Hak Cipta © 2026 Tim KKN RT 35 Kelurahan Manggar 2.
       </footer>
 
     </div>
   );
 };
+export default NewsDetailPage;

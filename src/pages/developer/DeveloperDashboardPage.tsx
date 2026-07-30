@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserProfile, NewsPost, ProkerItem, PresensiRecord } from '../types/database';
+import { UserProfile, NewsPost, ProkerItem, PresensiRecord } from '../../types/database';
 import { 
   Code2, 
   FileText, 
@@ -197,11 +197,11 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
             <div className="lg:col-span-5 bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
               <div>
                 <h3 className="text-xl font-black text-slate-900">Post Live Report Berita Baru</h3>
-                <p className="text-xs text-slate-600 font-semibold mt-0.5">Berita langsung tayang di Landing Page secara realtime.</p>
+                <p className="text-xs text-slate-605 font-semibold mt-0.5">Berita langsung tayang di Landing Page secara realtime.</p>
               </div>
 
               {alertSuccess && (
-                <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-2">
+                <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-805 text-xs font-bold flex items-center space-x-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                   <span>Berita Live Report berhasil diterbitkan!</span>
                 </div>
@@ -293,7 +293,7 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
                     </div>
                     <button
                       onClick={() => onDeleteNews(item.id)}
-                      className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 transition-all shrink-0"
+                      className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-650 transition-all shrink-0"
                       title="Hapus Berita"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -343,7 +343,7 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-black text-slate-900">Rekapitulasi Presensi Seluruh Anggota</h3>
-                <p className="text-xs text-slate-600 font-semibold">Total {presensiList.length} rekaman presensi masukan dari anggota.</p>
+                <p className="text-xs text-slate-605 font-semibold">Total {presensiList.length} rekaman presensi masukan dari anggota.</p>
               </div>
               <button
                 onClick={exportPresensiToCSV}
@@ -394,3 +394,4 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
     </div>
   );
 };
+export default DeveloperDashboardPage;

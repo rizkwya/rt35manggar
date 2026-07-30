@@ -1,362 +1,562 @@
 import { createClient } from '@supabase/supabase-js';
-import { NewsPost, PresensiRecord, ProkerItem, TeamMember, UserProfile } from '../types/database';
+import { 
+  NewsPost, 
+  PresensiRecord, 
+  ProkerItem, 
+  TeamMember, 
+  UserProfile, 
+  UserRole, 
+  RTDemographics, 
+  RTAnnouncement, 
+  RTPengurus,
+  RTSettings,
+  NavigationItem,
+  RTFacility
+} from '../types/database';
+import { 
+  INITIAL_DEMOGRAPHICS, 
+  INITIAL_SETTINGS, 
+  INITIAL_ANNOUNCEMENTS, 
+  INITIAL_PENGURUS, 
+  INITIAL_KKN_TEAM, 
+  INITIAL_PROKER,
+  INITIAL_NAV_ITEMS,
+  INITIAL_FACILITIES
+} from './initialData';
 
-// ENVIRONMENT VARIABLES FROM .env FILE
+// Re-export initial data constants so all component imports remain intact
+export * from './initialData';
+
+// PRODUCTION SUPABASE ENVIRONMENT CONFIGURATION
 export const SUPABASE_URL = 
-  (import.meta as any).env?.VITE_SUPABASE_URL || 'https://pwtmouagvqhafqewtkin.supabase.co';
+  (import.meta as any).env?.VITE_SUPABASE_URL || 'https://atmqjbhrillqeehblizb.supabase.co';
 
 export const SUPABASE_ANON_KEY = 
   (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 
   'sb_publishable_SSBgwLT0rUpEm8n0qDYaFw_Qp1vIm7G';
 
-// Initialize Production Supabase Client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// OFFICIAL TEAM MEMBERS SEED DATA (GUSTI IHSANUDDIN 2311050 IS SOLE DEVELOPER)
-export const OFFICIAL_TEAM: TeamMember[] = [
-  {
-    id: 't1',
-    name: 'LAKSAMANA ANDHIKA',
-    nim: '2313008',
-    prodi: 'SISTEM INFORMASI (S1)',
-    role_kkn: 'Ketua Kelompok',
-    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-    is_developer: false
-  },
-  {
-    id: 't2',
-    name: 'ANNISA DEWI PUTRI INDRA',
-    nim: '2321061',
-    prodi: 'AKUNTANSI (S1)',
-    role_kkn: 'Sekretaris & Bendahara',
-    avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
-    is_developer: false
-  },
-  {
-    id: 't3',
-    name: 'CHINTA SYAFIRNA RAMADHANI BUDI',
-    nim: '2322089',
-    prodi: 'MANAJEMEN (S1)',
-    role_kkn: 'Humas & Media',
-    avatar_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80',
-    is_developer: false
-  },
-  {
-    id: 't4',
-    name: 'EVA PUTRI NUR OKTAVIA',
-    nim: '2322015',
-    prodi: 'MANAJEMEN (S1)',
-    role_kkn: 'Divisi Logistik & Acara',
-    avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80',
-    is_developer: false
-  },
-  {
-    id: 't5',
-    name: 'GUSTI IHSANUDDIN',
-    nim: '2311050',
-    prodi: 'INFORMATIKA (S1)',
-    role_kkn: 'Lead Developer & Web Master',
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-    is_developer: true // SOLE DEVELOPER
-  },
-  {
-    id: 't6',
-    name: 'INDAH PUSPITA LOKA',
-    nim: '2333018',
-    prodi: 'FARMASI (S1)',
-    role_kkn: 'Divisi Kesehatan Warga',
-    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-    is_developer: false
-  },
-  {
-    id: 't7',
-    name: 'MUHAMMAD AZIZ RAMADHANI',
-    nim: '2322173',
-    prodi: 'MANAJEMEN (S1)',
-    role_kkn: 'Divisi Pemberdayaan UMKM',
-    avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-    is_developer: false
-  },
-  {
-    id: 't8',
-    name: 'QOLBY ZAKIN SEPHIANA',
-    nim: '2311090',
-    prodi: 'INFORMATIKA (S1)',
-    role_kkn: 'Co-Developer & IT Support',
-    avatar_url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=300&q=80',
-    is_developer: false
-  }
-];
-
-export const INITIAL_NEWS: NewsPost[] = [
-  {
-    id: 'n1',
-    title: 'Pembukaan Resmi KKN RT 35 Kelurahan Manggar 2',
-    slug: 'pembukaan-resmi-kkn-rt35-manggar-2',
-    summary: 'Penyambutan hangat tim KKN oleh Ketua RT 35 beserta tokoh masyarakat Kelurahan Manggar 2.',
-    content: 'Kelurahan Manggar 2 khususnya lingkungan RT 35 secara resmi menyambut kedatangan 8 mahasiswa KKN lintas prodi (Informatika, Sistem Informasi, Manajemen, Akuntansi, Farmasi). Acara ini dipimpin oleh Ketua RT 35 beserta jajaran tokoh masyarakat. Program difokuskan pada digitalisasi UMKM lokal, sistem informasi presensi, dan edukasi kesehatan warga.',
-    category: 'Kegiatan Utama',
-    image_url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1000&q=80',
-    author_name: 'Gusti Ihsanuddin (Lead Developer)',
-    is_published: true,
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'n2',
-    title: 'Survei Lapangan & Pemetaan UMKM Pesisir RT 35',
-    slug: 'survei-lapangan-umkm-rt35',
-    summary: 'Pendataan usaha olahan laut, kuliner & kerajinan lokal warga RT 35 Manggar 2.',
-    content: 'Tim KKN melakukan pemetaan potensi ekonomi lokal di sekitar wilayah RT 35 Manggar 2 Balikpapan Timur. Data yang diperoleh akan dimasukkan ke dalam Web Peta Digital UMKM untuk memperluas jangkauan pasar pelaku usaha lokal RT 35.',
-    category: 'Digitalisasi UMKM',
-    image_url: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1000&q=80',
-    author_name: 'Muhammad Aziz & Tim',
-    is_published: true,
-    created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-  },
-  {
-    id: 'n3',
-    title: 'Peluncuran Portal Web & System Presensi Digital RT 35',
-    slug: 'peluncuran-portal-web-rt35',
-    summary: 'Implementasi platform digital KKN RT 35 dengan arsitektur React, Tailwind & Supabase.',
-    content: 'Sebagai bentuk kontribusi mahasiswa prodi Informatika & Sistem Informasi, dibangun portal resmi KKN RT 35 Kelurahan Manggar 2 terintegrasi sistem presensi dan logbook harian anggota.',
-    category: 'Teknologi',
-    image_url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1000&q=80',
-    author_name: 'Gusti Ihsanuddin (Developer)',
-    is_published: true,
-    created_at: new Date().toISOString(),
-  }
-];
-
-export const INITIAL_PROKER: ProkerItem[] = [
-  {
-    id: 'p1',
-    title: 'Website Portal & Presensi Digital KKN RT 35',
-    description: 'Pengembangan portal resmi KKN RT 35 Manggar 2 berbasis React, TailwindCSS, dan Supabase real-time.',
-    category: 'Teknologi & Informasi',
-    target_date: '25 Juli 2026',
-    progress_percent: 95,
-    status: 'In Progress',
-    pic_name: 'Gusti Ihsanuddin (Developer)'
-  },
-  {
-    id: 'p2',
-    title: 'Peta Digital & Katalog UMKM Warga RT 35',
-    description: 'Pembuatan direktori interaktif dan Google Maps integration untuk produk unggulan warga RT 35 Manggar 2.',
-    category: 'Digitalisasi UMKM',
-    target_date: '30 Juli 2026',
-    progress_percent: 75,
-    status: 'In Progress',
-    pic_name: 'Muhammad Aziz & Annisa'
-  },
-  {
-    id: 'p3',
-    title: 'Edukasi Kesehatan & Pembagian Vitamin Warga RT 35',
-    description: 'Sosialisasi pola hidup bersih sehat dan pemeriksaan kesehatan gratis bagi lansia & balita RT 35.',
-    category: 'Kesehatan & Masyarakat',
-    target_date: '02 Agustus 2026',
-    progress_percent: 50,
-    status: 'In Progress',
-    pic_name: 'Indah Puspita (Farmasi)'
-  },
-  {
-    id: 'p4',
-    title: 'Pelatihan Literasi Keuangan & Akuntansi UMKM RT 35',
-    description: 'Pelatihan pembukuan keuangan sederhana bagi pelaku usaha mikro warga RT 35.',
-    category: 'Edukasi & Keuangan',
-    target_date: '06 Agustus 2026',
-    progress_percent: 30,
-    status: 'Planned',
-    pic_name: 'Laksamana & Chinta'
-  }
-];
-
-// DYNAMIC SUPABASE REALTIME DATA SERVICES
+// DYNAMIC DATA SERVICE INTERACTION
 export const SupabaseService = {
-  // DYNAMIC USER AUTHENTICATION
-  async authenticateUser(nim: string, pass: string): Promise<UserProfile | null> {
-    const trimmedNim = nim.trim();
-    const trimmedPass = pass.trim();
+  async authenticateUser(inputKey: string, passKey: string): Promise<UserProfile | null> {
+    const trimmedInput = inputKey.trim().toLowerCase();
+    const trimmedPass = passKey.trim();
 
-    try {
-      // 1. Try querying live Supabase 'users' table
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('nim', trimmedNim)
-        .single();
-
-      if (data && !error) {
-        const role = data.role === 'developer' || data.is_developer ? 'developer' : 'mahasiswa';
-        return {
-          id: data.id,
-          email: data.email || `${trimmedNim}@fasilkom.ac.id`,
-          full_name: data.full_name || data.name,
-          role: role,
-          prodi: data.prodi,
-          nim: data.nim,
-          avatar_url: data.avatar_url,
-        };
-      }
-    } catch (err) {
-      console.warn('Supabase users query fallback to official team list:', err);
+    let targetEmail = trimmedInput;
+    if (trimmedInput === 'sekretaris') {
+      targetEmail = 'sekretaris@rt35.id';
+    } else if (/^\d+$/.test(trimmedInput)) {
+      targetEmail = `${trimmedInput}@fasilkom.ac.id`;
     }
 
-    // 2. Official Team Database fallback
-    const member = OFFICIAL_TEAM.find((m) => m.nim === trimmedNim);
-    if (member && (trimmedPass === 'kkn35manggar2' || trimmedPass === trimmedNim)) {
-      const role = member.is_developer ? 'developer' : 'mahasiswa';
-      return {
-        id: member.id,
-        email: `${member.nim}@fasilkom.ac.id`,
-        full_name: member.name,
-        role: role,
-        prodi: member.prodi,
-        nim: member.nim,
-        avatar_url: member.avatar_url,
-      };
+    try {
+      // Try official Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: targetEmail,
+        password: trimmedPass
+      });
+
+      if (authData?.user && !authError) {
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', authData.user.email)
+          .single();
+
+        if (profile && !profileError) {
+          let role: UserRole = 'mahasiswa';
+          if (profile.role === 'sekretaris_rt') role = 'sekretaris_rt';
+          if (profile.role === 'developer' || profile.is_developer) role = 'developer';
+
+          return {
+            id: profile.id,
+            email: profile.email,
+            full_name: profile.full_name || profile.name,
+            role: role,
+            prodi: profile.prodi,
+            nim: profile.nim,
+            avatar_url: profile.avatar_url,
+          };
+        }
+      }
+    } catch (err) {
+      console.error('Supabase Auth error:', err);
     }
 
     return null;
   },
 
-  // DYNAMIC FETCH NEWS
+  async updateUserProfile(profile: UserProfile): Promise<UserProfile> {
+    try {
+      const dbObj = {
+        id: profile.id,
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+        email: profile.email,
+        nim: profile.nim,
+        prodi: profile.prodi,
+        phone: profile.phone,
+        role: profile.role
+      };
+      const { error } = await supabase.from('users').upsert([dbObj]);
+      if (error) throw error;
+    } catch (e) {
+      console.warn('User profile update error:', e);
+    }
+    return profile;
+  },
+
+  // DEMOGRAPHICS DATA CRUD
+  async fetchDemographics(): Promise<RTDemographics> {
+    try {
+      const { data, error } = await supabase.from('rt_demographics').select('*').single();
+      if (data && !error) {
+        return { ...INITIAL_DEMOGRAPHICS, ...data } as RTDemographics;
+      }
+    } catch (e) {
+      console.error('Demographics query error:', e);
+    }
+    return INITIAL_DEMOGRAPHICS;
+  },
+
+  async updateDemographics(demographics: RTDemographics): Promise<RTDemographics> {
+    const updatedObj = { ...demographics, updated_at: new Date().toISOString() };
+    try {
+      await supabase.from('rt_demographics').upsert([updatedObj]);
+    } catch (e) {
+      console.warn('Demographics update error:', e);
+    }
+    return updatedObj;
+  },
+
+  // ANNOUNCEMENTS CRUD
+  async fetchAnnouncements(): Promise<RTAnnouncement[]> {
+    try {
+      const { data, error } = await supabase.from('rt_announcements').select('*').order('date', { ascending: false });
+      if (data && !error) {
+        return data as RTAnnouncement[];
+      }
+    } catch (e) {
+      console.warn('Announcements query error:', e);
+    }
+    return [];
+  },
+
+  async addAnnouncement(item: RTAnnouncement): Promise<RTAnnouncement[]> {
+    try {
+      await supabase.from('rt_announcements').insert([item]);
+    } catch (e) {
+      console.warn('Announcement insert error:', e);
+    }
+    return this.fetchAnnouncements();
+  },
+
+  async deleteAnnouncement(id: string): Promise<RTAnnouncement[]> {
+    try {
+      await supabase.from('rt_announcements').delete().eq('id', id);
+    } catch (e) {
+      console.warn('Announcement delete error:', e);
+    }
+    return this.fetchAnnouncements();
+  },
+
+  // NEWS CRUD
   async fetchNews(): Promise<NewsPost[]> {
     try {
       const { data, error } = await supabase
         .from('news')
         .select('*')
         .order('created_at', { ascending: false });
-
-      if (data && data.length > 0 && !error) {
+      if (data && !error) {
         return data as NewsPost[];
       }
     } catch (e) {
-      console.warn('Supabase news query fallback:', e);
+      console.warn('News query error:', e);
     }
-    return DataManager.getNews();
+    return [];
   },
 
-  // DYNAMIC INSERT NEWS
-  async addNews(newsItem: NewsPost): Promise<NewsPost[]> {
+  async addNews(item: any): Promise<NewsPost[]> {
     try {
-      await supabase.from('news').insert([newsItem]);
+      await supabase.from('news').insert([item]);
     } catch (e) {
-      console.warn('Supabase news insert error:', e);
+      console.warn('News insert error:', e);
     }
-    const current = DataManager.getNews();
-    const updated = [newsItem, ...current];
-    DataManager.saveNews(updated);
-    return updated;
+    return this.fetchNews();
   },
 
-  // DYNAMIC DELETE NEWS
+  async updateNews(item: any): Promise<NewsPost[]> {
+    try {
+      await supabase.from('news').update(item).eq('id', item.id);
+    } catch (e) {
+      console.warn('News update error:', e);
+    }
+    return this.fetchNews();
+  },
+
   async deleteNews(id: string): Promise<NewsPost[]> {
     try {
       await supabase.from('news').delete().eq('id', id);
     } catch (e) {
-      console.warn('Supabase news delete error:', e);
+      console.warn('News delete error:', e);
     }
-    const current = DataManager.getNews();
-    const updated = current.filter((n) => n.id !== id);
-    DataManager.saveNews(updated);
-    return updated;
+    return this.fetchNews();
   },
 
-  // DYNAMIC FETCH PROKER
+  // PENGURUS CRUD
+  async fetchPengurus(): Promise<RTPengurus[]> {
+    try {
+      const { data, error } = await supabase.from('rt_pengurus').select('*').order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data || []) as RTPengurus[];
+    } catch (e) {
+      console.error('Pengurus query error:', e);
+      throw e;
+    }
+  },
+
+  async updatePengurus(item: RTPengurus): Promise<RTPengurus[]> {
+    try {
+      const { error } = await supabase.from('rt_pengurus').upsert([item]);
+      if (error) throw error;
+      return this.fetchPengurus();
+    } catch (e) {
+      console.error('Pengurus update error:', e);
+      throw e;
+    }
+  },
+
+  async deletePengurus(id: string): Promise<RTPengurus[]> {
+    try {
+      const { error } = await supabase.from('rt_pengurus').delete().eq('id', id);
+      if (error) throw error;
+      return this.fetchPengurus();
+    } catch (e) {
+      console.error('Pengurus delete error:', e);
+      throw e;
+    }
+  },
+
+  // KKN TEAM MEMBERS CRUD
+  async fetchKKNTeam(): Promise<TeamMember[]> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('role', 'mahasiswa');
+      if (data && !error) {
+        return data.map((d) => ({
+          id: d.id,
+          name: d.full_name,
+          nim: d.nim,
+          prodi: d.prodi,
+          role_kkn: d.role_kkn || 'Mahasiswa KKN',
+          avatar_url: d.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+          email: d.email,
+        }));
+      }
+    } catch (e) {
+      console.warn('KKN Team query error:', e);
+    }
+    return [];
+  },
+
+  async updateKKNTeamMember(member: TeamMember): Promise<TeamMember[]> {
+    try {
+      const dbObj = {
+        id: member.id,
+        full_name: member.name,
+        nim: member.nim,
+        prodi: member.prodi,
+        avatar_url: member.avatar_url,
+        email: member.email || `${member.nim}@fasilkom.ac.id`,
+      };
+      await supabase.from('users').upsert([dbObj]);
+    } catch (e) {
+      console.warn('KKN Team update error:', e);
+    }
+    return this.fetchKKNTeam();
+  },
+
+  async deleteKKNTeamMember(id: string): Promise<TeamMember[]> {
+    try {
+      await supabase.from('users').delete().eq('id', id);
+    } catch (e) {
+      console.warn('KKN Team member delete error:', e);
+    }
+    return this.fetchKKNTeam();
+  },
+
+  // PROKER KKN CRUD
   async fetchProker(): Promise<ProkerItem[]> {
     try {
       const { data, error } = await supabase.from('proker').select('*');
-      if (data && data.length > 0 && !error) {
+      if (data && !error) {
         return data as ProkerItem[];
       }
     } catch (e) {
-      console.warn('Supabase proker query fallback:', e);
+      console.warn('Proker query error:', e);
     }
-    return DataManager.getProker();
+    return [];
   },
 
-  // DYNAMIC UPDATE PROKER
   async updateProker(item: ProkerItem): Promise<ProkerItem[]> {
     try {
       await supabase.from('proker').upsert([item]);
     } catch (e) {
-      console.warn('Supabase proker update error:', e);
+      console.warn('Proker update error:', e);
     }
-    const current = DataManager.getProker();
-    const updated = current.map((p) => (p.id === item.id ? item : p));
-    DataManager.saveProker(updated);
-    return updated;
+    return this.fetchProker();
   },
 
-  // DYNAMIC FETCH PRESENSI
+  async deleteProker(id: string): Promise<ProkerItem[]> {
+    try {
+      await supabase.from('proker').delete().eq('id', id);
+    } catch (e) {
+      console.warn('Proker delete error:', e);
+    }
+    return this.fetchProker();
+  },
+
+  // PRESENSI KKN CRUD
   async fetchPresensi(): Promise<PresensiRecord[]> {
     try {
-      const { data, error } = await supabase
-        .from('presensi')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const { data, error } = await supabase.from('presensi').select('*').order('created_at', { ascending: false });
       if (data && data.length > 0 && !error) {
         return data as PresensiRecord[];
       }
     } catch (e) {
-      console.warn('Supabase presensi query fallback:', e);
+      console.warn('Presensi query error:', e);
     }
-    return DataManager.getPresensi();
+    return [];
   },
 
-  // DYNAMIC INSERT PRESENSI
   async addPresensi(record: PresensiRecord): Promise<PresensiRecord[]> {
     try {
       await supabase.from('presensi').insert([record]);
     } catch (e) {
-      console.warn('Supabase presensi insert error:', e);
+      console.warn('Presensi insert error:', e);
     }
-    const current = DataManager.getPresensi();
-    const updated = [record, ...current];
-    DataManager.savePresensi(updated);
-    return updated;
-  }
-};
+    return this.fetchPresensi();
+  },
 
-// LOCAL STORAGE PERSISTENCE MANAGER
-export const DataManager = {
-  getNews: (): NewsPost[] => {
+  // PORTAL SETTINGS CRUD
+  async fetchSettings(): Promise<RTSettings> {
     try {
-      const stored = localStorage.getItem('kkn_news');
-      return stored ? JSON.parse(stored) : INITIAL_NEWS;
+      const { data, error } = await supabase.from('rt_settings').select('*');
+      if (data && data.length > 0 && !error) {
+        const firstRow = data[0];
+        let maps_coordinate = '';
+        let syarat_surat = '';
+        let kontak_darurat = '';
+        let emergency_title = firstRow.emergency_title || '';
+        let emergency_description = '';
+        
+        let vision = '';
+        let mission = '';
+        let history = '';
+        let boundary_north = '';
+        let boundary_south = '';
+        let boundary_east = '';
+        let boundary_west = '';
+
+        if (firstRow.emergency_description) {
+          try {
+            const extra = JSON.parse(firstRow.emergency_description);
+            maps_coordinate = extra.maps_coordinate || '';
+            syarat_surat = extra.syarat_surat || '';
+            kontak_darurat = extra.kontak_darurat || '';
+            emergency_description = extra.emergency_description || '';
+            
+            if (extra.vision) vision = extra.vision;
+            if (extra.mission) mission = extra.mission;
+            if (extra.history) history = extra.history;
+            if (extra.boundary_north) boundary_north = extra.boundary_north;
+            if (extra.boundary_south) boundary_south = extra.boundary_south;
+            if (extra.boundary_east) boundary_east = extra.boundary_east;
+            if (extra.boundary_west) boundary_west = extra.boundary_west;
+          } catch (jsonErr) {
+            console.warn('Failed to parse emergency_description as JSON:', jsonErr);
+            emergency_description = firstRow.emergency_description;
+          }
+        }
+        return {
+          ...firstRow,
+          emergency_title,
+          emergency_description,
+          maps_coordinate,
+          syarat_surat,
+          kontak_darurat,
+          vision,
+          mission,
+          history,
+          boundary_north,
+          boundary_south,
+          boundary_east,
+          boundary_west
+        } as RTSettings;
+      }
     } catch (e) {
-      return INITIAL_NEWS;
+      console.error('Settings query error:', e);
     }
+    
+    return INITIAL_SETTINGS;
   },
 
-  saveNews: (news: NewsPost[]) => {
-    localStorage.setItem('kkn_news', JSON.stringify(news));
-  },
-
-  getProker: (): ProkerItem[] => {
+  async updateSettings(settings: RTSettings): Promise<RTSettings> {
+    let existingId = settings.id;
     try {
-      const stored = localStorage.getItem('kkn_proker');
-      return stored ? JSON.parse(stored) : INITIAL_PROKER;
+      const { data } = await supabase.from('rt_settings').select('id');
+      if (data && data.length > 0) {
+        existingId = data[0].id;
+      }
     } catch (e) {
-      return INITIAL_PROKER;
+      console.warn('Failed to fetch existing settings ID:', e);
     }
-  },
 
-  saveProker: (proker: ProkerItem[]) => {
-    localStorage.setItem('kkn_proker', JSON.stringify(proker));
-  },
+    const extra = {
+      maps_coordinate: settings.maps_coordinate || '',
+      syarat_surat: settings.syarat_surat || '',
+      kontak_darurat: settings.kontak_darurat || '',
+      emergency_description: settings.emergency_description || '',
+      vision: settings.vision || '',
+      mission: settings.mission || '',
+      history: settings.history || '',
+      boundary_north: settings.boundary_north || '',
+      boundary_south: settings.boundary_south || '',
+      boundary_east: settings.boundary_east || '',
+      boundary_west: settings.boundary_west || ''
+    };
+    const dbObj: any = {
+      portal_name: settings.portal_name,
+      portal_description: settings.portal_description,
+      address: settings.address,
+      address_detail: settings.address_detail,
+      service_hours: settings.service_hours,
+      phone_secretary: settings.phone_secretary,
+      emergency_title: settings.emergency_title || '',
+      emergency_description: JSON.stringify(extra),
+      updated_at: new Date().toISOString()
+    };
+    if (existingId) {
+      dbObj.id = existingId;
+    }
 
-  getPresensi: (): PresensiRecord[] => {
     try {
-      const stored = localStorage.getItem('kkn_presensi');
-      return stored ? JSON.parse(stored) : [];
+      const { data, error } = await supabase.from('rt_settings').upsert([dbObj]).select();
+      if (data && data.length > 0 && !error) {
+        return {
+          ...settings,
+          ...extra,
+          id: data[0].id
+        };
+      }
     } catch (e) {
-      return [];
+      console.warn('Settings update error:', e);
     }
+    return {
+      ...settings,
+      ...extra,
+      id: existingId
+    };
   },
 
-  savePresensi: (records: PresensiRecord[]) => {
-    localStorage.setItem('kkn_presensi', JSON.stringify(records));
+  // NAVIGATION MENU CRUD
+  async fetchNavItems(): Promise<NavigationItem[]> {
+    try {
+      const { data, error } = await supabase
+        .from('rt_navigation_items')
+        .select('*')
+        .order('order_index', { ascending: true });
+      if (data && !error) {
+        return data as NavigationItem[];
+      }
+    } catch (e) {
+      console.warn('Navigation items query error:', e);
+    }
+    return [];
+  },
+
+  async saveNavItems(items: NavigationItem[]): Promise<NavigationItem[]> {
+    const { error } = await supabase.from('rt_navigation_items').upsert(items);
+    if (error) {
+      console.warn('Navigation items upsert error:', error);
+      throw new Error(error.message || 'Gagal menyimpan menu navigasi.');
+    }
+    return this.fetchNavItems();
+  },
+
+  async deleteNavItem(id: string): Promise<NavigationItem[]> {
+    const { error } = await supabase.from('rt_navigation_items').delete().eq('id', id);
+    if (error) {
+      console.warn('Navigation item delete error:', error);
+      throw new Error(error.message || 'Gagal menghapus menu navigasi.');
+    }
+    return this.fetchNavItems();
+  },
+
+  async uploadImage(file: File, folder: string = 'images'): Promise<string> {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
+    const filePath = `${folder}/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('rt-assets')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.warn('Storage upload error:', error);
+      throw new Error(error.message || 'Gagal mengunggah ke storage.');
+    }
+
+    const { data: publicData } = supabase.storage
+      .from('rt-assets')
+      .getPublicUrl(filePath);
+ 
+    if (!publicData || !publicData.publicUrl) {
+      throw new Error('Gagal mendapatkan URL publik gambar.');
+    }
+ 
+    return publicData.publicUrl;
+  },
+
+  // FACILITIES CRUD
+  async fetchFacilities(): Promise<RTFacility[]> {
+    try {
+      const { data, error } = await supabase
+        .from('rt_facilities')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (data && !error) {
+        return data as RTFacility[];
+      }
+    } catch (e) {
+      console.error('Facilities query error:', e);
+    }
+    return [];
+  },
+
+  async updateFacility(facility: RTFacility): Promise<RTFacility[]> {
+    try {
+      const { error } = await supabase.from('rt_facilities').upsert([facility]);
+      if (error) throw error;
+    } catch (e) {
+      console.warn('Facility update error:', e);
+    }
+    return this.fetchFacilities();
+  },
+
+  async deleteFacility(id: string): Promise<RTFacility[]> {
+    try {
+      const { error } = await supabase.from('rt_facilities').delete().eq('id', id);
+      if (error) throw error;
+    } catch (e) {
+      console.warn('Facility delete error:', e);
+    }
+    return this.fetchFacilities();
   }
 };

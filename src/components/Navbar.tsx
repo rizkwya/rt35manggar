@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { UserRole, UserProfile } from '../types/database';
+import { UserRole, UserProfile, NavigationItem } from '../types/database';
 import { 
   CheckCircle2, 
-  Code2, 
   LogIn, 
   LogOut, 
   Menu, 
   ShieldCheck, 
-  UserCheck, 
-  X,
-  Waves
+  PieChart, 
+  Anchor, 
+  Sparkles, 
+  X 
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -21,6 +21,7 @@ interface NavbarProps {
   onLogout: () => void;
   activeSection: string;
   setActiveSection: (sec: string) => void;
+  navItems: NavigationItem[];
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -31,212 +32,324 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenDashboard,
   onLogout,
   activeSection,
-  setActiveSection
+  setActiveSection,
+  navItems
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const currentPath = window.location.pathname;
 
-  const navLinks = [
-    { id: 'beranda', label: 'Beranda' },
-    { id: 'tentang', label: 'Tentang' },
-    { id: 'proker', label: 'Proker' },
-    { id: 'berita', label: 'Live Report' },
-    { id: 'tim', label: 'Tim KKN' },
-    { id: 'galeri', label: 'Galeri' },
-    { id: 'kontak', label: 'Posko' },
+  const isHomeActive = (targetId: string) => {
+    if (targetId === 'beranda') {
+      return ['beranda', 'statistik-warga', 'pengumuman-rt', 'pengurus-rt', 'kkn-rt35', 'kontak-layanan'].includes(activeSection) && (currentPath === '/home' || currentPath === '/');
+    }
+    return activeSection === targetId && (currentPath === '/home' || currentPath === '/');
+  };
+
+  const visibleItems: NavigationItem[] = [
+    { id: 'nav-1', label: 'Beranda', type: 'anchor', target_id: 'beranda', order_index: 1, is_visible: true },
+    { id: 'nav-2', label: 'Fasilitas RT', type: 'custom_page', target_id: 'fasilitas', order_index: 2, is_visible: true },
+    { id: 'nav-3', label: 'Kegiatan Warga', type: 'custom_page', target_id: 'kegiatan-warga', order_index: 3, is_visible: true },
+    { id: 'nav-4', label: 'Berita RT', type: 'custom_page', target_id: 'berita', order_index: 4, is_visible: true }
   ];
 
-  const handleNavClick = (id: string) => {
-    setActiveSection(id);
+  const handleNavItemClick = (item: NavigationItem) => {
     setMobileMenuOpen(false);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    if (item.target_id === 'fasilitas') {
+      window.history.pushState(null, '', '/fasilitas');
+      window.dispatchEvent(new Event('popstate'));
+      return;
+    }
+    if (item.target_id === 'berita') {
+      window.history.pushState(null, '', '/berita');
+      window.dispatchEvent(new Event('popstate'));
+      return;
+    }
+    if (item.type === 'anchor') {
+      if (item.target_id === 'kkn') {
+        window.history.pushState(null, '', '/kkn');
+        window.dispatchEvent(new Event('popstate'));
+      } else if (item.target_id === 'berita') {
+        window.history.pushState(null, '', '/berita');
+        window.dispatchEvent(new Event('popstate'));
+      } else {
+        setActiveSection(item.target_id);
+        if (currentPath !== '/home' && currentPath !== '/') {
+          window.history.pushState(null, '', '/home');
+          window.dispatchEvent(new Event('popstate'));
+          setTimeout(() => {
+            const element = document.getElementById(item.target_id);
+            if (element) element.scrollIntoView({ behavior: 'smooth' });
+          }, 150);
+        } else {
+          const element = document.getElementById(item.target_id);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      }
+    } else {
+      window.history.pushState(null, '', `/page/${item.target_id}`);
+      window.dispatchEvent(new Event('popstate'));
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          
-          {/* MINIMALIST CLEAN LOGO */}
-          <div 
-            className="flex items-center space-x-2.5 cursor-pointer group" 
-            onClick={() => handleNavClick('beranda')}
-          >
-            <div className="w-9 h-9 rounded-xl bg-[#236F9E] flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
-              <Waves className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-display font-black text-base text-slate-900 tracking-tight leading-none">
-                KKN RT 35 MANGGAR 2
-              </span>
-              <span className="text-[10px] font-extrabold text-[#4F9460] mt-0.5">
-                Balikpapan Timur
-              </span>
-            </div>
+    <header className="sticky top-4 z-50 transition-all duration-300 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="glass-panel rounded-[24px] px-6 h-16 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all">
+        
+        {/* RT 35 BRAND LOGO */}
+        <div 
+          className="flex items-center space-x-3 cursor-pointer group" 
+          onClick={() => {
+            window.history.pushState(null, '', '/home');
+            window.dispatchEvent(new Event('popstate'));
+            setTimeout(() => {
+              const el = document.getElementById('beranda');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          }}
+        >
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#1E4D6B] via-[#85A389] to-[#E5D3B3] flex items-center justify-center text-white shadow-sm group-hover:rotate-6 transition-transform duration-300">
+            <Anchor className="w-4.5 h-4.5 text-white" />
           </div>
-
-          {/* DESKTOP MINIMALIST NAV LINKS */}
-          <nav className="hidden md:flex items-center space-x-1">
-            {navLinks.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => handleNavClick(link.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
-                  activeSection === link.id
-                    ? 'text-[#236F9E] bg-[#DDF0FA] font-black'
-                    : 'text-slate-700 hover:text-[#236F9E] hover:bg-slate-100 font-extrabold'
-                }`}
-              >
-                {link.label}
-              </button>
-            ))}
-          </nav>
-
-          {/* RIGHT SIDE: ONLY SHOW LOGIN BUTTON FOR PUBLIC VISITORS! */}
-          <div className="hidden lg:flex items-center space-x-2.5">
-            
-            {currentRole === 'public' ? (
-              <button
-                onClick={onOpenAuth}
-                className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-[#236F9E] hover:bg-[#1C597E] text-white font-black text-xs shadow-md transition-all transform hover:-translate-y-0.5"
-              >
-                <LogIn className="w-4 h-4 text-white" />
-                <span className="text-white font-black">Masuk / Login</span>
-              </button>
-            ) : (
-              /* WHEN USER IS LOGGED IN */
-              <div className="flex items-center space-x-2.5">
-                
-                {/* ROLE BADGE */}
-                {currentRole === 'developer' && (
-                  <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-950 text-[11px] font-black">
-                    <Code2 className="w-3.5 h-3.5 text-amber-700" />
-                    <span>Dev Admin</span>
-                  </div>
-                )}
-                
-                {currentRole === 'mahasiswa' && (
-                  <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-950 text-[11px] font-black">
-                    <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>{userProfile?.full_name.split(' ')[0]}</span>
-                  </div>
-                )}
-
-                {/* ACTION BUTTONS WHEN LOGGED IN */}
-                {currentRole === 'developer' && (
-                  <button
-                    onClick={onOpenDashboard}
-                    className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-sm transition-all"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-slate-950" />
-                    <span>CMS Admin</span>
-                  </button>
-                )}
-
-                <button
-                  onClick={onOpenPresensi}
-                  className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-[#4F9460] hover:bg-[#3F774F] text-white font-black text-xs shadow-sm transition-all"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                  <span>Presensi Harian</span>
-                </button>
-
-                <button
-                  onClick={onLogout}
-                  title="Keluar / Logout"
-                  className="p-2 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-200 transition-all"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-
-              </div>
-            )}
-
+          <div className="flex flex-col">
+            <span className="font-black text-xs text-slate-800 tracking-tight leading-none uppercase">
+              PORTAL RT 35
+            </span>
+            <span className="text-[8px] font-black text-[#5F8D4E] mt-1.5 uppercase tracking-wider leading-none">
+              Manggar Balikpapan
+            </span>
           </div>
-
-          {/* MOBILE MENU TOGGLE */}
-          <div className="flex md:hidden items-center space-x-2">
-            {currentRole === 'public' ? (
-              <button
-                onClick={onOpenAuth}
-                className="px-3 py-1.5 rounded-lg bg-[#236F9E] text-white font-black text-xs flex items-center gap-1"
-              >
-                <LogIn className="w-3.5 h-3.5" /> Login
-              </button>
-            ) : (
-              <button
-                onClick={onOpenPresensi}
-                className="px-3 py-1.5 rounded-lg bg-[#4F9460] text-white font-black text-xs flex items-center gap-1"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" /> Presensi
-              </button>
-            )}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-800 hover:bg-slate-100 border border-slate-200"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-
         </div>
+
+        {/* DESKTOP NAV LINKS */}
+        <nav className="hidden md:flex items-center space-x-1">
+          {visibleItems.map((item) => {
+            if (item.type === 'anchor') {
+              if (item.target_id === 'kkn') {
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavItemClick(item)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1 ${
+                      currentPath === '/kkn'
+                        ? 'text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/20 shadow-sm'
+                        : 'text-[#85A389] hover:text-[#5F8D4E] hover:bg-[#85A389]/5'
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-[#85A389]" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              }
+              if (item.target_id === 'berita') {
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavItemClick(item)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all ${
+                      currentPath === '/berita'
+                        ? 'text-[#1E4D6B] bg-[#1E4D6B]/5 border border-[#1E4D6B]/10 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              }
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavItemClick(item)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all ${
+                    isHomeActive(item.target_id)
+                      ? 'text-[#1E4D6B] bg-[#1E4D6B]/5 border border-[#1E4D6B]/10 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            } else {
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavItemClick(item)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all ${
+                    currentPath === `/page/${item.target_id}` || 
+                    (item.target_id === 'fasilitas' && currentPath === '/fasilitas') ||
+                    (item.target_id === 'berita' && currentPath === '/berita')
+                      ? 'text-[#1E4D6B] bg-[#1E4D6B]/5 border border-[#1E4D6B]/10 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            }
+          })}
+        </nav>
+
+        {/* RIGHT ACTION BUTTONS */}
+        <div className="hidden lg:flex items-center space-x-2.5">
+          {currentRole === 'public' ? (
+            <button
+              onClick={onOpenAuth}
+              className="flex items-center space-x-1.5 px-4.5 py-2 rounded-xl bg-gradient-to-r from-[#1E4D6B] to-[#85A389] hover:shadow-md text-white font-extrabold text-xs transition-all hover:scale-102 active:scale-98"
+            >
+              <LogIn className="w-4 h-4 text-white" />
+              <span>Masuk Login</span>
+            </button>
+          ) : (
+            <div className="flex items-center space-x-2">
+              {currentRole === 'sekretaris_rt' && (
+                <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#E5D3B3]/10 border border-[#E5D3B3]/30 text-[#a38b64] text-[10px] font-black uppercase tracking-wider">
+                  <PieChart className="w-3.5 h-3.5" />
+                  <span>Sekretaris RT</span>
+                </div>
+              )}
+
+              {currentRole === 'mahasiswa' && (
+                <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#85A389]/10 border border-[#85A389]/25 text-[#5F8D4E] text-[10px] font-black uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Anggota KKN</span>
+                </div>
+              )}
+
+              {currentRole === 'developer' && (
+                <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#1E4D6B]/10 border border-[#1E4D6B]/25 text-[#1E4D6B] text-[10px] font-black uppercase tracking-wider">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>IT Developer</span>
+                </div>
+              )}
+
+              <button
+                onClick={currentRole === 'mahasiswa' ? onOpenPresensi : onOpenDashboard}
+                className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs transition-all border border-slate-200 shadow-sm"
+              >
+                Dashboard
+              </button>
+
+              <button
+                onClick={onLogout}
+                className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-colors border border-transparent hover:border-rose-100"
+                title="Logout"
+              >
+                <LogOut className="w-4.5 h-4.5" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* MOBILE MENU TOGGLE */}
+        <div className="flex md:hidden items-center space-x-2">
+          {currentRole === 'public' ? (
+            <button
+              onClick={onOpenAuth}
+              className="px-3.5 py-1.5 rounded-lg bg-[#1E4D6B] text-white font-extrabold text-xs flex items-center gap-1 shadow-sm"
+            >
+              <LogIn className="w-3.5 h-3.5" /> Login
+            </button>
+          ) : (
+            <button
+              onClick={currentRole === 'sekretaris_rt' ? onOpenDashboard : onOpenPresensi}
+              className="px-3 py-1.5 rounded-lg bg-[#1E4D6B] text-white font-extrabold text-xs flex items-center gap-1 shadow-sm"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" /> Panel
+            </button>
+          )}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 border border-slate-200"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+
       </div>
 
-      {/* MOBILE MENU */}
+      {/* MOBILE DROPDOWN MENU */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-5 space-y-3 shadow-lg">
+        <div className="md:hidden mt-2 glass-panel rounded-[20px] p-4 space-y-3 shadow-lg border border-white/20 animate-fade-in">
           <div className="grid grid-cols-2 gap-1.5">
-            {navLinks.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => handleNavClick(link.id)}
-                className={`text-left px-3 py-2 rounded-lg text-xs font-black ${
-                  activeSection === link.id
-                    ? 'text-[#236F9E] bg-[#DDF0FA]'
-                    : 'text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                {link.label}
-              </button>
-            ))}
+            {visibleItems.map((item) => {
+              if (item.type === 'anchor') {
+                if (item.target_id === 'berita') {
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleNavItemClick(item)}
+                      className={`text-left px-3 py-2 rounded-lg text-xs font-bold ${
+                        currentPath === '/berita'
+                          ? 'text-[#1E4D6B] bg-[#1E4D6B]/5 font-extrabold'
+                          : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                }
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavItemClick(item)}
+                    className={`text-left px-3 py-2 rounded-lg text-xs font-bold ${
+                      isHomeActive(item.target_id)
+                        ? 'text-[#1E4D6B] bg-[#1E4D6B]/5 font-extrabold'
+                        : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              } else {
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavItemClick(item)}
+                    className={`text-left px-3 py-2 rounded-lg text-xs font-bold ${
+                      currentPath === `/page/${item.target_id}` || 
+                      (item.target_id === 'fasilitas' && currentPath === '/fasilitas') ||
+                      (item.target_id === 'berita' && currentPath === '/berita')
+                        ? 'text-[#1E4D6B] bg-[#1E4D6B]/5 font-extrabold'
+                        : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              }
+            })}
           </div>
 
-          <div className="pt-3 border-t border-slate-100 space-y-2">
+          <div className="pt-3 border-t border-slate-200 space-y-2">
             {currentRole === 'public' ? (
               <button
                 onClick={() => { setMobileMenuOpen(false); onOpenAuth(); }}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-[#236F9E] text-white font-black text-xs shadow-md"
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#1E4D6B] to-[#85A389] text-white font-bold text-xs"
               >
                 <LogIn className="w-4 h-4 text-white" />
-                <span>Masuk / Login Mahasiswa & Admin</span>
+                <span>Masuk Login Pengurus</span>
               </button>
             ) : (
               <div className="space-y-2">
-                {currentRole === 'developer' && (
-                  <button
-                    onClick={() => { setMobileMenuOpen(false); onOpenDashboard(); }}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs"
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Buka CMS Admin</span>
-                  </button>
-                )}
-
                 <button
-                  onClick={() => { setMobileMenuOpen(false); onOpenPresensi(); }}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-[#4F9460] text-white font-black text-xs"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (currentRole === 'sekretaris_rt' || currentRole === 'developer') onOpenDashboard();
+                    else onOpenPresensi();
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-[#1E4D6B] text-white font-bold text-xs"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Presensi Harian</span>
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Buka Dashboard Panel</span>
                 </button>
 
                 <button
                   onClick={() => { setMobileMenuOpen(false); onLogout(); }}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-slate-100 text-red-600 border border-slate-200 text-xs font-black"
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-slate-50 text-rose-500 border border-slate-200 text-xs font-bold"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-4.5 h-4.5" />
                   <span>Keluar / Logout</span>
                 </button>
               </div>
@@ -247,3 +360,5 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
+
+export default Navbar;

@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { UserRole, UserProfile, NewsPost, ProkerItem, PresensiRecord, TeamMember } from './types/database';
-import { SupabaseService, OFFICIAL_TEAM } from './lib/supabase';
+import { UserRole, UserProfile, ProkerItem, PresensiRecord, TeamMember, RTSettings, NavigationItem, RTAnnouncement, NewsPost, RTDemographics, RTPengurus } from './types/database';
+import { SupabaseService, INITIAL_PROKER, INITIAL_KKN_TEAM, INITIAL_SETTINGS, INITIAL_NAV_ITEMS, INITIAL_ANNOUNCEMENTS, supabase } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-import { LoginPage } from './components/auth/LoginPage';
-import { MahasiswaDashboardPage } from './pages/MahasiswaDashboardPage';
-import { DeveloperDashboardPage } from './pages/DeveloperDashboardPage';
-import { NewsDetailPage } from './pages/NewsDetailPage';
-import { HeroSection } from './components/landing/HeroSection';
-import { AboutSection } from './components/landing/AboutSection';
-import { TeamSection } from './components/landing/TeamSection';
-import { ProkerSection } from './components/landing/ProkerSection';
-import { NewsSection } from './components/landing/NewsSection';
-import { GallerySection } from './components/landing/GallerySection';
-import { ContactSection } from './components/landing/ContactSection';
-import { PageTransitionLoader } from './components/common/PageTransitionLoader';
+import { ArrowLeft } from 'lucide-react';
+import { stripHtml } from './lib/utils';
 
-export const App: React.FC = () => {
-  // PAGE NAVIGATION BUFFERING / LOADING ANIMATION STATE
-  const [isNavigating, setIsNavigating] = useState<boolean>(false);
+// Page imports (Clean routing layout)
+import { LandingPage } from './pages/public/LandingPage';
+import { LoginPage } from './pages/public/LoginPage';
+import { SekretarisRTDashboardPage } from './pages/admin/SekretarisRTDashboardPage';
+import { MahasiswaDashboardPage } from './pages/mahasiswa/MahasiswaDashboardPage';
+import { DeveloperDashboardPage } from './pages/developer/DeveloperDashboardPage';
+import { KKNPortalPage } from './pages/public/KKNPortalPage';
+import { NewsListPage } from './pages/public/NewsListPage';
+import { FacilitiesPage } from './pages/public/FacilitiesPage';
 
-  // BROWSER PATH ROUTING STATE (/home, /login, /presensi, /admin)
+
+interface AppProps {}
+
+export const App: React.FC<AppProps> = () => {
+  // BROWSER PATH ROUTING STATE (/home, /login, /admin/dashboard, /presensi)
   const [currentPath, setCurrentPath] = useState<string>(() => {
     const path = window.location.pathname;
     if (path === '' || path === '/') {
@@ -30,70 +30,249 @@ export const App: React.FC = () => {
     return path;
   });
 
-  // ROLE & AUTH STATE (DEFAULT TO PUBLIC VISITOR)
+  // ROLE & AUTH STATE
   const [currentRole, setCurrentRole] = useState<UserRole>('public');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isAppLoading, setIsAppLoading] = useState(true);
 
-  // DATA STATES
-  const [newsList, setNewsList] = useState<NewsPost[]>([]);
+  // DATA STATES WITH INSTANT INITIAL FALLBACKS
   const [prokerList, setProkerList] = useState<ProkerItem[]>([]);
+  const [kknTeam, setKknTeam] = useState<TeamMember[]>([]);
   const [presensiList, setPresensiList] = useState<PresensiRecord[]>([]);
-  const [teamList] = useState<TeamMember[]>(OFFICIAL_TEAM);
+  const [settings, setSettings] = useState<RTSettings>(INITIAL_SETTINGS);
+  const [navItems, setNavItems] = useState<NavigationItem[]>([]);
+  const [announcements, setAnnouncements] = useState<RTAnnouncement[]>([]);
+  const [newsList, setNewsList] = useState<NewsPost[]>([]);
+  const [demographics, setDemographics] = useState<RTDemographics | null>(null);
+  const [pengurusList, setPengurusList] = useState<RTPengurus[]>([]);
 
   const [activeSection, setActiveSection] = useState('beranda');
 
-  // CUSTOM PATH NAVIGATION HELPER THAT TRIGGERS BUFFERING LOADER & UPDATES BROWSER URL BAR!
+  // TRACK LAST PATHS FOR DASHBOARD <-> PUBLIC PORTAL PERSISTENT HISTORY
+  const [lastDashboardPath, setLastDashboardPath] = useState<string>('/admin/dashboard');
+  const [lastPublicPath, setLastPublicPath] = useState<string>('/home');
+
+  useEffect(() => {
+    if (currentPath.startsWith('/admin')) {
+      setLastDashboardPath(currentPath);
+    } else if (currentPath !== '/login' && currentPath !== '/presensi') {
+      setLastPublicPath(currentPath);
+    }
+  }, [currentPath]);
+
+  // INSTANT NAVIGATION HELPER
   const navigateTo = (path: string) => {
-    setIsNavigating(true);
     window.history.pushState(null, '', path);
     setCurrentPath(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => setIsNavigating(false), 500);
   };
 
-  // LISTEN TO BROWSER BACK / FORWARD BUTTONS
+  // LISTEN TO BROWSER POPSTATE
   useEffect(() => {
     const handlePopState = () => {
-      setIsNavigating(true);
       const path = window.location.pathname;
-      if (path === '' || path === '/') {
-        window.history.replaceState(null, '', '/home');
-        setCurrentPath('/home');
+      if (path.startsWith('/page/')) {
+        setCurrentPath(path + window.location.search);
       } else {
         setCurrentPath(path);
       }
-      setTimeout(() => setIsNavigating(false), 500);
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // LOAD DYNAMIC DATA FROM SUPABASE ON MOUNT
+  // DATA LOAD FROM SUPABASE WITH DYNAMIC ROUTE RE-REFRESH
   useEffect(() => {
-    const loadDynamicData = async () => {
-      setIsNavigating(true);
-      const news = await SupabaseService.fetchNews();
-      const proker = await SupabaseService.fetchProker();
-      const presensi = await SupabaseService.fetchPresensi();
+    const loadInitialData = async () => {
+      setIsAppLoading(true);
+      const safeFetch = async (fetchFn: () => Promise<any>, fallback: any) => {
+        try {
+          const res = await fetchFn();
+          return res || fallback;
+        } catch (err) {
+          console.warn('Failed fetching data item:', err);
+          return fallback;
+        }
+      };
 
-      setNewsList(news);
-      setProkerList(proker);
-      setPresensiList(presensi);
-      setTimeout(() => setIsNavigating(false), 400);
+      try {
+        const [
+          prokerData,
+          teamData,
+          presensiData,
+          settingsData,
+          navData,
+          announceData,
+          newsData,
+          demoData,
+          pengurusData
+        ] = await Promise.all([
+          safeFetch(() => SupabaseService.fetchProker(), []),
+          safeFetch(() => SupabaseService.fetchKKNTeam(), []),
+          safeFetch(() => SupabaseService.fetchPresensi(), []),
+          safeFetch(() => SupabaseService.fetchSettings(), INITIAL_SETTINGS),
+          safeFetch(() => SupabaseService.fetchNavItems(), INITIAL_NAV_ITEMS),
+          safeFetch(() => SupabaseService.fetchAnnouncements(), []),
+          safeFetch(() => SupabaseService.fetchNews(), []),
+          safeFetch(() => SupabaseService.fetchDemographics(), null),
+          safeFetch(() => SupabaseService.fetchPengurus(), []),
+        ]);
+
+        if (prokerData) setProkerList(prokerData);
+        if (teamData) setKknTeam(teamData);
+        if (presensiData) setPresensiList(presensiData);
+        if (settingsData) setSettings(settingsData);
+        if (navData) setNavItems(navData);
+        if (announceData) setAnnouncements(announceData);
+        if (newsData) setNewsList(newsData);
+        if (demoData) setDemographics(demoData);
+        if (pengurusData) setPengurusList(pengurusData);
+      } finally {
+        setIsAppLoading(false);
+      }
     };
-
-    loadDynamicData();
+    loadInitialData();
   }, []);
 
-  // SCROLLSPY TO AUTOMATICALLY UPDATE ACTIVE NAVBAR LINK ON SCROLL (ONLY ON LANDING PAGE)
+  // REALTIME DATABASE CHANGE LISTENERS (REALTIME SYNC WITHOUT REFRESH)
   useEffect(() => {
-    if (currentPath !== '/' && currentPath !== '/home') return;
+    const settingsChannel = supabase
+      .channel('realtime-settings')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_settings' },
+        (payload) => {
+          if (payload.new) {
+            const row = payload.new as any;
+            let maps_coordinate = '';
+            let syarat_surat = '';
+            let kontak_darurat = '';
+            let emergency_title = row.emergency_title || '';
+            let emergency_description = '';
+            
+            let vision = '';
+            let mission = '';
+            let history = '';
+            let boundary_north = '';
+            let boundary_south = '';
+            let boundary_east = '';
+            let boundary_west = '';
 
-    const sections = ['beranda', 'tentang', 'proker', 'berita', 'tim', 'galeri', 'kontak'];
+            if (row.emergency_description) {
+              try {
+                const extra = JSON.parse(row.emergency_description);
+                maps_coordinate = extra.maps_coordinate || '';
+                syarat_surat = extra.syarat_surat || '';
+                kontak_darurat = extra.kontak_darurat || '';
+                emergency_description = extra.emergency_description || '';
+                
+                if (extra.vision) vision = extra.vision;
+                if (extra.mission) mission = extra.mission;
+                if (extra.history) history = extra.history;
+                if (extra.boundary_north) boundary_north = extra.boundary_north;
+                if (extra.boundary_south) boundary_south = extra.boundary_south;
+                if (extra.boundary_east) boundary_east = extra.boundary_east;
+                if (extra.boundary_west) boundary_west = extra.boundary_west;
+              } catch (jsonErr) {
+                console.warn('Failed to parse emergency_description as JSON:', jsonErr);
+                emergency_description = row.emergency_description;
+              }
+            }
+            setSettings({
+              ...row,
+              emergency_title,
+              emergency_description,
+              maps_coordinate,
+              syarat_surat,
+              kontak_darurat,
+              vision,
+              mission,
+              history,
+              boundary_north,
+              boundary_south,
+              boundary_east,
+              boundary_west
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    const newsChannel = supabase
+      .channel('realtime-news')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'news' },
+        async () => {
+          const updatedNews = await SupabaseService.fetchNews();
+          setNewsList(updatedNews);
+        }
+      )
+      .subscribe();
+
+    const announceChannel = supabase
+      .channel('realtime-announcements')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_announcements' },
+        async () => {
+          const updatedAnnounce = await SupabaseService.fetchAnnouncements();
+          setAnnouncements(updatedAnnounce);
+        }
+      )
+      .subscribe();
+
+    const demoChannel = supabase
+      .channel('realtime-demographics')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_demographics' },
+        async () => {
+          const updatedDemo = await SupabaseService.fetchDemographics();
+          setDemographics(updatedDemo);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(settingsChannel);
+      supabase.removeChannel(newsChannel);
+      supabase.removeChannel(announceChannel);
+      supabase.removeChannel(demoChannel);
+    };
+  }, []);
+
+  // FAIL-SAFE BACKGROUND POLLING (PULLS UPDATES EVERY 8 SECONDS FOR PUBLIC/MOBILE VIEWS)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const [settingsData, newsData, announceData, demoData] = await Promise.all([
+          SupabaseService.fetchSettings(),
+          SupabaseService.fetchNews(),
+          SupabaseService.fetchAnnouncements(),
+          SupabaseService.fetchDemographics(),
+        ]);
+        if (settingsData) setSettings(settingsData);
+        if (newsData) setNewsList(newsData);
+        if (announceData) setAnnouncements(announceData);
+        if (demoData) setDemographics(demoData);
+      } catch (err) {
+        console.warn('Fail-safe polling error:', err);
+      }
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // SCROLLSPY TO UPDATE NAVBAR ACTIVE TAB
+  useEffect(() => {
+    if (currentPath !== '/home') return;
+
+    const sections = ['beranda', 'statistik-warga', 'pengumuman-rt', 'pengurus-rt', 'kkn-rt35', 'kontak-layanan'];
     
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 140; // Offset for header navbar height
+      const scrollPosition = window.scrollY + 140;
 
       for (let i = sections.length - 1; i >= 0; i--) {
         const sectionId = sections[i];
@@ -114,36 +293,18 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [currentPath]);
 
-  // HANDLERS FOR REALTIME DATA UPDATE WITH SUPABASE
-  const handleAddNews = async (newNews: NewsPost) => {
-    setIsNavigating(true);
-    const updated = await SupabaseService.addNews(newNews);
-    setNewsList(updated);
-    setTimeout(() => setIsNavigating(false), 300);
-  };
-
-  const handleDeleteNews = async (id: string) => {
-    setIsNavigating(true);
-    const updated = await SupabaseService.deleteNews(id);
-    setNewsList(updated);
-    setTimeout(() => setIsNavigating(false), 300);
-  };
-
-  const handleUpdateProker = async (updatedItem: ProkerItem) => {
-    setIsNavigating(true);
-    const updated = await SupabaseService.updateProker(updatedItem);
-    setProkerList(updated);
-    setTimeout(() => setIsNavigating(false), 300);
-  };
-
-  const handleAddPresensi = async (newRecord: PresensiRecord) => {
-    setIsNavigating(true);
-    const updated = await SupabaseService.addPresensi(newRecord);
+  // HANDLERS FOR PRESENSI & PROKER UPDATES
+  const handleAddPresensi = async (record: PresensiRecord) => {
+    const updated = await SupabaseService.addPresensi(record);
     setPresensiList(updated);
-    setTimeout(() => setIsNavigating(false), 300);
   };
 
-  // SUCCESSFUL LOGIN WITH NIM & PASSWORD -> NAVIGATE TO /presensi OR /admin PATH!
+  const handleUpdateProker = async (item: ProkerItem) => {
+    const updated = await SupabaseService.updateProker(item);
+    setProkerList(updated);
+  };
+
+  // SUCCESSFUL LOGIN HANDLER -> REDIRECT TO DASHBOARD BASED ON ROLE
   const handleLoginSuccess = (
     role: UserRole, 
     profile: UserProfile, 
@@ -152,10 +313,14 @@ export const App: React.FC = () => {
     setCurrentRole(role);
     setUserProfile(profile);
 
-    if (role === 'developer') {
-      navigateTo('/admin');
-    } else {
+    if (role === 'sekretaris_rt') {
+      navigateTo('/admin/dashboard');
+    } else if (role === 'developer') {
+      navigateTo('/admin/developer');
+    } else if (role === 'mahasiswa') {
       navigateTo('/presensi');
+    } else {
+      navigateTo('/home');
     }
   };
 
@@ -165,145 +330,412 @@ export const App: React.FC = () => {
     navigateTo('/home');
   };
 
-  // --- ROUTING RENDER LOGIC BASED ON URL PATH ---
+  // ROUTER CONTROLLER MAP
+  const renderRoute = () => {
+    const [basePath, queryString] = currentPath.split('?');
 
-  // ROUTE 1: /login
-  if (currentPath === '/login') {
-    return (
-      <>
-        <PageTransitionLoader isLoading={isNavigating} />
-        <LoginPage
-          onLoginSuccess={handleLoginSuccess}
-          onBackToHome={() => navigateTo('/home')}
-        />
-      </>
-    );
-  }
+    if (basePath.startsWith('/page/')) {
+      const slug = basePath.substring(6);
+      const pageItem = navItems.find((item) => item.target_id === slug && item.type === 'custom_page');
+      if (pageItem) {
+        // Parse structured page content
+        let bannerUrl = '';
+        let subtitle = '';
+        let body = pageItem.custom_content || '';
+        let gridItems: { title: string; description: string; image_url?: string; badge?: string; }[] = [];
 
-  // ROUTE 2: /presensi (PORTAL PRESENSI MAHASISWA)
-  if (currentPath === '/presensi') {
-    if (!userProfile) {
-      // If not logged in, redirect to /login
-      navigateTo('/login');
-      return null;
-    }
+        if (pageItem.custom_content?.trim().startsWith('{')) {
+          try {
+            const parsed = JSON.parse(pageItem.custom_content);
+            bannerUrl = parsed.banner_url || '';
+            subtitle = parsed.subtitle || '';
+            body = parsed.body || '';
+            gridItems = parsed.grid_items || [];
+          } catch (e) {
+            console.warn("Failed to parse page content JSON:", e);
+          }
+        }
 
-    return (
-      <>
-        <PageTransitionLoader isLoading={isNavigating} />
-        <MahasiswaDashboardPage
-          userProfile={userProfile}
-          presensiList={presensiList}
-          onAddPresensi={handleAddPresensi}
-          onGoToLanding={() => navigateTo('/home')}
-          onLogout={handleLogout}
-        />
-      </>
-    );
-  }
-
-  // ROUTE 3: /admin OR /dashboard (CONTROL PANEL DEVELOPER CMS)
-  if (currentPath === '/admin' || currentPath === '/dashboard') {
-    if (!userProfile || currentRole !== 'developer') {
-      // If not logged in or not Gusti Ihsanuddin (developer), redirect to /login
-      navigateTo('/login');
-      return null;
-    }
-
-    return (
-      <>
-        <PageTransitionLoader isLoading={isNavigating} />
-        <DeveloperDashboardPage
-          userProfile={userProfile}
-          newsList={newsList}
-          prokerList={prokerList}
-          presensiList={presensiList}
-          onAddNews={handleAddNews}
-          onDeleteNews={handleDeleteNews}
-          onUpdateProker={handleUpdateProker}
-          onGoToLanding={() => navigateTo('/home')}
-          onLogout={handleLogout}
-        />
-      </>
-    );
-  }
-
-  // ROUTE 4: DEDICATED FULL-PAGE NEWS DETAIL (/berita/:slug)
-  if (currentPath.startsWith('/berita/')) {
-    const slug = currentPath.replace('/berita/', '');
-    return (
-      <>
-        <PageTransitionLoader isLoading={isNavigating} />
-        <NewsDetailPage
-          slug={slug}
-          newsList={newsList}
-          onBackToLanding={() => navigateTo('/home')}
-          onNavigateToNews={(newSlug) => navigateTo('/berita/' + newSlug)}
-        />
-      </>
-    );
-  }
-
-  // ROUTE 5: DEFAULT LANDING PAGE (/home or /)
-  return (
-    <>
-      <PageTransitionLoader isLoading={isNavigating} />
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
+        const urlParams = new URLSearchParams(queryString || '');
+        const itemSlug = urlParams.get('slug');
         
-        {/* NAVBAR */}
+        const generateSlug = (text: string) => {
+          return text
+            .toLowerCase()
+            .replace(/[^\w ]+/g, '')
+            .replace(/ +/g, '-');
+        };
+
+        const selectedGridItem = itemSlug 
+          ? gridItems.find(item => generateSlug(item.title) === itemSlug)
+          : null;
+
+        if (selectedGridItem) {
+          return (
+            <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8 animate-fade-in space-y-6">
+              {/* Back Button */}
+              <div>
+                <button 
+                  onClick={() => navigateTo(`/page/${slug}`)}
+                  className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors group bg-white border border-slate-200 px-4.5 py-2.5 rounded-xl shadow-sm hover:scale-[1.02]"
+                >
+                  <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                  <span>Kembali ke Halaman {pageItem.label}</span>
+                </button>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-md space-y-6">
+                <div className="border-b border-slate-100 pb-5 space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {selectedGridItem.badge && (
+                      <span className="text-[10px] uppercase font-black px-2.5 py-0.5 rounded-md bg-[#1E4D6B]/15 text-[#1E4D6B] border border-[#1E4D6B]/25">
+                        {selectedGridItem.badge}
+                      </span>
+                    )}
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+                    {selectedGridItem.title}
+                  </h1>
+                </div>
+
+                {selectedGridItem.image_url && (
+                  <div className="w-full max-h-[450px] rounded-2xl overflow-hidden border border-slate-150 shadow-sm relative">
+                    <img 
+                      src={selectedGridItem.image_url} 
+                      alt={selectedGridItem.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                <div 
+                  className="text-slate-700 text-sm sm:text-base leading-relaxed font-semibold pt-2 tiptap-content"
+                  dangerouslySetInnerHTML={{ __html: selectedGridItem.description }}
+                />
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="max-w-5xl mx-auto px-4 py-12 sm:px-6 lg:px-8 animate-fade-in space-y-8">
+            {/* Back Button */}
+            <div>
+              <button 
+                onClick={() => navigateTo('/home')}
+                className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors group bg-white border border-slate-200 px-4.5 py-2.5 rounded-xl shadow-sm hover:scale-[1.02]"
+              >
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                <span>Kembali ke Beranda Utama</span>
+              </button>
+            </div>
+
+            {/* Banner Image */}
+            {bannerUrl && (
+              <div className="w-full h-48 sm:h-72 rounded-3xl overflow-hidden shadow-md relative border border-slate-200">
+                <img 
+                  src={bannerUrl} 
+                  alt={pageItem.label} 
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6 text-white space-y-1">
+                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#85A389] bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                    Transparansi RT 35
+                  </span>
+                  <h1 className="text-xl sm:text-3xl font-black mt-2 leading-tight">
+                    {pageItem.label}
+                  </h1>
+                </div>
+              </div>
+            )}
+
+            {/* Main Card (Info & Body Text) */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-md space-y-6">
+              {!bannerUrl && (
+                <div className="border-b border-slate-100 pb-5">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#85A389] bg-[#85A389]/10 px-3 py-1 rounded-full">
+                    Transparansi RT 35
+                  </span>
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-955 mt-3 leading-tight">
+                    {pageItem.label}
+                  </h1>
+                </div>
+              )}
+
+              {subtitle && (
+                <p className="text-sm sm:text-base text-slate-500 font-extrabold italic leading-relaxed border-l-4 border-[#85A389] pl-4">
+                  {subtitle}
+                </p>
+              )}
+
+              <div className="text-slate-700 text-sm sm:text-base leading-relaxed whitespace-pre-wrap font-semibold leading-relaxed">
+                {body || 'Belum ada deskripsi konten ditulis.'}
+              </div>
+            </div>
+
+            {/* Cards Grid Section */}
+            {gridItems.length > 0 && (
+              <div className="space-y-6 pt-4">
+                <h3 className="text-lg font-black text-slate-900 border-l-4 border-[#1E4D6B] pl-3">
+                  Galeri Kegiatan & Informasi Terkait
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {gridItems.map((item, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => navigateTo(`/page/${slug}?slug=${generateSlug(item.title)}`)}
+                      className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col cursor-pointer group"
+                    >
+                      {item.image_url && (
+                        <div className="h-44 w-full overflow-hidden border-b border-slate-100 relative bg-slate-50">
+                          <img 
+                            src={item.image_url} 
+                            alt={item.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                          {item.badge && (
+                            <span className="absolute top-3 right-3 text-[9px] font-extrabold bg-slate-950/80 text-white backdrop-blur-sm px-2.5 py-1 rounded-lg border border-white/10 uppercase tracking-wider">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div className="p-5 flex-grow flex flex-col justify-between space-y-3">
+                        <div className="space-y-1.5">
+                          {!item.image_url && item.badge && (
+                            <span className="inline-block text-[9px] font-extrabold bg-slate-100 text-slate-650 px-2 py-0.5 rounded-md uppercase tracking-wider mb-1">
+                              {item.badge}
+                            </span>
+                          )}
+                          <h4 className="text-sm font-black text-slate-900 leading-snug group-hover:text-[#1E4D6B] transition-colors">
+                            {item.title}
+                          </h4>
+                          <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-3">
+                            {stripHtml(item.description)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+    }
+
+    switch (basePath) {
+      case '/login':
+      case '/admin/login':
+        if (userProfile && currentRole !== 'public') {
+          if (currentRole === 'sekretaris_rt') {
+            return (
+              <SekretarisRTDashboardPage 
+                user={userProfile} 
+                onLogout={handleLogout} 
+                onUserProfileUpdate={setUserProfile}
+                activeTab="demografis"
+                onChangeTab={navigateTo}
+                settings={settings}
+                onSettingsUpdate={setSettings}
+                lastPublicPath={lastPublicPath}
+                onNavItemsUpdate={setNavItems}
+                newsList={newsList}
+                onUpdateNews={setNewsList}
+                demographics={demographics}
+                onUpdateDemographics={setDemographics}
+                pengurusList={pengurusList}
+                onUpdatePengurusList={setPengurusList}
+                announcements={announcements}
+                onUpdateAnnouncements={setAnnouncements}
+                kknTeam={kknTeam}
+                onUpdateKknTeam={setKknTeam}
+                prokerList={prokerList}
+                onUpdateProkerList={setProkerList}
+                navItems={navItems}
+              />
+            );
+          }
+          if (currentRole === 'developer') return <DeveloperDashboardPage userProfile={userProfile} newsList={newsList} prokerList={prokerList} presensiList={presensiList} onAddNews={async () => []} onDeleteNews={async () => []} onUpdateProker={handleUpdateProker} onGoToLanding={() => navigateTo(lastPublicPath)} onLogout={handleLogout} />;
+          return <MahasiswaDashboardPage userProfile={userProfile} presensiList={presensiList} onAddPresensi={handleAddPresensi} onGoToLanding={() => navigateTo(lastPublicPath)} onLogout={handleLogout} />;
+        }
+        return <LoginPage onLoginSuccess={handleLoginSuccess} onBackToHome={() => navigateTo(lastPublicPath)} />;
+
+      case '/presensi':
+        if (!userProfile) {
+          return <LoginPage onLoginSuccess={handleLoginSuccess} onBackToHome={() => navigateTo(lastPublicPath)} />;
+        }
+        return (
+          <MahasiswaDashboardPage
+            userProfile={userProfile}
+            presensiList={presensiList}
+            onAddPresensi={handleAddPresensi}
+            onGoToLanding={() => navigateTo(lastPublicPath)}
+            onLogout={handleLogout}
+          />
+        );
+
+      case '/admin/dashboard':
+      case '/admin/demografis':
+      case '/admin/pengumuman':
+      case '/admin/pengurus':
+      case '/admin/kegiatan-warga':
+      case '/admin/kkn-team':
+      case '/admin/kkn-proker':
+      case '/admin/settings':
+      case '/admin/menu-halaman':
+      case '/admin/fasilitas':
+      case '/admin/berita':
+      case '/admin-rt':
+      case '/admin/orders':
+        if (!userProfile || (currentRole !== 'sekretaris_rt' && currentRole !== 'developer')) {
+          return <LoginPage onLoginSuccess={handleLoginSuccess} onBackToHome={() => navigateTo(lastPublicPath)} />;
+        }
+        
+        let dashboardTab: 'demografis' | 'pengumuman' | 'pengurus' | 'portal_settings' | 'kegiatan_warga' | 'kkn_team' | 'kkn_proker' | 'menu_navigation' | 'fasilitas' | 'berita' = 'demografis';
+        if (basePath === '/admin/pengumuman') dashboardTab = 'pengumuman';
+        else if (basePath === '/admin/pengurus') dashboardTab = 'pengurus';
+        else if (basePath === '/admin/settings') dashboardTab = 'portal_settings';
+        else if (basePath === '/admin/kegiatan-warga') dashboardTab = 'kegiatan_warga';
+        else if (basePath === '/admin/kkn-team') dashboardTab = 'kkn_team';
+        else if (basePath === '/admin/kkn-proker') dashboardTab = 'kkn_proker';
+        else if (basePath === '/admin/menu-halaman') dashboardTab = 'menu_navigation';
+        else if (basePath === '/admin/fasilitas') dashboardTab = 'fasilitas';
+        else if (basePath === '/admin/berita') dashboardTab = 'berita';
+
+        return (
+          <SekretarisRTDashboardPage 
+            user={userProfile} 
+            onLogout={handleLogout} 
+            onUserProfileUpdate={setUserProfile}
+            activeTab={dashboardTab}
+            onChangeTab={navigateTo}
+            settings={settings}
+            onSettingsUpdate={setSettings}
+            lastPublicPath={lastPublicPath}
+            onNavItemsUpdate={setNavItems}
+            newsList={newsList}
+            onUpdateNews={setNewsList}
+            demographics={demographics}
+            onUpdateDemographics={setDemographics}
+            pengurusList={pengurusList}
+            onUpdatePengurusList={setPengurusList}
+            announcements={announcements}
+            onUpdateAnnouncements={setAnnouncements}
+            kknTeam={kknTeam}
+            onUpdateKknTeam={setKknTeam}
+            prokerList={prokerList}
+            onUpdateProkerList={setProkerList}
+            navItems={navItems}
+          />
+        );
+
+      case '/admin/developer':
+      case '/admin':
+        if (!userProfile || currentRole !== 'developer') {
+          return <LoginPage onLoginSuccess={handleLoginSuccess} onBackToHome={() => navigateTo(lastPublicPath)} />;
+        }
+        return (
+          <DeveloperDashboardPage
+            userProfile={userProfile}
+            newsList={[]}
+            prokerList={prokerList}
+            presensiList={presensiList}
+            onAddNews={async () => []}
+            onDeleteNews={async () => []}
+            onUpdateProker={handleUpdateProker}
+            onGoToLanding={() => navigateTo(lastPublicPath)}
+            onLogout={handleLogout}
+          />
+        );
+
+      case '/berita':
+        return (
+          <NewsListPage
+            newsList={newsList}
+            onBackToHome={() => navigateTo(lastPublicPath)}
+          />
+        );
+
+      case '/kkn':
+        return (
+          <KKNPortalPage
+            prokerList={prokerList}
+            kknTeam={kknTeam}
+            onBackToHome={() => navigateTo(lastPublicPath)}
+          />
+        );
+
+      case '/fasilitas':
+        return (
+          <FacilitiesPage
+            onGoToLanding={() => navigateTo(lastPublicPath)}
+            settings={settings}
+          />
+        );
+
+
+      case '/home':
+      default:
+        return (
+          <LandingPage
+            currentRole={currentRole}
+            navigateTo={navigateTo}
+            settings={settings}
+          />
+        );
+    }
+  };
+
+  if (isAppLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col selection:bg-[#85A389] selection:text-white">
+
+      
+      {/* TOP NAVBAR */}
+      {!(currentPath === '/login' || currentPath.startsWith('/admin') || currentPath === '/presensi') && (
         <Navbar
           currentRole={currentRole}
           userProfile={userProfile}
           onOpenAuth={() => navigateTo('/login')}
           onOpenPresensi={() => {
-            if (currentRole === 'developer') navigateTo('/admin');
+            if (currentRole === 'developer') navigateTo(lastDashboardPath);
+            else if (currentRole === 'sekretaris_rt') navigateTo(lastDashboardPath);
             else if (currentRole === 'mahasiswa') navigateTo('/presensi');
             else navigateTo('/login');
           }}
-          onOpenDashboard={() => navigateTo('/admin')}
+          onOpenDashboard={() => {
+            navigateTo(lastDashboardPath);
+          }}
           onLogout={handleLogout}
           activeSection={activeSection}
           setActiveSection={setActiveSection}
+          navItems={navItems}
         />
+      )}
 
-        {/* MAIN CONTENT LANDING PAGE */}
-        <main className="flex-grow">
-          <HeroSection
-            currentRole={currentRole}
-            onOpenPresensi={() => {
-              if (currentRole === 'developer') navigateTo('/admin');
-              else if (currentRole === 'mahasiswa') navigateTo('/presensi');
-              else navigateTo('/login');
-            }}
-            onOpenDashboard={() => navigateTo('/admin')}
-            onOpenAuth={() => navigateTo('/login')}
-            newsCount={newsList.length}
-            prokerCount={prokerList.length}
-          />
+      {/* MAIN CONTENT ROUTED */}
+      <main className="flex-grow">
+        {renderRoute()}
+      </main>
 
-          <AboutSection />
+      {/* FOOTER */}
+      {!(currentPath === '/login' || currentPath.startsWith('/admin') || currentPath === '/presensi') && (
+        <Footer settings={settings} />
+      )}
 
-          <ProkerSection prokerList={prokerList} />
-
-          <NewsSection
-            newsList={newsList}
-            currentRole={currentRole}
-            onOpenDashboard={() => navigateTo('/admin')}
-            onSelectNews={(slug) => navigateTo('/berita/' + slug)}
-          />
-
-          <TeamSection team={teamList} />
-
-          <GallerySection />
-
-          <ContactSection />
-        </main>
-
-        {/* FOOTER */}
-        <Footer />
-
-      </div>
-    </>
+    </div>
   );
 };
 
