@@ -22,6 +22,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
   const [editingKegiatanIdx, setEditingKegiatanIdx] = useState<number | null>(null);
   const [kegiatanTitle, setKegiatanTitle] = useState('');
   const [kegiatanBadge, setKegiatanBadge] = useState('');
+  const [kegiatanSummary, setKegiatanSummary] = useState('');
   const [kegiatanDesc, setKegiatanDesc] = useState('');
   const [kegiatanImageUrl, setKegiatanImageUrl] = useState('');
   const [uploadingKegiatanImg, setUploadingKegiatanImg] = useState(false);
@@ -77,6 +78,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
       const newItem = {
         title: kegiatanTitle,
         badge: kegiatanBadge,
+        summary: kegiatanSummary,
         description: kegiatanDesc,
         image_url: kegiatanImageUrl
       };
@@ -102,6 +104,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
       setEditingKegiatanIdx(null);
       setKegiatanTitle('');
       setKegiatanBadge('');
+      setKegiatanSummary('');
       setKegiatanDesc('');
       setKegiatanImageUrl('');
       
@@ -277,6 +280,18 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
               />
             </div>
 
+            {/* Ringkasan Singkat (Summary) */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-500">Ringkasan Singkat (Summary)</label>
+              <textarea
+                rows={2}
+                placeholder="Tulis ringkasan singkat untuk kartu di halaman depan..."
+                value={kegiatanSummary}
+                onChange={(e) => setKegiatanSummary(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-[#85A389] resize-none"
+              />
+            </div>
+
             <div className="space-y-1.5">
               <label className="block text-xs font-black uppercase tracking-wider text-slate-500">Deskripsi Kegiatan (Mendukung Rich Text)</label>
               <TiptapEditor
@@ -349,6 +364,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                   setEditingKegiatanIdx(null);
                   setKegiatanTitle('');
                   setKegiatanBadge('');
+                  setKegiatanSummary('');
                   setKegiatanDesc('');
                   setKegiatanImageUrl('');
                 }}
@@ -406,7 +422,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                             <span className="px-2 py-0.5 text-[9px] font-extrabold bg-[#85A389]/10 text-[#5F8D4E] rounded border border-[#85A389]/20 uppercase tracking-wider shrink-0">{item.badge}</span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2">{getPreviewText(item.description)}</p>
+                        <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2">{item.summary || getPreviewText(item.description)}</p>
                       </div>
                     </div>
 
@@ -417,6 +433,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                           setEditingKegiatanIdx(idx);
                           setKegiatanTitle(item.title || '');
                           setKegiatanBadge(item.badge || '');
+                          setKegiatanSummary(item.summary || '');
                           setKegiatanDesc(item.description || '');
                           setKegiatanImageUrl(item.image_url || '');
                         }}

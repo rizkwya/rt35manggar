@@ -342,7 +342,7 @@ export const App: React.FC<AppProps> = () => {
         let bannerUrl = '';
         let subtitle = '';
         let body = pageItem.custom_content || '';
-        let gridItems: { title: string; description: string; image_url?: string; badge?: string; }[] = [];
+        let gridItems: { title: string; description: string; image_url?: string; badge?: string; summary?: string; }[] = [];
 
         if (pageItem.custom_content?.trim().startsWith('{')) {
           try {
@@ -514,7 +514,7 @@ export const App: React.FC<AppProps> = () => {
                             {item.title}
                           </h4>
                           <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-3">
-                            {getPreviewText(item.description)}
+                            {item.summary || getPreviewText(item.description)}
                           </p>
                         </div>
                       </div>

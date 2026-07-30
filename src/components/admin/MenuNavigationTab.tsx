@@ -29,7 +29,7 @@ export const MenuNavigationTab: React.FC<MenuNavigationTabProps> = ({
   const [navBannerUrl, setNavBannerUrl] = useState('');
   const [navSubtitle, setNavSubtitle] = useState('');
   const [navBody, setNavBody] = useState('');
-  const [navGridItems, setNavGridItems] = useState<{ title: string; description: string; image_url?: string; badge?: string; }[]>([]);
+  const [navGridItems, setNavGridItems] = useState<{ title: string; description: string; image_url?: string; badge?: string; summary?: string; }[]>([]);
 
   // Temp card item builder states
   const [cardTitle, setCardTitle] = useState('');

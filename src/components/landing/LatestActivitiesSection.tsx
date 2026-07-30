@@ -119,7 +119,7 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
                       {item.title}
                     </h4>
                     <p className="text-xs text-slate-500 font-semibold leading-relaxed line-clamp-3">
-                      {getPreviewText(item.description)}
+                      {item.summary || getPreviewText(item.description)}
                     </p>
                   </div>
                 </div>
