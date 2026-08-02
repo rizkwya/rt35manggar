@@ -356,6 +356,12 @@ export const App: React.FC<AppProps> = () => {
           }
         }
 
+        const sortedGridItems = [...gridItems].sort((a, b) => {
+          const dateA = new Date(a.created_at || 0).getTime();
+          const dateB = new Date(b.created_at || 0).getTime();
+          return dateB - dateA;
+        });
+
         const urlParams = new URLSearchParams(queryString || '');
         const itemSlug = urlParams.get('slug');
         
@@ -479,14 +485,14 @@ export const App: React.FC<AppProps> = () => {
             </div>
 
             {/* Cards Grid Section */}
-            {gridItems.length > 0 && (
+            {sortedGridItems.length > 0 && (
               <div className="space-y-6 pt-4">
                 <h3 className="text-lg font-black text-slate-900 border-l-4 border-[#1E4D6B] pl-3">
                   Galeri Kegiatan & Informasi Terkait
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {gridItems.map((item, idx) => (
+                  {sortedGridItems.map((item, idx) => (
                     <div 
                       key={idx} 
                       onClick={() => navigateTo(`/page/${slug}?slug=${generateSlug(item.title)}`)}
