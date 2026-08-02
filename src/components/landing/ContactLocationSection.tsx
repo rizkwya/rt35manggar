@@ -32,7 +32,7 @@ export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({ 
         {/* HEADER */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#85A389]/10 border border-[#85A389]/30 text-[#5F8D4E] text-xs font-bold uppercase tracking-wider">
-            <Anchor className="w-4 h-4 text-[#85A389]" />
+            <MapPin className="w-4 h-4 text-[#85A389]" />
             <span>Lokasi & Kontak Layanan</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">

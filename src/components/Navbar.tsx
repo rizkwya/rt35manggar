@@ -9,6 +9,7 @@ import {
   PieChart, 
   Anchor, 
   Sparkles, 
+  GraduationCap,
   X 
 } from 'lucide-react';
 
@@ -137,7 +138,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         : 'text-[#85A389] hover:text-[#5F8D4E] hover:bg-[#85A389]/5'
                     }`}
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-[#85A389]" />
+                    <GraduationCap className="w-3.5 h-3.5 text-[#85A389]" />
                     <span>{item.label}</span>
                   </button>
                 );
@@ -211,7 +212,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {currentRole === 'mahasiswa' && (
                 <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#85A389]/10 border border-[#85A389]/25 text-[#5F8D4E] text-[10px] font-black uppercase tracking-wider">
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <GraduationCap className="w-3.5 h-3.5" />
                   <span>Anggota KKN</span>
                 </div>
               )}

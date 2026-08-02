@@ -76,7 +76,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ settings }) => {
                     {/* Vision Statement */}
                     <div className="space-y-2">
                       <h4 className="text-xs font-black uppercase tracking-widest text-[#1E4D6B] flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-[#85A389]" />
+                        <Compass className="w-4 h-4 text-[#85A389]" />
                         <span>Visi Utama</span>
                       </h4>
                       <p className="text-slate-800 text-sm sm:text-base font-extrabold italic leading-relaxed border-l-4 border-[#85A389] pl-4">

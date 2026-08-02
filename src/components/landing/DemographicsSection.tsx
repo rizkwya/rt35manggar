@@ -116,7 +116,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
         {/* SECTION HEADER */}
         <div className="text-center space-y-4">
           <div className="badge-premium-sage">
-            <Sparkles className="w-4 h-4" />
+            <TrendingUp className="w-4 h-4" />
             <span>Keterbukaan Data & Demografi RT</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, MapPin, PieChart, Users, Sparkles, Home, ShieldCheck, Ship, Navigation } from 'lucide-react';
+import { ArrowRight, MapPin, PieChart, Users, Megaphone, Home, ShieldCheck, Ship, Navigation } from 'lucide-react';
 import { UserRole, RTSettings, RTDemographics } from '../../types/database';
 import { SupabaseService, INITIAL_DEMOGRAPHICS } from '../../lib/supabase';
 
@@ -84,7 +84,7 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
             onClick={() => scrollToSection('pengumuman-rt')}
             className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs border border-slate-200 flex items-center space-x-2 transition-all shadow-sm active:scale-98"
           >
-            <Sparkles className="w-4 h-4 text-[#85A389]" />
+            <Megaphone className="w-4 h-4 text-[#85A389]" />
             <span>Pengumuman RT 35</span>
           </button>
 
