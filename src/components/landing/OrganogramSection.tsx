@@ -3,26 +3,12 @@ import { UserCheck, HeartHandshake, PhoneCall, ShieldCheck } from 'lucide-react'
 import { RTPengurus } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 
-export const OrganogramSection: React.FC = () => {
-  const [pengurusList, setPengurusList] = useState<RTPengurus[]>([]);
-  const [loading, setLoading] = useState(true);
+interface OrganogramSectionProps {
+  pengurusList: RTPengurus[];
+}
 
-  useEffect(() => {
-    const loadPengurus = async () => {
-      setLoading(true);
-      try {
-        const data = await SupabaseService.fetchPengurus();
-        setPengurusList(data);
-      } catch (err) {
-        console.error('Failed to load pengurus list:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadPengurus();
-  }, []);
-
-  if (loading) return null;
+export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusList }) => {
+  if (pengurusList.length === 0) return null;
 
   return (
     <section id="pengurus-rt" className="py-20 bg-white relative border-t border-slate-200">

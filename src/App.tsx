@@ -680,6 +680,8 @@ export const App: React.FC<AppProps> = () => {
             currentRole={currentRole}
             navigateTo={navigateTo}
             settings={settings}
+            navItems={navItems}
+            pengurusList={pengurusList}
           />
         );
     }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserRole, RTSettings } from '../../types/database';
+import { UserRole, RTSettings, NavigationItem, RTPengurus } from '../../types/database';
 import { HeaderBanner } from '../../components/landing/HeaderBanner';
 import { ProfileSection } from '../../components/landing/ProfileSection';
 import { DemographicsSection } from '../../components/landing/DemographicsSection';
@@ -11,12 +11,16 @@ interface LandingPageProps {
   currentRole: UserRole;
   navigateTo: (path: string) => void;
   settings?: RTSettings;
+  navItems: NavigationItem[];
+  pengurusList: RTPengurus[];
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   currentRole,
   navigateTo,
-  settings
+  settings,
+  navItems,
+  pengurusList
 }) => {
   return (
     <>
@@ -36,10 +40,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <DemographicsSection settings={settings} />
 
       {/* 4. ORGANOGRAM & PENGURUS RT 35 */}
-      <OrganogramSection />
+      <OrganogramSection pengurusList={pengurusList} />
 
       {/* 6. DOKUMENTASI KEGIATAN TERBARU */}
-      <LatestActivitiesSection navigateTo={navigateTo} />
+      <LatestActivitiesSection navigateTo={navigateTo} navItems={navItems} />
 
       {/* 7. POSKO, LOKASI & CONTACT ASPIRASI WARGA */}
       <ContactLocationSection settings={settings} />

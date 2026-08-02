@@ -6,38 +6,22 @@ import { getPreviewText } from '../../lib/utils';
 
 interface LatestActivitiesSectionProps {
   navigateTo: (path: string) => void;
+  navItems: NavigationItem[];
 }
 
-export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = ({ navigateTo }) => {
-  const [activities, setActivities] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = ({ navigateTo, navItems }) => {
+  const kegiatanPageItem = navItems.find((item) => item.target_id === 'kegiatan-warga');
+  let activities: any[] = [];
+  if (kegiatanPageItem?.custom_content) {
+    try {
+      const parsed = JSON.parse(kegiatanPageItem.custom_content);
+      const gridItems = parsed.grid_items || [];
+      activities = [...gridItems].reverse().slice(0, 3);
+    } catch (e) {
+      console.warn('Failed parsing activities JSON:', e);
+    }
+  }
 
-  useEffect(() => {
-    const loadActivities = async () => {
-      setLoading(true);
-      try {
-        const navItems = await SupabaseService.fetchNavItems();
-        const kegiatanPageItem = navItems.find((item) => item.target_id === 'kegiatan-warga');
-        if (kegiatanPageItem?.custom_content) {
-          try {
-            const parsed = JSON.parse(kegiatanPageItem.custom_content);
-            const gridItems = parsed.grid_items || [];
-            // Slice to get the latest 3 items (most recently added items are usually at the end of the array, so reverse and take 3)
-            setActivities([...gridItems].reverse().slice(0, 3));
-          } catch (e) {
-            console.warn('Failed parsing activities JSON:', e);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to load latest activities:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadActivities();
-  }, []);
-
-  if (loading) return null;
   if (activities.length === 0) return null;
 
   return (
