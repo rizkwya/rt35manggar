@@ -72,7 +72,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
 
           <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-md space-y-6">
             <div className="space-y-2">
-              <h1 className="text-3xl sm:text-4xl font-black text-[#E07A5F] leading-tight">
+              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 leading-tight">
                 {selectedArticle.title}
               </h1>
 
@@ -172,7 +172,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
 
                   {/* Card Body */}
                   <div className="p-6 space-y-2">
-                    <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-[#E07A5F] transition-colors line-clamp-2">
+                    <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-slate-700 transition-colors line-clamp-2">
                       {item.title}
                     </h3>
                     

@@ -74,7 +74,7 @@ export const NewsTab: React.FC<NewsTabProps> = ({
         const updatedItem: NewsPost = {
           id: editingNewsId,
           title: newTitle,
-          slug: existing ? existing.slug : `${slugify(newTitle)}-${Date.now()}`,
+          slug: existing && existing.title === newTitle ? existing.slug : `${slugify(newTitle)}-${Date.now()}`,
           summary: newSummary,
           content: newContent,
           category: newCategory,
