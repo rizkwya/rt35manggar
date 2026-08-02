@@ -25,7 +25,9 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
   const [kegiatanSummary, setKegiatanSummary] = useState('');
   const [kegiatanDesc, setKegiatanDesc] = useState('');
   const [kegiatanImageUrl, setKegiatanImageUrl] = useState('');
+  const [pageBannerUrl, setPageBannerUrl] = useState('');
   const [uploadingKegiatanImg, setUploadingKegiatanImg] = useState(false);
+  const [uploadingPageBanner, setUploadingPageBanner] = useState(false);
 
   useEffect(() => {
     const kegiatan = navItems.find(item => item.target_id === 'kegiatan-warga');
@@ -34,9 +36,26 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
         const parsed = JSON.parse(kegiatan.custom_content);
         setPageSubtitle(parsed.subtitle || '');
         setPageBody(parsed.body || '');
+        setPageBannerUrl(parsed.banner_url || '');
       } catch (e) {}
     }
   }, [navItems]);
+
+  const handlePageBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPageBanner(true);
+    try {
+      const url = await SupabaseService.uploadImage(file, 'banners');
+      setPageBannerUrl(url);
+      showSuccess('Gambar banner halaman berhasil diunggah!');
+    } catch (err: any) {
+      console.error(err);
+      alert('Gagal mengunggah banner: ' + (err.message || err));
+    } finally {
+      setUploadingPageBanner(false);
+    }
+  };
 
   const handleKegiatanImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -181,6 +200,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
         ...kegiatanPageItem,
         custom_content: JSON.stringify({
           ...contentObj,
+          banner_url: pageBannerUrl,
           subtitle: pageSubtitle,
           body: pageBody
         })
@@ -231,6 +251,30 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
               placeholder="Tulis paragraf deskripsi selamat datang di halaman kegiatan warga..."
               className="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
             />
+          </div>
+
+          {/* Banner Cover Halaman */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Gambar Banner Atas (Cover)</label>
+            {pageBannerUrl ? (
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 h-40 shadow-sm group max-w-xl">
+                <img src={pageBannerUrl} alt="Preview Banner Halaman" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button type="button" onClick={() => setPageBannerUrl('')} className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black rounded-lg">
+                    Hapus Banner
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-slate-50 transition-all relative max-w-xl">
+                <input type="file" accept="image/*" onChange={handlePageBannerUpload} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" disabled={uploadingPageBanner} />
+                {uploadingPageBanner ? (
+                  <span className="text-xs text-slate-400">Sedang mengunggah...</span>
+                ) : (
+                  <span className="text-xs font-bold text-[#5F8D4E]">Pilih Banner Cover Baru</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
