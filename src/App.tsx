@@ -398,13 +398,17 @@ export const App: React.FC<AppProps> = () => {
                   </h1>
                 </div>
 
-                {selectedGridItem.image_url && (
+                {selectedGridItem.image_url ? (
                   <div className="w-full rounded-2xl overflow-hidden border border-slate-150 shadow-sm relative bg-slate-50 flex justify-center">
                     <img 
                       src={selectedGridItem.image_url} 
                       alt={selectedGridItem.title} 
                       className="max-w-full max-h-[600px] object-contain w-auto h-auto rounded-2xl"
                     />
+                  </div>
+                ) : (
+                  <div className="w-full h-52 sm:h-72 rounded-2xl overflow-hidden shadow-sm border border-slate-150 bg-slate-50 flex items-center justify-center">
+                    <BookOpen className="w-12 h-12 text-slate-400 opacity-45" />
                   </div>
                 )}
 

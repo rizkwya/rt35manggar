@@ -49,7 +49,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex items-center justify-center p-4 relative selection:bg-[#85A389] selection:text-white">
-      
+
       {/* BACK TO HOME BUTTON */}
       <button
         onClick={onBackToHome}
@@ -60,7 +60,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
       </button>
 
       <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl relative my-12 space-y-6">
-        
+
         {/* SECURE HEADER */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#1E4D6B] via-[#85A389] to-[#E5D3B3] text-white flex items-center justify-center mx-auto shadow-md">

@@ -83,13 +83,17 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
             </div>
 
             {/* Huge cover image like a professional blog */}
-            {selectedArticle.image_url && (
+            {selectedArticle.image_url ? (
               <div className="w-full rounded-2xl overflow-hidden shadow-sm border border-slate-150 bg-slate-50 flex justify-center">
                 <img 
                   src={selectedArticle.image_url} 
                   alt={selectedArticle.title} 
                   className="max-w-full max-h-[600px] object-contain w-auto h-auto rounded-2xl"
                 />
+              </div>
+            ) : (
+              <div className="w-full h-52 sm:h-72 rounded-2xl overflow-hidden shadow-sm border border-slate-150 bg-slate-50 flex items-center justify-center">
+                <BookOpen className="w-12 h-12 text-slate-400 opacity-45" />
               </div>
             )}
 
