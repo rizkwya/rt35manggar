@@ -3,7 +3,7 @@ import { UserRole, UserProfile, ProkerItem, PresensiRecord, TeamMember, RTSettin
 import { SupabaseService, INITIAL_PROKER, INITIAL_KKN_TEAM, INITIAL_SETTINGS, INITIAL_NAV_ITEMS, INITIAL_ANNOUNCEMENTS, supabase } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BookOpen } from 'lucide-react';
 import { stripHtml, getPreviewText } from './lib/utils';
 
 // Page imports (Clean routing layout)
@@ -342,7 +342,7 @@ export const App: React.FC<AppProps> = () => {
         let bannerUrl = '';
         let subtitle = '';
         let body = pageItem.custom_content || '';
-        let gridItems: { title: string; description: string; image_url?: string; badge?: string; summary?: string; }[] = [];
+        let gridItems: { title: string; description: string; image_url?: string; badge?: string; summary?: string; created_at?: string; }[] = [];
 
         if (pageItem.custom_content?.trim().startsWith('{')) {
           try {
@@ -488,33 +488,27 @@ export const App: React.FC<AppProps> = () => {
                       onClick={() => navigateTo(`/page/${slug}?slug=${generateSlug(item.title)}`)}
                       className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col cursor-pointer group"
                     >
-                      {item.image_url && (
+                      {item.image_url ? (
                         <div className="h-44 w-full overflow-hidden border-b border-slate-100 relative bg-slate-50">
                           <img 
                             src={item.image_url} 
                             alt={item.title} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
-                          {item.badge && (
-                            <span className="absolute top-3 right-3 text-[9px] font-extrabold bg-slate-950/80 text-white backdrop-blur-sm px-2.5 py-1 rounded-lg border border-white/10 uppercase tracking-wider">
-                              {item.badge}
-                            </span>
-                          )}
+                        </div>
+                      ) : (
+                        <div className="h-44 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
+                          <BookOpen className="w-10 h-10 text-slate-400 opacity-40 group-hover:scale-110 transition-transform duration-500" />
                         </div>
                       )}
                       
-                      <div className="p-5 flex-grow flex flex-col justify-between space-y-3">
-                        <div className="space-y-1.5">
-                          {!item.image_url && item.badge && (
-                            <span className="inline-block text-[9px] font-extrabold bg-slate-100 text-slate-650 px-2 py-0.5 rounded-md uppercase tracking-wider mb-1">
-                              {item.badge}
-                            </span>
-                          )}
-                          <h4 className="text-sm font-black text-slate-900 leading-snug group-hover:text-[#1E4D6B] transition-colors">
+                      <div className="p-5 flex-grow flex flex-col justify-between">
+                        <div className="space-y-1">
+                          <h4 className="text-base font-black text-slate-900 leading-snug group-hover:text-slate-700 transition-colors line-clamp-2">
                             {item.title}
                           </h4>
-                          <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-3">
-                            {item.summary || getPreviewText(item.description)}
+                          <p className="text-[11px] text-slate-400 font-bold">
+                            {new Date(item.created_at || new Date().toISOString()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                           </p>
                         </div>
                       </div>

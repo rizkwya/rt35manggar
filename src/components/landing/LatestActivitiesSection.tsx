@@ -82,54 +82,33 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
               <div
                 key={idx}
                 onClick={() => navigateTo(`/page/kegiatan-warga?slug=${generateSlug(item.title)}`)}
-                className="premium-card overflow-hidden flex flex-col justify-between cursor-pointer group"
+                className="premium-card overflow-hidden cursor-pointer group"
               >
                 <div>
                   {/* Image */}
                   {item.image_url ? (
-                    <div className="h-52 w-full overflow-hidden relative bg-slate-50">
+                    <div className="h-52 w-full overflow-hidden relative bg-slate-50 border-b border-slate-100">
                       <img 
                         src={item.image_url} 
                         alt={item.title} 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      {item.badge && (
-                        <span className="absolute top-3 right-3 text-[9px] font-extrabold bg-slate-950/80 text-white backdrop-blur-sm px-2.5 py-1 rounded-lg border border-white/10 uppercase tracking-wider">
-                          {item.badge}
-                        </span>
-                      )}
                     </div>
                   ) : (
                     <div className="h-52 w-full bg-gradient-to-tr from-[#1E4D6B]/5 via-[#85A389]/10 to-[#E5D3B3]/5 flex items-center justify-center relative border-b border-slate-100">
                       <BookOpen className="w-10 h-10 text-[#85A389] opacity-40 group-hover:scale-110 transition-transform duration-500" />
-                      {item.badge && (
-                        <span className="absolute top-3 right-3 text-[9px] font-extrabold bg-[#85A389]/80 text-white backdrop-blur-sm px-2.5 py-1 rounded-lg border border-[#85A389]/20 uppercase tracking-wider">
-                          {item.badge}
-                        </span>
-                      )}
                     </div>
                   )}
 
                   {/* Body */}
                   <div className="p-6 space-y-2">
-                    <span className="inline-block text-[9px] font-black uppercase tracking-wider text-[#85A389] bg-[#85A389]/10 px-2 py-0.5 rounded">
-                      {item.badge || 'Dokumentasi'}
-                    </span>
-                    <h4 className="text-sm sm:text-base font-black text-slate-900 leading-snug group-hover:text-[#1E4D6B] transition-colors line-clamp-2">
+                    <h4 className="text-base font-black text-slate-900 leading-snug group-hover:text-slate-700 transition-colors line-clamp-2">
                       {item.title}
                     </h4>
-                    <p className="text-xs text-slate-500 font-semibold leading-relaxed line-clamp-3">
-                      {item.summary || getPreviewText(item.description)}
+                    <p className="text-[11px] text-slate-400 font-bold">
+                      {new Date(item.created_at || new Date().toISOString()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </p>
                   </div>
-                </div>
-
-                {/* Read Info */}
-                <div className="flex items-center justify-end text-[10px] text-[#1E4D6B] font-extrabold border-t border-slate-100 pt-4 pb-5 px-6 group-hover:translate-x-1 transition-transform">
-                  <span className="flex items-center space-x-1">
-                    <span>Lihat Detail</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
                 </div>
               </div>
             );

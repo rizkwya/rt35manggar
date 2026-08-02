@@ -75,15 +75,20 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
         }
       }
 
+
+      let updatedGridItems = [...(contentObj.grid_items || [])];
+      
       const newItem = {
         title: kegiatanTitle,
         badge: kegiatanBadge,
         summary: kegiatanSummary,
         description: kegiatanDesc,
-        image_url: kegiatanImageUrl
+        image_url: kegiatanImageUrl,
+        created_at: editingKegiatanIdx !== null && updatedGridItems[editingKegiatanIdx]?.created_at
+          ? updatedGridItems[editingKegiatanIdx].created_at
+          : new Date().toISOString()
       };
 
-      let updatedGridItems = [...(contentObj.grid_items || [])];
       if (editingKegiatanIdx !== null) {
         updatedGridItems[editingKegiatanIdx] = newItem;
       } else {
