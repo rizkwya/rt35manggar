@@ -77,8 +77,8 @@ export const MahasiswaDashboardPage: React.FC<MahasiswaDashboardPageProps> = ({
             
             {/* BRANDING */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm flex items-center justify-center bg-white">
-                <img src="/logo.png" alt="Logo RT 35" className="w-9 h-9 object-contain" />
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img src="/logo.png" alt="Logo RT 35" className="w-10 h-10 object-contain" />
               </div>
               <div>
                 <h1 className="font-extrabold text-slate-800 text-sm sm:text-base leading-tight">

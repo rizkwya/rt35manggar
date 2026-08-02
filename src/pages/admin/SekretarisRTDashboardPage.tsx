@@ -319,8 +319,8 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
         <div className="space-y-8">
           {/* Logo & Info Header */}
           <div className="flex items-center space-x-3 pb-6 border-b border-slate-800">
-            <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-md flex items-center justify-center bg-white">
-              <img src="/logo.png" alt="Logo RT 35" className="w-9 h-9 object-contain" />
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo RT 35" className="w-10 h-10 object-contain" />
             </div>
             <div>
               <h1 className="text-sm font-black text-white leading-none">{user.full_name || 'Sekretaris RT 35'}</h1>
