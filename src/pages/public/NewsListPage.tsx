@@ -84,11 +84,11 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
 
             {/* Huge cover image like a professional blog */}
             {selectedArticle.image_url && (
-              <div className="w-full max-h-[450px] rounded-2xl overflow-hidden shadow-sm border border-slate-150 bg-slate-50">
+              <div className="w-full rounded-2xl overflow-hidden shadow-sm border border-slate-150 bg-slate-50 flex justify-center">
                 <img 
                   src={selectedArticle.image_url} 
                   alt={selectedArticle.title} 
-                  className="w-full h-full object-cover"
+                  className="max-w-full max-h-[600px] object-contain w-auto h-auto rounded-2xl"
                 />
               </div>
             )}

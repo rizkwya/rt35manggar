@@ -399,11 +399,11 @@ export const App: React.FC<AppProps> = () => {
                 </div>
 
                 {selectedGridItem.image_url && (
-                  <div className="w-full max-h-[450px] rounded-2xl overflow-hidden border border-slate-150 shadow-sm relative">
+                  <div className="w-full rounded-2xl overflow-hidden border border-slate-150 shadow-sm relative bg-slate-50 flex justify-center">
                     <img 
                       src={selectedGridItem.image_url} 
                       alt={selectedGridItem.title} 
-                      className="w-full h-full object-cover"
+                      className="max-w-full max-h-[600px] object-contain w-auto h-auto rounded-2xl"
                     />
                   </div>
                 )}
