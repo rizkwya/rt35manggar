@@ -541,22 +541,14 @@ export const SupabaseService = {
   },
 
   async updateFacility(facility: RTFacility): Promise<RTFacility[]> {
-    try {
-      const { error } = await supabase.from('rt_facilities').upsert([facility]);
-      if (error) throw error;
-    } catch (e) {
-      console.warn('Facility update error:', e);
-    }
+    const { error } = await supabase.from('rt_facilities').upsert([facility]);
+    if (error) throw error;
     return this.fetchFacilities();
   },
 
   async deleteFacility(id: string): Promise<RTFacility[]> {
-    try {
-      const { error } = await supabase.from('rt_facilities').delete().eq('id', id);
-      if (error) throw error;
-    } catch (e) {
-      console.warn('Facility delete error:', e);
-    }
+    const { error } = await supabase.from('rt_facilities').delete().eq('id', id);
+    if (error) throw error;
     return this.fetchFacilities();
   }
 };
