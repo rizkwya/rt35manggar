@@ -211,7 +211,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
               Belum ada aparatur RT terdaftar. Masukkan data di sebelah kiri untuk menambahkan.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
               {pengurusList.map((p) => {
                 const isEditing = editingPengurusId === p.id;
                 return (
