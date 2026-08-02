@@ -38,8 +38,8 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
           {/* COL 1: RT 35 BRANDING */}
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-sm flex items-center justify-center bg-white">
-                <img src="/logo.png" alt="Logo RT 35" className="w-9 h-9 object-contain" />
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img src="/logo.png" alt="Logo RT 35" className="w-10 h-10 object-contain" />
               </div>
               <div>
                 <h3 className="font-extrabold text-base text-slate-800 tracking-tight">PORTAL RT 35 MANGGAR</h3>
