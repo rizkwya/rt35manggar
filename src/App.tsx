@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserRole, UserProfile, ProkerItem, PresensiRecord, TeamMember, RTSettings, NavigationItem, RTAnnouncement, NewsPost, RTDemographics, RTPengurus } from './types/database';
+import { UserRole, UserProfile, ProkerItem, PresensiRecord, TeamMember, RTSettings, NavigationItem, RTAnnouncement, NewsPost, RTDemographics, RTPengurus, RTFacility } from './types/database';
 import { SupabaseService, INITIAL_PROKER, INITIAL_KKN_TEAM, INITIAL_SETTINGS, INITIAL_NAV_ITEMS, INITIAL_ANNOUNCEMENTS, supabase } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -45,6 +45,7 @@ export const App: React.FC<AppProps> = () => {
   const [newsList, setNewsList] = useState<NewsPost[]>([]);
   const [demographics, setDemographics] = useState<RTDemographics | null>(null);
   const [pengurusList, setPengurusList] = useState<RTPengurus[]>([]);
+  const [facilitiesList, setFacilitiesList] = useState<RTFacility[]>([]);
 
   const [activeSection, setActiveSection] = useState('beranda');
 
@@ -106,7 +107,8 @@ export const App: React.FC<AppProps> = () => {
           announceData,
           newsData,
           demoData,
-          pengurusData
+          pengurusData,
+          facilitiesData
         ] = await Promise.all([
           safeFetch(() => SupabaseService.fetchProker(), []),
           safeFetch(() => SupabaseService.fetchKKNTeam(), []),
@@ -117,6 +119,7 @@ export const App: React.FC<AppProps> = () => {
           safeFetch(() => SupabaseService.fetchNews(), []),
           safeFetch(() => SupabaseService.fetchDemographics(), null),
           safeFetch(() => SupabaseService.fetchPengurus(), []),
+          safeFetch(() => SupabaseService.fetchFacilities(), []),
         ]);
 
         if (prokerData) setProkerList(prokerData);
@@ -125,9 +128,10 @@ export const App: React.FC<AppProps> = () => {
         if (settingsData) setSettings(settingsData);
         if (navData) setNavItems(navData);
         if (announceData) setAnnouncements(announceData);
-        if (newsData) setNewsList(newsData);
+        if (newsList) setNewsList(newsData);
         if (demoData) setDemographics(demoData);
         if (pengurusData) setPengurusList(pengurusData);
+        if (facilitiesData) setFacilitiesList(facilitiesData);
       } finally {
         setIsAppLoading(false);
       }
@@ -679,6 +683,7 @@ export const App: React.FC<AppProps> = () => {
           <FacilitiesPage
             onGoToLanding={() => navigateTo(lastPublicPath)}
             settings={settings}
+            facilities={facilitiesList}
           />
         );
 

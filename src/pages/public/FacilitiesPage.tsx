@@ -7,14 +7,20 @@ import { Footer } from '../../components/Footer';
 interface FacilitiesPageProps {
   onGoToLanding: () => void;
   settings: RTSettings;
+  facilities?: RTFacility[];
 }
 
-export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, settings }) => {
-  const [facilities, setFacilities] = useState<RTFacility[]>([]);
-  const [loading, setLoading] = useState(true);
+export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, settings, facilities: propFacilities }) => {
+  const [facilities, setFacilities] = useState<RTFacility[]>(propFacilities || []);
+  const [loading, setLoading] = useState(!propFacilities);
   const [selectedFacility, setSelectedFacility] = useState<RTFacility | null>(null);
 
   useEffect(() => {
+    if (propFacilities) {
+      setFacilities(propFacilities);
+      setLoading(false);
+      return;
+    }
     const loadFacilities = async () => {
       setLoading(true);
       try {
@@ -27,6 +33,9 @@ export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, s
       }
     };
     loadFacilities();
+  }, [propFacilities]);
+
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
