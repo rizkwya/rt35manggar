@@ -95,11 +95,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-4 z-50 transition-all duration-300 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <div className="glass-panel rounded-[24px] px-6 h-16 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all">
+      <div className="glass-panel rounded-[24px] px-6 h-16 flex items-center justify-between gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all">
         
         {/* RT 35 BRAND LOGO */}
         <div 
-          className="flex items-center space-x-3 cursor-pointer group" 
+          className="flex items-center space-x-3 cursor-pointer group shrink-0" 
           onClick={() => {
             window.history.pushState(null, '', '/home');
             window.dispatchEvent(new Event('popstate'));
@@ -123,7 +123,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* DESKTOP NAV LINKS */}
-        <nav className="hidden md:flex items-center space-x-1">
+        <nav className="hidden md:flex items-center gap-1.5 overflow-hidden">
           {visibleItems.map((item) => {
             if (item.type === 'anchor') {
               if (item.target_id === 'kkn') {
@@ -131,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => handleNavItemClick(item)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center space-x-1 ${
+                    className={`px-2 xl:px-3 py-1.5 rounded-lg text-[11px] xl:text-xs font-black transition-all flex items-center space-x-1 shrink-0 ${
                       currentPath === '/kkn'
                         ? 'text-[#5F8D4E] bg-[#85A389]/10'
                         : 'text-[#85A389] hover:text-[#5F8D4E] hover:bg-[#85A389]/5'
@@ -147,7 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => handleNavItemClick(item)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                    className={`px-2 xl:px-3 py-1.5 rounded-lg text-[11px] xl:text-xs font-black transition-all shrink-0 ${
                       currentPath === '/berita'
                         ? 'text-[#1E4D6B] bg-slate-100'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -161,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => handleNavItemClick(item)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  className={`px-2 xl:px-3 py-1.5 rounded-lg text-[11px] xl:text-xs font-black transition-all shrink-0 ${
                     isHomeActive(item.target_id)
                       ? 'text-[#1E4D6B] bg-slate-100'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -175,7 +175,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => handleNavItemClick(item)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  className={`px-2 xl:px-3 py-1.5 rounded-lg text-[11px] xl:text-xs font-black transition-all shrink-0 ${
                     currentPath === `/page/${item.target_id}` || 
                     (item.target_id === 'fasilitas' && currentPath === '/fasilitas') ||
                     (item.target_id === 'berita' && currentPath === '/berita')
@@ -191,7 +191,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* RIGHT ACTION BUTTONS */}
-        <div className="hidden lg:flex items-center space-x-2.5">
+        <div className="hidden lg:flex items-center space-x-2.5 shrink-0">
           {currentRole === 'public' ? (
             <button
               onClick={onOpenAuth}
