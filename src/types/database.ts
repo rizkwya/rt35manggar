@@ -159,6 +159,7 @@ export interface RTFacility {
   description: string;
   location?: string;
   image_url?: string;
+  latitude_longitude?: string;
   created_at?: string;
 }
 

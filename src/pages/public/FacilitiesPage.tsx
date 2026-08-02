@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Landmark, MapPin, Sparkles, ArrowLeft, Calendar, Clock, User, Phone, CheckCircle, ExternalLink, CalendarDays } from 'lucide-react';
+import { Landmark, MapPin, Sparkles, ArrowLeft, CheckCircle } from 'lucide-react';
 import { RTFacility, RTSettings } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 import { Footer } from '../../components/Footer';
@@ -13,13 +13,6 @@ export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, s
   const [facilities, setFacilities] = useState<RTFacility[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFacility, setSelectedFacility] = useState<RTFacility | null>(null);
-  const [bookingForm, setBookingForm] = useState({
-    name: '',
-    phone: '',
-    date: '',
-    purpose: ''
-  });
-  const [showBookingForm, setShowBookingForm] = useState(false);
 
   useEffect(() => {
     const loadFacilities = async () => {
@@ -36,31 +29,6 @@ export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, s
     loadFacilities();
     window.scrollTo(0, 0);
   }, []);
-
-  const handleBookingSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFacility) return;
-
-    // Clean phone number from settings
-    const secretaryPhone = settings.phone_secretary || '';
-    let cleanPhone = secretaryPhone.replace(/\D/g, '');
-    if (cleanPhone.startsWith('0')) {
-      cleanPhone = '62' + cleanPhone.slice(1);
-    }
-    if (!cleanPhone) {
-      cleanPhone = '6281234567890'; // Fallback
-    }
-
-    const message = `Halo Sekretaris RT 35,\n\nSaya ingin mengajukan permohonan penggunaan fasilitas:\n- *Fasilitas*: ${selectedFacility.name}\n- *Nama Pemohon*: ${bookingForm.name}\n- *No. WA*: ${bookingForm.phone}\n- *Tanggal*: ${bookingForm.date}\n- *Keperluan*: ${bookingForm.purpose}\n\nMohon konfirmasi ketersediaan jadwal. Terima kasih.`;
-    
-    const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-    window.open(waUrl, '_blank');
-    
-    // Reset booking state
-    setBookingForm({ name: '', phone: '', date: '', purpose: '' });
-    setShowBookingForm(false);
-    setSelectedFacility(null);
-  };
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] flex flex-col justify-between">
@@ -104,10 +72,7 @@ export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, s
             {facilities.map((f) => (
               <div
                 key={f.id}
-                onClick={() => {
-                  setSelectedFacility(f);
-                  setShowBookingForm(false);
-                }}
+                onClick={() => setSelectedFacility(f)}
                 className="premium-card overflow-hidden flex flex-col justify-between group cursor-pointer hover:shadow-md transition-shadow"
               >
                 <div>
@@ -182,9 +147,7 @@ export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, s
               </button>
             </div>
 
-            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1">
-              {!showBookingForm ? (
-                // VIEW FACILITY DETAILS
+             <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1">
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <span className="inline-block text-[9px] font-black uppercase tracking-wider text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
@@ -207,127 +170,48 @@ export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, s
                     </div>
                   </div>
 
-                  {/* Mock Map pin widget */}
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4.5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Peta & Akses Proksimitas</span>
-                      <span className="text-[9px] font-bold text-slate-500 flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-emerald-500" /> Terverifikasi GPS RT 35
-                      </span>
-                    </div>
-                    <div className="h-28 bg-slate-200 rounded-xl relative overflow-hidden flex items-center justify-center">
-                      {/* Stylized background representing a map */}
-                      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px] bg-slate-800" />
-                      <div className="absolute w-2 h-2 bg-slate-800/10 rounded-full scale-150 animate-ping" />
-                      <div className="absolute w-3 h-3 bg-[#475569] border-2 border-white rounded-full shadow-md" />
-                      <div className="absolute bottom-2 left-2 text-[8px] font-bold bg-white/80 backdrop-blur-md px-2 py-0.5 rounded text-slate-600 border border-slate-100">
-                        Latitude: {settings.maps_coordinate || '-1.2505, 116.8992'}
+                  {/* Real Google Maps Embed */}
+                  {selectedFacility.latitude_longitude && (
+                    <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative flex flex-col">
+                      <div className="h-64 relative">
+                        <iframe
+                          title={`Peta Lokasi ${selectedFacility.name}`}
+                          src={`https://maps.google.com/maps?q=${encodeURIComponent(selectedFacility.latitude_longitude)}&z=16&output=embed`}
+                          className="w-full h-full border-0 grayscale hover:grayscale-0 transition-all duration-300"
+                          allowFullScreen={false}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
+                      </div>
+                      <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                        <div className="text-left space-y-0.5">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Koordinat Fasilitas</span>
+                          <p className="text-[11px] font-black text-slate-700">{selectedFacility.latitude_longitude}</p>
+                        </div>
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selectedFacility.latitude_longitude)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#1E4D6B] to-[#85A389] hover:opacity-95 text-white text-xs font-bold transition-all shadow-sm flex items-center space-x-1.5"
+                        >
+                          <MapPin className="w-3.5 h-3.5 text-white" />
+                          <span>Dapatkan Rute</span>
+                        </a>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* ACTION CONTROLS */}
                   <div className="flex gap-3 pt-4 border-t border-slate-100">
                     <button
-                      onClick={() => setShowBookingForm(true)}
-                      className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs transition-colors shadow-sm flex items-center justify-center space-x-2"
-                    >
-                      <CalendarDays className="w-4 h-4" />
-                      <span>Ajukan Penggunaan (Reservasi)</span>
-                    </button>
-                    <button
                       onClick={() => setSelectedFacility(null)}
-                      className="py-3 px-5 rounded-xl border border-slate-200 text-slate-600 font-extrabold text-xs hover:bg-slate-50 transition-colors"
+                      className="w-full py-3 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs transition-colors shadow-sm text-center"
                     >
                       Kembali
                     </button>
                   </div>
                 </div>
-              ) : (
-                // RESERVATION BOOKING FORM
-                <form onSubmit={handleBookingSubmit} className="space-y-5">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-black text-slate-900">Form Penggunaan Fasilitas</h3>
-                    <p className="text-xs text-slate-500">Ajukan permohonan peminjaman ke Sekretaris RT 35</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[10px] uppercase font-black tracking-wider text-slate-400 mb-1.5">Nama Lengkap Pemohon</label>
-                      <div className="relative">
-                        <User className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-                        <input
-                          type="text"
-                          required
-                          value={bookingForm.name}
-                          onChange={(e) => setBookingForm({ ...bookingForm, name: e.target.value })}
-                          placeholder="Contoh: Budi Santoso"
-                          className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-1 focus:ring-slate-400 focus:border-slate-400 outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] uppercase font-black tracking-wider text-slate-400 mb-1.5">No. WhatsApp Aktif</label>
-                      <div className="relative">
-                        <Phone className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-                        <input
-                          type="tel"
-                          required
-                          value={bookingForm.phone}
-                          onChange={(e) => setBookingForm({ ...bookingForm, phone: e.target.value })}
-                          placeholder="Contoh: 08123456789"
-                          className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-1 focus:ring-slate-400 focus:border-slate-400 outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] uppercase font-black tracking-wider text-slate-400 mb-1.5">Rencana Tanggal Penggunaan</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-                        <input
-                          type="date"
-                          required
-                          value={bookingForm.date}
-                          onChange={(e) => setBookingForm({ ...bookingForm, date: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-1 focus:ring-slate-400 focus:border-slate-400 outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] uppercase font-black tracking-wider text-slate-400 mb-1.5">Tujuan & Keperluan Acara</label>
-                      <textarea
-                        required
-                        rows={3}
-                        value={bookingForm.purpose}
-                        onChange={(e) => setBookingForm({ ...bookingForm, purpose: e.target.value })}
-                        placeholder="Tuliskan detail keperluan penggunaan fasilitas..."
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-1 focus:ring-slate-400 focus:border-slate-400 outline-none resize-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-4 border-t border-slate-100">
-                    <button
-                      type="submit"
-                      className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs transition-colors shadow-sm flex items-center justify-center space-x-2"
-                    >
-                      <span>Kirim ke WhatsApp Pengurus</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowBookingForm(false)}
-                      className="py-3 px-5 rounded-xl border border-slate-200 text-slate-600 font-extrabold text-xs hover:bg-slate-50 transition-colors"
-                    >
-                      Batal
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
+             </div>
           </div>
         </div>
       )}

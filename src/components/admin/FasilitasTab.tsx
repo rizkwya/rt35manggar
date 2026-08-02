@@ -17,6 +17,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [latLong, setLatLong] = useState('');
   const [uploadingImg, setUploadingImg] = useState(false);
 
   useEffect(() => {
@@ -60,7 +61,8 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
         name,
         description,
         location: location || undefined,
-        image_url: imageUrl || undefined
+        image_url: imageUrl || undefined,
+        latitude_longitude: latLong || undefined
       };
 
       if (editId) {
@@ -75,6 +77,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
       setDescription('');
       setLocation('');
       setImageUrl('');
+      setLatLong('');
       setEditId(null);
       
       showSuccess(editId ? 'Informasi fasilitas berhasil diperbarui!' : 'Fasilitas umum baru berhasil ditambahkan!');
@@ -92,6 +95,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
     setDescription(f.description || '');
     setLocation(f.location || '');
     setImageUrl(f.image_url || '');
+    setLatLong(f.latitude_longitude || '');
     
     // Scroll form into view on mobile
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -167,6 +171,18 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
             />
           </div>
 
+          {/* Titik Koordinat GPS */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-500">Titik Koordinat / GPS</label>
+            <input
+              type="text"
+              placeholder="Contoh: -1.2505, 116.8992"
+              value={latLong}
+              onChange={(e) => setLatLong(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-[#85A389]"
+            />
+          </div>
+
           {/* Gambar Fasilitas */}
           <div className="space-y-2">
             <label className="block text-xs font-black uppercase tracking-wider text-slate-500">Foto Fasilitas</label>
@@ -232,6 +248,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
                 setDescription('');
                 setLocation('');
                 setImageUrl('');
+                setLatLong('');
               }}
               className="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold border border-slate-300 transition-all"
             >
