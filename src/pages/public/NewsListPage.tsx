@@ -71,27 +71,15 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
           </button>
 
           <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-md space-y-6">
-            <div className="border-b border-slate-100 pb-5 space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[9px] font-black uppercase tracking-wider text-slate-700 bg-slate-100 px-3 py-1 rounded-md">
-                  {selectedArticle.category}
-                </span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-955 leading-tight">
+            <div className="space-y-2">
+              <h1 className="text-3xl sm:text-4xl font-black text-[#E07A5F] leading-tight">
                 {selectedArticle.title}
               </h1>
 
-              <div className="flex items-center space-x-4 text-xs text-slate-400 font-bold pt-1">
-                <div className="flex items-center space-x-1">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{new Date(selectedArticle.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <User className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Oleh: {selectedArticle.author_name}</span>
-                </div>
+              <div className="text-xs text-slate-400 font-bold">
+                Published on {new Date(selectedArticle.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
+              <hr className="border-slate-150 my-4" />
             </div>
 
             {/* Huge cover image like a professional blog */}
@@ -169,7 +157,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
                 <div>
                   {/* Card Cover Image */}
                   {item.image_url ? (
-                    <div className="h-48 w-full overflow-hidden relative border-b border-slate-100 bg-slate-50">
+                    <div className="h-52 w-full overflow-hidden relative border-b border-slate-100 bg-slate-50">
                       <img 
                         src={item.image_url} 
                         alt={item.title} 
@@ -177,39 +165,25 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
                       />
                     </div>
                   ) : (
-                    <div className="h-48 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
+                    <div className="h-52 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
                       <BookOpen className="w-10 h-10 text-slate-400 opacity-40 group-hover:scale-110 transition-transform duration-500" />
                     </div>
                   )}
 
                   {/* Card Body */}
-                  <div className="p-6 space-y-3">
-                    <span className="inline-block text-[9px] font-black uppercase tracking-wider text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-md">
-                      {item.category}
-                    </span>
-
-                    <h3 className="text-sm sm:text-base font-black text-slate-900 leading-snug group-hover:text-slate-800 transition-colors line-clamp-2">
+                  <div className="p-6 space-y-2">
+                    <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-[#E07A5F] transition-colors line-clamp-2">
                       {item.title}
                     </h3>
-
-                    <p className="text-xs text-slate-500 font-semibold leading-relaxed line-clamp-3">
-                      {item.summary}
+                    
+                    <p className="text-[11px] text-slate-400 font-bold">
+                      {new Date(item.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold border-t border-slate-100 pt-3.5 pb-5 px-6">
-                  <div className="flex items-center space-x-1">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                  </div>
-                  <div className="flex items-center space-x-1.5 text-slate-800 font-extrabold group-hover:translate-x-1 transition-transform">
-                    <span>Baca Detail</span>
-                    <BookOpen className="w-3.5 h-3.5 text-slate-700" />
                   </div>
                 </div>
               </div>
             ))}
+
 
             {filteredArticles.length === 0 && (
               <div className="col-span-full text-center py-12 text-slate-400 font-bold text-xs bg-white rounded-3xl border border-slate-200">
