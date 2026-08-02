@@ -131,9 +131,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => handleNavItemClick(item)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center space-x-1 ${
                       currentPath === '/kkn'
-                        ? 'text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/20 shadow-sm'
+                        ? 'text-[#5F8D4E] bg-[#85A389]/10'
                         : 'text-[#85A389] hover:text-[#5F8D4E] hover:bg-[#85A389]/5'
                     }`}
                   >
@@ -147,10 +147,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => handleNavItemClick(item)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
                       currentPath === '/berita'
-                        ? 'text-[#1E4D6B] bg-[#1E4D6B]/5 border border-[#1E4D6B]/10 shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                        ? 'text-[#1E4D6B] bg-slate-100'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }`}
                   >
                     {item.label}
@@ -161,10 +161,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => handleNavItemClick(item)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
                     isHomeActive(item.target_id)
-                      ? 'text-[#1E4D6B] bg-[#1E4D6B]/5 border border-[#1E4D6B]/10 shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                      ? 'text-[#1E4D6B] bg-slate-100'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   {item.label}
@@ -175,12 +175,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => handleNavItemClick(item)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
                     currentPath === `/page/${item.target_id}` || 
                     (item.target_id === 'fasilitas' && currentPath === '/fasilitas') ||
                     (item.target_id === 'berita' && currentPath === '/berita')
-                      ? 'text-[#1E4D6B] bg-[#1E4D6B]/5 border border-[#1E4D6B]/10 shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                      ? 'text-[#1E4D6B] bg-slate-100'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   {item.label}
