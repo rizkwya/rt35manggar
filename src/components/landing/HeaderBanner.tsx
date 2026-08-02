@@ -88,23 +88,7 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
             <span>Pengumuman RT 35</span>
           </button>
 
-          {currentRole === 'public' ? (
-            <button
-              onClick={onOpenAuth}
-              className="px-6 py-3.5 rounded-2xl bg-[#85A389]/10 hover:bg-[#85A389]/20 text-[#5F8D4E] font-extrabold text-xs border border-[#85A389]/25 flex items-center space-x-2 transition-all active:scale-98"
-            >
-              <ShieldCheck className="w-4 h-4 text-[#85A389]" />
-              <span>Login Pengurus</span>
-            </button>
-          ) : (
-            <button
-              onClick={currentRole === 'sekretaris_rt' ? onOpenDashboard : onOpenPresensi}
-              className="px-6 py-3.5 rounded-2xl bg-[#E5D3B3]/10 hover:bg-[#E5D3B3]/20 text-[#a38b64] border border-[#E5D3B3]/30 font-black text-xs shadow-sm flex items-center space-x-2 transition-all active:scale-98"
-            >
-              <ShieldCheck className="w-4 h-4 text-[#a38b64]" />
-              <span>{currentRole === 'sekretaris_rt' ? 'Buka Panel Sekretaris' : 'Buka Presensi KKN'}</span>
-            </button>
-          )}
+
 
         </div>
 
