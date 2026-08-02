@@ -132,7 +132,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
 
         <div className="pt-4 border-t border-slate-100 text-center space-y-1">
           <p className="text-[10px] text-slate-500 font-semibold flex items-center justify-center gap-1.5">
-            <Anchor className="w-3.5 h-3.5 text-[#85A389]" />
+            <img src="/logo.png" alt="Logo RT 35" className="w-4 h-4 object-contain" />
             <span>Terhubung ke Supabase Cloud Enterprise Database</span>
           </p>
           <p className="text-[9px] text-slate-400">

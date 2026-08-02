@@ -109,8 +109,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             }, 100);
           }}
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#1E4D6B] via-[#85A389] to-[#E5D3B3] flex items-center justify-center text-white shadow-sm group-hover:rotate-6 transition-transform duration-300">
-            <Anchor className="w-4.5 h-4.5 text-white" />
+          <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm group-hover:scale-105 transition-transform duration-300 flex items-center justify-center bg-white">
+            <img src="/logo.png" alt="Logo RT 35" className="w-8 h-8 object-contain" />
           </div>
           <div className="flex flex-col">
             <span className="font-black text-xs text-slate-800 tracking-tight leading-none uppercase">
