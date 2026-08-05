@@ -62,20 +62,57 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
     { name: 'Lainnya/Tdk Bekerja', jumlah: demographics.prof_lainnya || 0, color: '#475569' },
   ];
 
-  const newWargaData = [
-    { month: 'Jan', jumlah: demographics.warga_baru_jan || 0 },
-    { month: 'Feb', jumlah: demographics.warga_baru_feb || 0 },
-    { month: 'Mar', jumlah: demographics.warga_baru_mar || 0 },
-    { month: 'Apr', jumlah: demographics.warga_baru_apr || 0 },
-    { month: 'Mei', jumlah: demographics.warga_baru_mei || 0 },
-    { month: 'Jun', jumlah: demographics.warga_baru_jun || 0 },
-    { month: 'Jul', jumlah: demographics.warga_baru_jul || 0 },
-    { month: 'Agu', jumlah: demographics.warga_baru_agu || 0 },
-    { month: 'Sep', jumlah: demographics.warga_baru_sep || 0 },
-    { month: 'Okt', jumlah: demographics.warga_baru_okt || 0 },
-    { month: 'Nov', jumlah: demographics.warga_baru_nov || 0 },
-    { month: 'Des', jumlah: demographics.warga_baru_des || 0 },
-  ];
+  // Dynamic calculation for Monthly Trend Data (masuk/keluar)
+  const getMonthlyTrendData = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const trend = months.map(m => ({ month: m, masuk: 0, keluar: 0 }));
+
+    if (settings?.kk_list && settings.kk_list.length > 0) {
+      settings.kk_list.forEach(kk => {
+        kk.members.forEach(m => {
+          // Masuk
+          if (m.registrationDate) {
+            const regDate = new Date(m.registrationDate);
+            if (!isNaN(regDate.getTime())) {
+              const monthIdx = regDate.getMonth();
+              if (monthIdx >= 0 && monthIdx < 12) {
+                trend[monthIdx].masuk++;
+              }
+            }
+          }
+          // Keluar / Meninggal
+          if ((m.status === 'Keluar' || m.status === 'Meninggal') && m.exitDate) {
+            const outDate = new Date(m.exitDate);
+            if (!isNaN(outDate.getTime())) {
+              const monthIdx = outDate.getMonth();
+              if (monthIdx >= 0 && monthIdx < 12) {
+                trend[monthIdx].keluar++;
+              }
+            }
+          }
+        });
+      });
+      return trend;
+    }
+
+    // Fallback using Supabase demographics
+    return [
+      { month: 'Jan', masuk: demographics.warga_baru_jan || 0, keluar: 0 },
+      { month: 'Feb', masuk: demographics.warga_baru_feb || 0, keluar: 0 },
+      { month: 'Mar', masuk: demographics.warga_baru_mar || 0, keluar: 0 },
+      { month: 'Apr', masuk: demographics.warga_baru_apr || 0, keluar: 0 },
+      { month: 'Mei', masuk: demographics.warga_baru_mei || 0, keluar: 0 },
+      { month: 'Jun', masuk: demographics.warga_baru_jun || 0, keluar: 0 },
+      { month: 'Jul', masuk: demographics.warga_baru_jul || 0, keluar: 0 },
+      { month: 'Agu', masuk: demographics.warga_baru_agu || 0, keluar: 0 },
+      { month: 'Sep', masuk: demographics.warga_baru_sep || 0, keluar: 0 },
+      { month: 'Okt', masuk: demographics.warga_baru_okt || 0, keluar: 0 },
+      { month: 'Nov', masuk: demographics.warga_baru_nov || 0, keluar: 0 },
+      { month: 'Des', masuk: demographics.warga_baru_des || 0, keluar: 0 },
+    ];
+  };
+
+  const trendData = getMonthlyTrendData();
 
   // Helper to parse newline settings
   const getSyaratList = () => {
@@ -360,33 +397,38 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
             </div>
           </div>
 
-          {/* ROW 3: TREN WARGA BARU */}
+          {/* ROW 3: TREN PERTUMBUHAN & MUTASI PENDUDUK */}
           <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
                 <TrendingUp className="w-5 h-5 text-slate-700" />
-                <span>Tren Pertumbuhan Warga Baru</span>
+                <span>Tren Pertumbuhan & Mutasi Penduduk RT</span>
               </h3>
-              <p className="text-xs text-slate-500 mt-1">Statistik pendaftaran mutasi warga masuk baru per bulan pada tahun berjalan</p>
+              <p className="text-xs text-slate-500 mt-1">Statistik pendaftaran warga masuk (mutasi masuk) dan warga keluar/meninggal per bulan</p>
             </div>
 
             <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={newWargaData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="colorNewWarga" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0}/>
+                    <linearGradient id="colorMasukPub" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#1E4D6B" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#1E4D6B" stopOpacity={0.0}/>
+                    </linearGradient>
+                    <linearGradient id="colorKeluarPub" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 11 }} />
+                  <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} />
                   <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#334155' }}
-                    formatter={(value: any) => [`${value} Orang`, 'Warga Baru']}
+                    contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '16px', color: '#334155' }}
                   />
-                  <Area type="monotone" dataKey="jumlah" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorNewWarga)" />
+                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 850 }} />
+                  <Area name="Warga Masuk (Jiwa)" type="monotone" dataKey="masuk" stroke="#1E4D6B" strokeWidth={3} fillOpacity={1} fill="url(#colorMasukPub)" />
+                  <Area name="Warga Keluar / Wafat (Jiwa)" type="monotone" dataKey="keluar" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorKeluarPub)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

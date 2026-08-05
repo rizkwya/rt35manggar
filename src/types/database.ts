@@ -166,6 +166,9 @@ export interface KKMember {
   registrationDate?: string; // YYYY-MM-DD for Dukcapil tracking
   isUmkm?: boolean;
   umkmName?: string;
+  status?: 'Aktif' | 'Keluar' | 'Meninggal';
+  exitDate?: string;
+  exitReason?: 'Pindah' | 'Meninggal' | 'Lainnya';
 }
 
 export interface KKRecord {

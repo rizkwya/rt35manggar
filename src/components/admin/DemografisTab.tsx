@@ -15,7 +15,9 @@ import {
   AlertCircle, 
   ArrowLeft,
   User,
-  Heart
+  Heart,
+  LogOut,
+  Sparkles
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, AreaChart, Area, CartesianGrid, Legend } from 'recharts';
 import { RTDemographics, RTSettings, KKRecord, KKMember } from '../../types/database';
@@ -43,6 +45,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [kkList, setKkList] = useState<KKRecord[]>([]);
   const [activeSubTab, setActiveSubTab] = useState<'database' | 'visualisasi'>('database');
   
+  // Filter for displaying inactive/moved citizens
+  const [showInactive, setShowInactive] = useState(false);
+  
   // UI states for managing KK
   const [selectedKkId, setSelectedKkId] = useState<string | null>(null);
   
@@ -64,6 +69,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [memberRegDate, setMemberRegDate] = useState('');
   const [memberIsUmkm, setMemberIsUmkm] = useState(false);
   const [memberUmkmName, setMemberUmkmName] = useState('');
+  const [memberStatus, setMemberStatus] = useState<'Aktif' | 'Keluar' | 'Meninggal'>('Aktif');
+  const [memberExitDate, setMemberExitDate] = useState('');
+  const [memberExitReason, setMemberExitReason] = useState<'Pindah' | 'Meninggal' | 'Lainnya'>('Pindah');
 
   useEffect(() => {
     if (initialDemographics) {
@@ -127,39 +135,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         else if (kk.income === 'above_10m') income_above_10m++;
 
         kk.members.forEach(m => {
-          // Gender
-          if (m.gender === 'Laki-laki') total_pria++;
-          else total_wanita++;
-
-          // Age calculation
-          if (m.birthDate) {
-            const birthYear = new Date(m.birthDate).getFullYear();
-            const currentYear = new Date().getFullYear();
-            const age = currentYear - birthYear;
-            if (age < 5) total_balita++;
-            else if (age > 60) total_lansia++;
-            
-            if (age >= 15 && age <= 60) total_usia_produktif++;
-          }
-
-          // Education
-          if (m.education === 'SD') edu_sd++;
-          else if (m.education === 'SMP') edu_smp++;
-          else if (m.education === 'SMA') edu_sma++;
-          else if (m.education === 'Sarjana/Diploma') edu_pt++;
-          else edu_tidak_sekolah++;
-
-          // Profession
-          if (m.job === 'PNS') prof_pns++;
-          else if (m.job === 'Swasta') prof_swasta++;
-          else if (m.job === 'Wiraswasta') prof_wiraswasta++;
-          else if (m.job === 'Nelayan') prof_nelayan++;
-          else prof_lainnya++;
-
-          // UMKM check
-          if (m.isUmkm) total_umkm++;
-
-          // Monthly registration trends for new residents (warga baru)
+          // Monthly registration trends for new residents (warga baru - including moved out ones for historical correctness)
           if (m.registrationDate) {
             const regDate = new Date(m.registrationDate);
             if (!isNaN(regDate.getTime())) {
@@ -177,6 +153,41 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
               else if (month === 10) warga_baru_nov++;
               else if (month === 11) warga_baru_des++;
             }
+          }
+
+          // Active stats calculations (excludig moved out / deceased)
+          if (!m.status || m.status === 'Aktif') {
+            // Gender
+            if (m.gender === 'Laki-laki') total_pria++;
+            else total_wanita++;
+
+            // Age calculation
+            if (m.birthDate) {
+              const birthYear = new Date(m.birthDate).getFullYear();
+              const currentYear = new Date().getFullYear();
+              const age = currentYear - birthYear;
+              if (age < 5) total_balita++;
+              else if (age > 60) total_lansia++;
+              
+              if (age >= 15 && age <= 60) total_usia_produktif++;
+            }
+
+            // Education
+            if (m.education === 'SD') edu_sd++;
+            else if (m.education === 'SMP') edu_smp++;
+            else if (m.education === 'SMA') edu_sma++;
+            else if (m.education === 'Sarjana/Diploma') edu_pt++;
+            else edu_tidak_sekolah++;
+
+            // Profession
+            if (m.job === 'PNS') prof_pns++;
+            else if (m.job === 'Swasta') prof_swasta++;
+            else if (m.job === 'Wiraswasta') prof_wiraswasta++;
+            else if (m.job === 'Nelayan') prof_nelayan++;
+            else prof_lainnya++;
+
+            // UMKM check
+            if (m.isUmkm) total_umkm++;
           }
         });
       });
@@ -309,6 +320,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     if (!targetKk) return;
 
     const regDateStr = memberRegDate || new Date().toISOString().split('T')[0];
+    const outDateStr = memberExitDate || '';
 
     let updatedMembers: KKMember[];
     if (editingMemberId) {
@@ -324,7 +336,10 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
             job: memberJob,
             registrationDate: regDateStr,
             isUmkm: memberIsUmkm,
-            umkmName: memberIsUmkm ? memberUmkmName.trim() : ''
+            umkmName: memberIsUmkm ? memberUmkmName.trim() : '',
+            status: memberStatus,
+            exitDate: memberStatus !== 'Aktif' ? outDateStr : '',
+            exitReason: memberStatus !== 'Aktif' ? memberExitReason : undefined
           };
         }
         return m;
@@ -341,7 +356,10 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         job: memberJob,
         registrationDate: regDateStr,
         isUmkm: memberIsUmkm,
-        umkmName: memberIsUmkm ? memberUmkmName.trim() : ''
+        umkmName: memberIsUmkm ? memberUmkmName.trim() : '',
+        status: memberStatus,
+        exitDate: memberStatus !== 'Aktif' ? outDateStr : '',
+        exitReason: memberStatus !== 'Aktif' ? memberExitReason : undefined
       };
       updatedMembers = [...targetKk.members, newMember];
     }
@@ -362,6 +380,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     setMemberRegDate('');
     setMemberIsUmkm(false);
     setMemberUmkmName('');
+    setMemberStatus('Aktif');
+    setMemberExitDate('');
+    setMemberExitReason('Pindah');
     setShowAddMember(false);
     recalculateAndSave(updatedKkList);
   };
@@ -377,11 +398,14 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     setMemberRegDate(m.registrationDate || '');
     setMemberIsUmkm(!!m.isUmkm);
     setMemberUmkmName(m.umkmName || '');
+    setMemberStatus(m.status || 'Aktif');
+    setMemberExitDate(m.exitDate || '');
+    setMemberExitReason(m.exitReason || 'Pindah');
     setShowAddMember(true);
   };
 
   const handleDeleteMember = (memberId: string) => {
-    if (!window.confirm('Hapus anggota keluarga ini?')) return;
+    if (!window.confirm('Hapus anggota keluarga ini secara permanen dari database?')) return;
     const updatedKkList = kkList.map(kk => {
       if (kk.id === selectedKkId) {
         return {
@@ -401,6 +425,59 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       </div>
     );
   }
+
+  // Get Monthly Trend Data dynamically including outgoing residents
+  const getMonthlyTrendData = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const trend = months.map(m => ({ month: m, masuk: 0, keluar: 0 }));
+
+    kkList.forEach(kk => {
+      kk.members.forEach(m => {
+        // Masuk
+        if (m.registrationDate) {
+          const regDate = new Date(m.registrationDate);
+          if (!isNaN(regDate.getTime())) {
+            const monthIdx = regDate.getMonth();
+            if (monthIdx >= 0 && monthIdx < 12) {
+              trend[monthIdx].masuk++;
+            }
+          }
+        }
+        // Keluar / Meninggal
+        if ((m.status === 'Keluar' || m.status === 'Meninggal') && m.exitDate) {
+          const outDate = new Date(m.exitDate);
+          if (!isNaN(outDate.getTime())) {
+            const monthIdx = outDate.getMonth();
+            if (monthIdx >= 0 && monthIdx < 12) {
+              trend[monthIdx].keluar++;
+            }
+          }
+        }
+      });
+    });
+
+    // Fallback if kkList is empty
+    if (kkList.length === 0) {
+      return [
+        { month: 'Jan', masuk: demographics.warga_baru_jan || 0, keluar: 0 },
+        { month: 'Feb', masuk: demographics.warga_baru_feb || 0, keluar: 0 },
+        { month: 'Mar', masuk: demographics.warga_baru_mar || 0, keluar: 0 },
+        { month: 'Apr', masuk: demographics.warga_baru_apr || 0, keluar: 0 },
+        { month: 'Mei', masuk: demographics.warga_baru_mei || 0, keluar: 0 },
+        { month: 'Jun', masuk: demographics.warga_baru_jun || 0, keluar: 0 },
+        { month: 'Jul', masuk: demographics.warga_baru_jul || 0, keluar: 0 },
+        { month: 'Agu', masuk: demographics.warga_baru_agu || 0, keluar: 0 },
+        { month: 'Sep', masuk: demographics.warga_baru_sep || 0, keluar: 0 },
+        { month: 'Okt', masuk: demographics.warga_baru_okt || 0, keluar: 0 },
+        { month: 'Nov', masuk: demographics.warga_baru_nov || 0, keluar: 0 },
+        { month: 'Des', masuk: demographics.warga_baru_des || 0, keluar: 0 },
+      ];
+    }
+
+    return trend;
+  };
+
+  const trendData = getMonthlyTrendData();
 
   // Visualisation charts data parsing
   const genderData = [
@@ -431,22 +508,13 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     { name: 'Lainnya', jumlah: demographics.prof_lainnya || 0 },
   ];
 
-  const newWargaData = [
-    { month: 'Jan', jumlah: demographics.warga_baru_jan || 0 },
-    { month: 'Feb', jumlah: demographics.warga_baru_feb || 0 },
-    { month: 'Mar', jumlah: demographics.warga_baru_mar || 0 },
-    { month: 'Apr', jumlah: demographics.warga_baru_apr || 0 },
-    { month: 'Mei', jumlah: demographics.warga_baru_mei || 0 },
-    { month: 'Jun', jumlah: demographics.warga_baru_jun || 0 },
-    { month: 'Jul', jumlah: demographics.warga_baru_jul || 0 },
-    { month: 'Agu', jumlah: demographics.warga_baru_agu || 0 },
-    { month: 'Sep', jumlah: demographics.warga_baru_sep || 0 },
-    { month: 'Okt', jumlah: demographics.warga_baru_okt || 0 },
-    { month: 'Nov', jumlah: demographics.warga_baru_nov || 0 },
-    { month: 'Des', jumlah: demographics.warga_baru_des || 0 },
-  ];
-
   const activeKk = kkList.find(kk => kk.id === selectedKkId);
+
+  // Filtered members list based on showInactive status
+  const displayedMembers = activeKk?.members.filter(m => {
+    if (showInactive) return true; // Show all
+    return !m.status || m.status === 'Aktif'; // Show only active
+  }) || [];
 
   return (
     <div className="space-y-6">
@@ -498,56 +566,71 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-100">
-                    {kkList.map((kk) => (
-                      <div 
-                        key={kk.id} 
-                        onClick={() => setSelectedKkId(kk.id)}
-                        className="py-4 flex items-center justify-between hover:bg-slate-50/50 px-4 rounded-xl transition-all cursor-pointer group"
-                      >
-                        <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 rounded-xl bg-[#1E4D6B]/5 flex items-center justify-center text-[#1E4D6B] group-hover:scale-105 transition-transform">
-                            <Users className="w-5 h-5" />
+                    {kkList.map((kk) => {
+                      const activeWargaCount = kk.members.filter(m => !m.status || m.status === 'Aktif').length;
+                      return (
+                        <div 
+                          key={kk.id} 
+                          onClick={() => setSelectedKkId(kk.id)}
+                          className="py-4 flex items-center justify-between hover:bg-slate-50/50 px-4 rounded-xl transition-all cursor-pointer group"
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div className="w-10 h-10 rounded-xl bg-[#1E4D6B]/5 flex items-center justify-center text-[#1E4D6B] group-hover:scale-105 transition-transform">
+                              <Users className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black text-slate-900">KK: {kk.no_kk}</h4>
+                              <p className="text-xs text-slate-500 font-bold">Kepala: {kk.kepala_keluarga}</p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="text-sm font-black text-slate-900">KK: {kk.no_kk}</h4>
-                            <p className="text-xs text-slate-500 font-bold">Kepala: {kk.kepala_keluarga}</p>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-[10px] font-black text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/25 px-2.5 py-0.5 rounded-full" title="Anggota Keluarga Aktif">
+                              {activeWargaCount} Jiwa
+                            </span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleEditKkClick(kk); }}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                              title="Edit"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDeleteKk(kk.id); }}
+                              className="p-1.5 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-55 transition-colors"
+                              title="Hapus"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <span className="text-[10px] font-black text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/25 px-2.5 py-0.5 rounded-full">
-                            {kk.members.length} Jiwa
-                          </span>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleEditKkClick(kk); }}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-                            title="Edit"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleDeleteKk(kk.id); }}
-                            className="p-1.5 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                            title="Hapus"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
             ) : (
               // MEMBER DETAIL VIEW
               <div className="premium-card p-6 sm:p-8 space-y-6">
-                <button
-                  onClick={() => { setSelectedKkId(null); setShowAddMember(false); setEditingMemberId(null); }}
-                  className="flex items-center space-x-1.5 text-slate-500 hover:text-slate-900 transition-colors text-xs font-black"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Kembali ke Daftar KK</span>
-                </button>
+                <div className="flex justify-between items-center">
+                  <button
+                    onClick={() => { setSelectedKkId(null); setShowAddMember(false); setEditingMemberId(null); }}
+                    className="flex items-center space-x-1.5 text-slate-500 hover:text-slate-900 transition-colors text-xs font-black"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Kembali ke Daftar KK</span>
+                  </button>
+
+                  <label className="flex items-center space-x-2 text-xs font-black text-slate-700 cursor-pointer select-none">
+                    <input 
+                      type="checkbox"
+                      checked={showInactive}
+                      onChange={(e) => setShowInactive(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded text-[#1E4D6B] border-slate-350 focus:ring-[#1E4D6B]"
+                    />
+                    <span>Tampilkan Riwayat Warga Keluar/Meninggal</span>
+                  </label>
+                </div>
 
                 <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
@@ -565,6 +648,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                         setMemberName('');
                         setMemberNik('');
                         setMemberBirthDate('');
+                        setMemberStatus('Aktif');
                       }}
                       className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-850 text-white font-extrabold text-xs shadow transition-all flex items-center space-x-1.5"
                     >
@@ -641,7 +725,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Tanggal Pendaftaran/Masuk RT</label>
                         <input
@@ -650,6 +734,18 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                           onChange={(e) => setMemberRegDate(e.target.value)}
                           className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-850"
                         />
+                      </div>
+                      <div>
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Status Kependudukan</label>
+                        <select
+                          value={memberStatus}
+                          onChange={(e) => setMemberStatus(e.target.value as any)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-850"
+                        >
+                          <option value="Aktif">Aktif (Tinggal di RT)</option>
+                          <option value="Keluar">Mutasi Keluar (Pindah)</option>
+                          <option value="Meninggal">Meninggal Dunia</option>
+                        </select>
                       </div>
                       <div className="flex flex-col justify-center pt-2">
                         <label className="flex items-center space-x-2 text-sm font-black text-slate-800 cursor-pointer select-none">
@@ -675,6 +771,34 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                           className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
                           required
                         />
+                      </div>
+                    )}
+
+                    {/* Exit details for moved or deceased citizens */}
+                    {memberStatus !== 'Aktif' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-rose-50 border border-rose-200 animate-fade-in">
+                        <div>
+                          <label className="block text-rose-800 uppercase tracking-wider mb-1.5">Tanggal Mutasi Keluar / Meninggal</label>
+                          <input
+                            type="date"
+                            value={memberExitDate}
+                            onChange={(e) => setMemberExitDate(e.target.value)}
+                            className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-rose-200 text-sm font-black text-slate-850"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-rose-800 uppercase tracking-wider mb-1.5">Alasan / Keterangan Keluar</label>
+                          <select
+                            value={memberExitReason}
+                            onChange={(e) => setMemberExitReason(e.target.value as any)}
+                            className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-rose-200 text-sm font-black text-slate-850"
+                          >
+                            <option value="Pindah">Pindah Domisili/Rumah</option>
+                            <option value="Meninggal">Meninggal Dunia</option>
+                            <option value="Lainnya">Alasan Lainnya</option>
+                          </select>
+                        </div>
                       </div>
                     )}
 
@@ -704,9 +828,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                 )}
 
                 {/* Member List Table */}
-                {activeKk?.members.length === 0 ? (
+                {displayedMembers.length === 0 ? (
                   <div className="text-center py-12 text-xs font-semibold text-slate-400">
-                    Belum ada anggota keluarga terdaftar. Klik "+ Tambah Anggota" untuk menambahkan.
+                    Tidak ada anggota keluarga yang sesuai dengan filter.
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -715,6 +839,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                         <tr className="border-b border-slate-100 text-[10px] text-slate-400 uppercase tracking-wider">
                           <th className="pb-3">Nama</th>
                           <th className="pb-3">NIK</th>
+                          <th className="pb-3">Status</th>
                           <th className="pb-3">L/P</th>
                           <th className="pb-3">Usia</th>
                           <th className="pb-3">Pendidikan</th>
@@ -723,21 +848,30 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {activeKk?.members.map((m) => {
+                        {displayedMembers.map((m) => {
                           const birthYear = m.birthDate ? new Date(m.birthDate).getFullYear() : 0;
                           const currentYear = new Date().getFullYear();
                           const age = birthYear ? currentYear - birthYear : '-';
                           return (
-                            <tr key={m.id} className="hover:bg-slate-50/50">
+                            <tr key={m.id} className={`hover:bg-slate-50/50 ${m.status && m.status !== 'Aktif' ? 'opacity-60 bg-rose-50/30' : ''}`}>
                               <td className="py-3.5 pr-2 font-black text-slate-900">
                                 <div>{m.name}</div>
-                                {m.isUmkm && (
+                                {m.isUmkm && (!m.status || m.status === 'Aktif') && (
                                   <div className="inline-block mt-1 text-[9px] font-black uppercase tracking-wider text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/20 px-2 py-0.5 rounded">
                                     UMKM: {m.umkmName || 'Aktif'}
                                   </div>
                                 )}
                               </td>
                               <td className="py-3.5 pr-2 font-mono">{m.nik}</td>
+                              <td className="py-3.5 pr-2">
+                                {!m.status || m.status === 'Aktif' ? (
+                                  <span className="text-[9px] font-black text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/20 px-2 py-0.5 rounded-full">Aktif</span>
+                                ) : m.status === 'Keluar' ? (
+                                  <span className="text-[9px] font-black text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full" title={`Mutasi Pindah: ${m.exitDate}`}>Pindah</span>
+                                ) : (
+                                  <span className="text-[9px] font-black text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full" title={`Meninggal: ${m.exitDate}`}>Wafat</span>
+                                )}
+                              </td>
                               <td className="py-3.5 pr-2">{m.gender === 'Laki-laki' ? 'L' : 'P'}</td>
                               <td className="py-3.5 pr-2">
                                 <div>{age} thn</div>
@@ -756,7 +890,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                                 <button
                                   onClick={() => handleDeleteMember(m.id)}
                                   className="p-1 rounded text-rose-500 hover:text-rose-600 hover:bg-rose-55 transition-colors"
-                                  title="Hapus"
+                                  title="Hapus Permanen"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -873,7 +1007,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                 <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_kk}</p>
               </div>
               <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
-                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Total Jiwa</span>
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Total Jiwa Aktif</span>
                 <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_warga}</p>
               </div>
               <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
@@ -902,6 +1036,43 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
               <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
                 <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Total UMKM</span>
                 <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_umkm}</p>
+              </div>
+            </div>
+
+            {/* Monthly new citizens trend / exit citizens trend dual-line chart */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-md">
+              <div className="border-b border-slate-100 pb-4 mb-6">
+                <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
+                  <TrendingUp className="w-5 h-5 text-slate-700" />
+                  <span>Tren Pertumbuhan & Mutasi Penduduk RT</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">Statistik pendaftaran warga masuk (mutasi masuk) dan warga keluar/meninggal per bulan</p>
+              </div>
+
+              <div className="h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorMasuk" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#1E4D6B" stopOpacity={0.2}/>
+                        <stop offset="95%" stopColor="#1E4D6B" stopOpacity={0.0}/>
+                      </linearGradient>
+                      <linearGradient id="colorKeluar" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2}/>
+                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} />
+                    <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '16px', color: '#334155' }}
+                    />
+                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 800 }} />
+                    <Area name="Warga Masuk (Jiwa)" type="monotone" dataKey="masuk" stroke="#1E4D6B" strokeWidth={3} fillOpacity={1} fill="url(#colorMasuk)" />
+                    <Area name="Warga Keluar / Wafat (Jiwa)" type="monotone" dataKey="keluar" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorKeluar)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
