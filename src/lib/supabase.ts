@@ -353,49 +353,52 @@ export const SupabaseService = {
         let emergency_title = firstRow.emergency_title || '';
         let emergency_description = '';
         
-        let vision = '';
-        let mission = '';
-        let history = '';
-        let boundary_north = '';
-        let boundary_south = '';
-        let boundary_east = '';
-        let boundary_west = '';
+          let vision = '';
+          let mission = '';
+          let history = '';
+          let boundary_north = '';
+          let boundary_south = '';
+          let boundary_east = '';
+          let boundary_west = '';
+          let kk_list = [];
 
-        if (firstRow.emergency_description) {
-          try {
-            const extra = JSON.parse(firstRow.emergency_description);
-            maps_coordinate = extra.maps_coordinate || '';
-            syarat_surat = extra.syarat_surat || '';
-            kontak_darurat = extra.kontak_darurat || '';
-            emergency_description = extra.emergency_description || '';
-            
-            if (extra.vision) vision = extra.vision;
-            if (extra.mission) mission = extra.mission;
-            if (extra.history) history = extra.history;
-            if (extra.boundary_north) boundary_north = extra.boundary_north;
-            if (extra.boundary_south) boundary_south = extra.boundary_south;
-            if (extra.boundary_east) boundary_east = extra.boundary_east;
-            if (extra.boundary_west) boundary_west = extra.boundary_west;
-          } catch (jsonErr) {
-            console.warn('Failed to parse emergency_description as JSON:', jsonErr);
-            emergency_description = firstRow.emergency_description;
+          if (firstRow.emergency_description) {
+            try {
+              const extra = JSON.parse(firstRow.emergency_description);
+              maps_coordinate = extra.maps_coordinate || '';
+              syarat_surat = extra.syarat_surat || '';
+              kontak_darurat = extra.kontak_darurat || '';
+              emergency_description = extra.emergency_description || '';
+              
+              if (extra.vision) vision = extra.vision;
+              if (extra.mission) mission = extra.mission;
+              if (extra.history) history = extra.history;
+              if (extra.boundary_north) boundary_north = extra.boundary_north;
+              if (extra.boundary_south) boundary_south = extra.boundary_south;
+              if (extra.boundary_east) boundary_east = extra.boundary_east;
+              if (extra.boundary_west) boundary_west = extra.boundary_west;
+              if (extra.kk_list) kk_list = extra.kk_list;
+            } catch (jsonErr) {
+              console.warn('Failed to parse emergency_description as JSON:', jsonErr);
+              emergency_description = firstRow.emergency_description;
+            }
           }
-        }
-        return {
-          ...firstRow,
-          emergency_title,
-          emergency_description,
-          maps_coordinate,
-          syarat_surat,
-          kontak_darurat,
-          vision,
-          mission,
-          history,
-          boundary_north,
-          boundary_south,
-          boundary_east,
-          boundary_west
-        } as RTSettings;
+          return {
+            ...firstRow,
+            emergency_title,
+            emergency_description,
+            maps_coordinate,
+            syarat_surat,
+            kontak_darurat,
+            vision,
+            mission,
+            history,
+            boundary_north,
+            boundary_south,
+            boundary_east,
+            boundary_west,
+            kk_list
+          } as RTSettings;
       }
     } catch (e) {
       console.error('Settings query error:', e);
@@ -426,7 +429,8 @@ export const SupabaseService = {
       boundary_north: settings.boundary_north || '',
       boundary_south: settings.boundary_south || '',
       boundary_east: settings.boundary_east || '',
-      boundary_west: settings.boundary_west || ''
+      boundary_west: settings.boundary_west || '',
+      kk_list: settings.kk_list || []
     };
     const dbObj: any = {
       portal_name: settings.portal_name,

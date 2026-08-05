@@ -150,7 +150,27 @@ export interface RTSettings {
   boundary_east?: string;
   boundary_west?: string;
 
+  kk_list?: KKRecord[];
+
   updated_at?: string;
+}
+
+export interface KKMember {
+  id: string;
+  name: string;
+  nik: string;
+  gender: 'Laki-laki' | 'Perempuan';
+  birthDate: string; // YYYY-MM-DD
+  education: 'SD' | 'SMP' | 'SMA' | 'Sarjana/Diploma' | 'Tidak Sekolah';
+  job: 'PNS' | 'Swasta' | 'Wiraswasta' | 'Nelayan' | 'Lainnya';
+}
+
+export interface KKRecord {
+  id: string;
+  no_kk: string;
+  kepala_keluarga: string;
+  income: 'under_2m' | '2m_5m' | '5m_10m' | 'above_10m';
+  members: KKMember[];
 }
 
 export interface RTFacility {

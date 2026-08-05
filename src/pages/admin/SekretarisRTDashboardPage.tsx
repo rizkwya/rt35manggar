@@ -612,6 +612,8 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
             initialDemographics={demographics}
             onUpdateDemographics={onUpdateDemographics}
             showSuccess={showSuccess}
+            settings={settings}
+            onSettingsUpdate={onSettingsUpdate}
           />
         )}
 

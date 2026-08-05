@@ -1,22 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { Save, TrendingUp } from 'lucide-react';
+import { 
+  Save, 
+  TrendingUp, 
+  Plus, 
+  Trash2, 
+  Edit, 
+  Users, 
+  FileText, 
+  ChevronRight, 
+  GraduationCap, 
+  Briefcase, 
+  Calendar, 
+  DollarSign, 
+  AlertCircle, 
+  ArrowLeft,
+  User,
+  Heart
+} from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, AreaChart, Area, CartesianGrid, Legend } from 'recharts';
-import { RTDemographics } from '../../types/database';
+import { RTDemographics, RTSettings, KKRecord, KKMember } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 
 interface DemografisTabProps {
   initialDemographics: RTDemographics | null;
   onUpdateDemographics: (data: RTDemographics) => void;
   showSuccess: (msg: string) => void;
+  settings?: RTSettings;
+  onSettingsUpdate?: (settings: RTSettings) => void;
 }
 
 export const DemografisTab: React.FC<DemografisTabProps> = ({
   initialDemographics,
   onUpdateDemographics,
-  showSuccess
+  showSuccess,
+  settings,
+  onSettingsUpdate
 }) => {
   const [loading, setLoading] = useState(false);
   const [demographics, setDemographics] = useState<RTDemographics | null>(null);
+  
+  // KK list state loaded from settings
+  const [kkList, setKkList] = useState<KKRecord[]>([]);
+  const [activeSubTab, setActiveSubTab] = useState<'database' | 'visualisasi'>('database');
+  
+  // UI states for managing KK
+  const [selectedKkId, setSelectedKkId] = useState<string | null>(null);
+  
+  // KK Form states
+  const [newNoKk, setNewNoKk] = useState('');
+  const [newKepala, setNewKepala] = useState('');
+  const [newIncome, setNewIncome] = useState<'under_2m' | '2m_5m' | '5m_10m' | 'above_10m'>('under_2m');
+  const [editingKkId, setEditingKkId] = useState<string | null>(null);
+
+  // Member Form states
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const [memberName, setMemberName] = useState('');
+  const [memberNik, setMemberNik] = useState('');
+  const [memberGender, setMemberGender] = useState<'Laki-laki' | 'Perempuan'>('Laki-laki');
+  const [memberBirthDate, setMemberBirthDate] = useState('');
+  const [memberEducation, setMemberEducation] = useState<'SD' | 'SMP' | 'SMA' | 'Sarjana/Diploma' | 'Tidak Sekolah'>('Tidak Sekolah');
+  const [memberJob, setMemberJob] = useState<'PNS' | 'Swasta' | 'Wiraswasta' | 'Nelayan' | 'Lainnya'>('Lainnya');
 
   useEffect(() => {
     if (initialDemographics) {
@@ -24,37 +68,263 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     }
   }, [initialDemographics]);
 
-  const adjustDemoField = (field: keyof RTDemographics, amount: number) => {
-    if (!demographics) return;
-    const currentVal = (demographics[field] as number) || 0;
-    const newVal = Math.max(0, currentVal + amount);
-    setDemographics({
-      ...demographics,
-      [field]: newVal
-    });
-  };
+  useEffect(() => {
+    if (settings?.kk_list) {
+      setKkList(settings.kk_list);
+    }
+  }, [settings]);
 
-  const handleDemographicsSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!demographics) return;
-
+  // Recalculate demographic stats from the current KK list and save to Supabase
+  const recalculateAndSave = async (updatedList: KKRecord[]) => {
     setLoading(true);
     try {
-      const updatedData: RTDemographics = {
-        ...demographics,
-        total_warga: Number(demographics.total_pria) + Number(demographics.total_wanita),
-        updated_at: new Date().toISOString(),
-      };
-      await SupabaseService.updateDemographics(updatedData);
-      setDemographics(updatedData);
-      onUpdateDemographics(updatedData);
-      showSuccess('Data statistik kependudukan RT 35 berhasil diperbarui!');
+      let total_kk = updatedList.length;
+      let total_pria = 0;
+      let total_wanita = 0;
+      let total_balita = 0;
+      let total_lansia = 0;
+      let total_usia_produktif = 0;
+      
+      let income_under_2m = 0;
+      let income_2m_to_5m = 0;
+      let income_5m_to_10m = 0;
+      let income_above_10m = 0;
+
+      let edu_sd = 0;
+      let edu_smp = 0;
+      let edu_sma = 0;
+      let edu_pt = 0;
+      let edu_tidak_sekolah = 0;
+
+      let prof_pns = 0;
+      let prof_swasta = 0;
+      let prof_wiraswasta = 0;
+      let prof_nelayan = 0;
+      let prof_lainnya = 0;
+
+      updatedList.forEach(kk => {
+        // Count incomes per KK
+        if (kk.income === 'under_2m') income_under_2m++;
+        else if (kk.income === '2m_5m') income_2m_to_5m++;
+        else if (kk.income === '5m_10m') income_5m_to_10m++;
+        else if (kk.income === 'above_10m') income_above_10m++;
+
+        kk.members.forEach(m => {
+          // Gender
+          if (m.gender === 'Laki-laki') total_pria++;
+          else total_wanita++;
+
+          // Age calculation
+          if (m.birthDate) {
+            const birthYear = new Date(m.birthDate).getFullYear();
+            const currentYear = new Date().getFullYear();
+            const age = currentYear - birthYear;
+            if (age < 5) total_balita++;
+            else if (age > 60) total_lansia++;
+            
+            if (age >= 15 && age <= 60) total_usia_produktif++;
+          }
+
+          // Education
+          if (m.education === 'SD') edu_sd++;
+          else if (m.education === 'SMP') edu_smp++;
+          else if (m.education === 'SMA') edu_sma++;
+          else if (m.education === 'Sarjana/Diploma') edu_pt++;
+          else edu_tidak_sekolah++;
+
+          // Profession
+          if (m.job === 'PNS') prof_pns++;
+          else if (m.job === 'Swasta') prof_swasta++;
+          else if (m.job === 'Wiraswasta') prof_wiraswasta++;
+          else if (m.job === 'Nelayan') prof_nelayan++;
+          else prof_lainnya++;
+        });
+      });
+
+      const total_warga = total_pria + total_wanita;
+
+      // 1. Save settings (contains the raw KK list)
+      if (settings && onSettingsUpdate) {
+        const updatedSettings = {
+          ...settings,
+          kk_list: updatedList
+        };
+        const savedSettings = await SupabaseService.updateSettings(updatedSettings);
+        onSettingsUpdate(savedSettings);
+        setKkList(updatedList);
+      }
+
+      // 2. Save demographics (calculated stats)
+      if (demographics) {
+        const updatedDemo: RTDemographics = {
+          ...demographics,
+          total_kk,
+          total_pria,
+          total_wanita,
+          total_warga,
+          total_balita,
+          total_lansia,
+          total_usia_produktif,
+          income_under_2m,
+          income_2m_to_5m,
+          income_5m_to_10m,
+          income_above_10m,
+          edu_sd,
+          edu_smp,
+          edu_sma,
+          edu_pt,
+          edu_tidak_sekolah,
+          prof_pns,
+          prof_swasta,
+          prof_wiraswasta,
+          prof_nelayan,
+          prof_lainnya,
+          updated_at: new Date().toISOString()
+        };
+        const savedDemo = await SupabaseService.updateDemographics(updatedDemo);
+        setDemographics(savedDemo);
+        onUpdateDemographics(savedDemo);
+      }
+      
+      showSuccess('Database KK & statistik otomatis berhasil disinkronisasi!');
     } catch (err: any) {
-      console.error('Failed updating demographics:', err);
-      alert('Gagal memperbarui data demografis: ' + err.message);
+      console.error('Recalculation error:', err);
+      alert('Gagal mensinkronisasikan data: ' + err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // KK Actions
+  const handleAddOrEditKk = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNoKk.trim() || !newKepala.trim()) return;
+
+    let updated: KKRecord[];
+    if (editingKkId) {
+      updated = kkList.map(kk => {
+        if (kk.id === editingKkId) {
+          return {
+            ...kk,
+            no_kk: newNoKk.trim(),
+            kepala_keluarga: newKepala.trim(),
+            income: newIncome
+          };
+        }
+        return kk;
+      });
+      setEditingKkId(null);
+    } else {
+      const newKk: KKRecord = {
+        id: Math.random().toString(36).substring(2, 9),
+        no_kk: newNoKk.trim(),
+        kepala_keluarga: newKepala.trim(),
+        income: newIncome,
+        members: []
+      };
+      updated = [...kkList, newKk];
+    }
+
+    setNewNoKk('');
+    setNewKepala('');
+    setNewIncome('under_2m');
+    recalculateAndSave(updated);
+  };
+
+  const handleEditKkClick = (kk: KKRecord) => {
+    setEditingKkId(kk.id);
+    setNewNoKk(kk.no_kk);
+    setNewKepala(kk.kepala_keluarga);
+    setNewIncome(kk.income);
+  };
+
+  const handleDeleteKk = (id: string) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus Kartu Keluarga ini? Semua anggota di dalamnya akan terhapus.')) return;
+    const updated = kkList.filter(kk => kk.id !== id);
+    if (selectedKkId === id) {
+      setSelectedKkId(null);
+    }
+    recalculateAndSave(updated);
+  };
+
+  // Member Actions
+  const handleAddOrEditMember = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!memberName.trim() || !memberNik.trim() || !memberBirthDate) return;
+
+    const targetKk = kkList.find(kk => kk.id === selectedKkId);
+    if (!targetKk) return;
+
+    let updatedMembers: KKMember[];
+    if (editingMemberId) {
+      updatedMembers = targetKk.members.map(m => {
+        if (m.id === editingMemberId) {
+          return {
+            ...m,
+            name: memberName.trim(),
+            nik: memberNik.trim(),
+            gender: memberGender,
+            birthDate: memberBirthDate,
+            education: memberEducation,
+            job: memberJob
+          };
+        }
+        return m;
+      });
+      setEditingMemberId(null);
+    } else {
+      const newMember: KKMember = {
+        id: Math.random().toString(36).substring(2, 9),
+        name: memberName.trim(),
+        nik: memberNik.trim(),
+        gender: memberGender,
+        birthDate: memberBirthDate,
+        education: memberEducation,
+        job: memberJob
+      };
+      updatedMembers = [...targetKk.members, newMember];
+    }
+
+    const updatedKkList = kkList.map(kk => {
+      if (kk.id === selectedKkId) {
+        return { ...kk, members: updatedMembers };
+      }
+      return kk;
+    });
+
+    setMemberName('');
+    setMemberNik('');
+    setMemberGender('Laki-laki');
+    setMemberBirthDate('');
+    setMemberEducation('Tidak Sekolah');
+    setMemberJob('Lainnya');
+    setShowAddMember(false);
+    recalculateAndSave(updatedKkList);
+  };
+
+  const handleEditMemberClick = (m: KKMember) => {
+    setEditingMemberId(m.id);
+    setMemberName(m.name);
+    setMemberNik(m.nik);
+    setMemberGender(m.gender);
+    setMemberBirthDate(m.birthDate);
+    setMemberEducation(m.education);
+    setMemberJob(m.job);
+    setShowAddMember(true);
+  };
+
+  const handleDeleteMember = (memberId: string) => {
+    if (!window.confirm('Hapus anggota keluarga ini?')) return;
+    const updatedKkList = kkList.map(kk => {
+      if (kk.id === selectedKkId) {
+        return {
+          ...kk,
+          members: kk.members.filter(m => m.id !== memberId)
+        };
+      }
+      return kk;
+    });
+    recalculateAndSave(updatedKkList);
   };
 
   if (!demographics) {
@@ -65,32 +335,33 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     );
   }
 
+  // Visualisation charts data parsing
   const genderData = [
-    { name: 'Pria', value: demographics.total_pria || 0, color: '#1e293b' },
-    { name: 'Wanita', value: demographics.total_wanita || 0, color: '#cbd5e1' },
+    { name: 'Pria', value: demographics.total_pria || 0, color: '#1E4D6B' },
+    { name: 'Wanita', value: demographics.total_wanita || 0, color: '#85A389' },
   ];
 
   const incomeData = [
-    { range: 'Under 2M', KK: demographics.income_under_2m || 0, color: '#475569' },
-    { range: '2 - 5 Jt', KK: demographics.income_2m_to_5m || 0, color: '#475569' },
-    { range: '5 - 10 Jt', KK: demographics.income_5m_to_10m || 0, color: '#475569' },
-    { range: '> 10 Jt', KK: demographics.income_above_10m || 0, color: '#475569' },
+    { range: 'Under 2M', KK: demographics.income_under_2m || 0 },
+    { range: '2 - 5 Jt', KK: demographics.income_2m_to_5m || 0 },
+    { range: '5 - 10 Jt', KK: demographics.income_5m_to_10m || 0 },
+    { range: '> 10 Jt', KK: demographics.income_above_10m || 0 },
   ];
 
   const educationData = [
-    { name: 'SD', value: demographics.edu_sd || 0, color: '#0f172a' },
-    { name: 'SMP', value: demographics.edu_smp || 0, color: '#334155' },
-    { name: 'SMA', value: demographics.edu_sma || 0, color: '#475569' },
-    { name: 'PT', value: demographics.edu_pt || 0, color: '#64748b' },
-    { name: 'Tdk Sekolah', value: demographics.edu_tidak_sekolah || 0, color: '#94a3b8' },
+    { name: 'SD', value: demographics.edu_sd || 0 },
+    { name: 'SMP', value: demographics.edu_smp || 0 },
+    { name: 'SMA', value: demographics.edu_sma || 0 },
+    { name: 'PT', value: demographics.edu_pt || 0 },
+    { name: 'Tdk Sekolah', value: demographics.edu_tidak_sekolah || 0 },
   ];
 
   const professionData = [
-    { name: 'PNS', jumlah: demographics.prof_pns || 0, color: '#475569' },
-    { name: 'Swasta', jumlah: demographics.prof_swasta || 0, color: '#475569' },
-    { name: 'Wira', jumlah: demographics.prof_wiraswasta || 0, color: '#475569' },
-    { name: 'Nelayan', jumlah: demographics.prof_nelayan || 0, color: '#475569' },
-    { name: 'Lainnya', jumlah: demographics.prof_lainnya || 0, color: '#475569' },
+    { name: 'PNS', jumlah: demographics.prof_pns || 0 },
+    { name: 'Swasta', jumlah: demographics.prof_swasta || 0 },
+    { name: 'Wira', jumlah: demographics.prof_wiraswasta || 0 },
+    { name: 'Nelayan', jumlah: demographics.prof_nelayan || 0 },
+    { name: 'Lainnya', jumlah: demographics.prof_lainnya || 0 },
   ];
 
   const newWargaData = [
@@ -108,631 +379,492 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     { month: 'Des', jumlah: demographics.warga_baru_des || 0 },
   ];
 
+  const activeKk = kkList.find(kk => kk.id === selectedKkId);
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start animate-fade-in">
+    <div className="space-y-6">
       
-      {/* Form Input Data Warga */}
-      <form onSubmit={handleDemographicsSubmit} className="xl:col-span-2 space-y-8">
-        
-        {/* CARD 1.1: KK & GENDER */}
-        <div className="premium-card p-6 sm:p-8 space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-base font-black text-slate-900">1. Penduduk & Kepala Keluarga (KK)</h3>
-            <p className="text-xs text-slate-500 font-semibold mt-1">Gunakan tombol kurangi (-) dan tambah (+) terintegrasi untuk memperbarui data.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            
-            {/* KK CAPSULE */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider">Total Kepala Keluarga (KK)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button
-                  type="button"
-                  onClick={() => adjustDemoField('total_kk', -1)}
-                  className="px-4 py-2.5 bg-slate-50 hover:bg-slate-200 text-slate-600 transition-colors font-extrabold text-lg select-none"
-                >
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.total_kk}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value.replace(/\D/g, '')) || 0;
-                    setDemographics({ ...demographics, total_kk: val });
-                  }}
-                  className="w-full text-center py-2.5 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-805 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => adjustDemoField('total_kk', 1)}
-                  className="px-4 py-2.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E] transition-colors font-extrabold text-lg select-none"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* PRIA CAPSULE */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider">Warga Laki-laki (Jiwa)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button
-                  type="button"
-                  onClick={() => adjustDemoField('total_pria', -1)}
-                  className="px-4 py-2.5 bg-slate-50 hover:bg-slate-200 text-slate-600 transition-colors font-extrabold text-lg select-none"
-                >
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.total_pria}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value.replace(/\D/g, '')) || 0;
-                    setDemographics({ ...demographics, total_pria: val });
-                  }}
-                  className="w-full text-center py-2.5 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-805 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => adjustDemoField('total_pria', 1)}
-                  className="px-4 py-2.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E] transition-colors font-extrabold text-lg select-none"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* WANITA CAPSULE */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider">Warga Perempuan (Jiwa)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button
-                  type="button"
-                  onClick={() => adjustDemoField('total_wanita', -1)}
-                  className="px-4 py-2.5 bg-slate-50 hover:bg-slate-200 text-slate-600 transition-colors font-extrabold text-lg select-none"
-                >
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.total_wanita}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value.replace(/\D/g, '')) || 0;
-                    setDemographics({ ...demographics, total_wanita: val });
-                  }}
-                  className="w-full text-center py-2.5 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-805 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => adjustDemoField('total_wanita', 1)}
-                  className="px-4 py-2.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E] transition-colors font-extrabold text-lg select-none"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* CARD 1.2: UMKM & USIA */}
-        <div className="premium-card p-6 sm:p-8 space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-base font-black text-slate-900">2. Kelompok Usia & Wirausaha</h3>
-            <p className="text-xs text-slate-500 font-semibold mt-1">Data kelompok lansia, balita, dan unit usaha.</p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            
-            {/* UMKM */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Pelaku UMKM (Unit)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('total_umkm', -1)} className="px-3 py-2 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-base">
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.total_umkm}
-                  onChange={(e) => setDemographics({ ...demographics, total_umkm: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-2 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('total_umkm', 1)} className="px-3 py-2 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* BALITA */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Balita (&lt; 5 Thn)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('total_balita', -1)} className="px-3 py-2 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-base">
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.total_balita}
-                  onChange={(e) => setDemographics({ ...demographics, total_balita: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-2 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('total_balita', 1)} className="px-3 py-2 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* PRODUSEN */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Usia Kerja (15-60 Thn)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('total_usia_produktif', -1)} className="px-3 py-2 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-base">
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.total_usia_produktif}
-                  onChange={(e) => setDemographics({ ...demographics, total_usia_produktif: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-2 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('total_usia_produktif', 1)} className="px-3 py-2 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* LANSIA */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Lansia (&gt; 60 Thn)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('total_lansia', -1)} className="px-3 py-2 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-base">
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.total_lansia}
-                  onChange={(e) => setDemographics({ ...demographics, total_lansia: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-2 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('total_lansia', 1)} className="px-3 py-2 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">
-                  +
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* CARD 1.3: PENDAPATAN */}
-        <div className="premium-card p-6 sm:p-8 space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-base font-black text-slate-900">3. Tingkat Pendapatan Bulanan per KK</h3>
-            <p className="text-xs text-slate-500 font-semibold mt-1">Pembagian kategori besaran pendapatan tiap KK (Kartu Keluarga).</p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            
-            {/* UNDER 2M */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-550 uppercase tracking-wider">&lt; Rp 2 Jt (KK)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('income_under_2m', -1)} className="px-3 py-2 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-base">
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.income_under_2m}
-                  onChange={(e) => setDemographics({ ...demographics, income_under_2m: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-2 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('income_under_2m', 1)} className="px-3 py-2 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* 2M - 5M */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-550 uppercase tracking-wider">Rp 2 - 5 Jt (KK)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('income_2m_to_5m', -1)} className="px-3 py-2 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-base">
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.income_2m_to_5m}
-                  onChange={(e) => setDemographics({ ...demographics, income_2m_to_5m: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-2 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('income_2m_to_5m', 1)} className="px-3 py-2 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* 5M - 10M */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-550 uppercase tracking-wider">Rp 5 - 10 Jt (KK)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('income_5m_to_10m', -1)} className="px-3 py-2 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-base">
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.income_5m_to_10m}
-                  onChange={(e) => setDemographics({ ...demographics, income_5m_to_10m: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-2 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('income_5m_to_10m', 1)} className="px-3 py-2 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* ABOVE 10M */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-550 uppercase tracking-wider">&gt; Rp 10 Jt (KK)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('income_above_10m', -1)} className="px-3 py-2 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-base">
-                  −
-                </button>
-                <input
-                  type="text"
-                  value={demographics.income_above_10m}
-                  onChange={(e) => setDemographics({ ...demographics, income_above_10m: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-2 bg-white border-x-2 border-slate-200 font-black text-sm text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('income_above_10m', 1)} className="px-3 py-2 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">
-                  +
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* CARD 1.4: TINGKAT PENDIDIKAN */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-lg font-black text-slate-900">4. Distribusi Pendidikan Terakhir</h3>
-            <p className="text-xs text-slate-550 font-semibold mt-1">Pembagian jumlah warga berdasarkan jenjang pendidikan terakhir.</p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            {/* SD */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">SD/Sederajat</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('edu_sd', -1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-sm">−</button>
-                <input
-                  type="text"
-                  value={demographics.edu_sd}
-                  onChange={(e) => setDemographics({ ...demographics, edu_sd: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-1.5 bg-white border-x-2 border-slate-200 font-black text-xs text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('edu_sd', 1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">+</button>
-              </div>
-            </div>
-
-            {/* SMP */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">SMP/Sederajat</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('edu_smp', -1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-sm">−</button>
-                <input
-                  type="text"
-                  value={demographics.edu_smp}
-                  onChange={(e) => setDemographics({ ...demographics, edu_smp: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-1.5 bg-white border-x-2 border-slate-200 font-black text-xs text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('edu_smp', 1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">+</button>
-              </div>
-            </div>
-
-            {/* SMA */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">SMA/Sederajat</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('edu_sma', -1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-sm">−</button>
-                <input
-                  type="text"
-                  value={demographics.edu_sma}
-                  onChange={(e) => setDemographics({ ...demographics, edu_sma: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-1.5 bg-white border-x-2 border-slate-200 font-black text-xs text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('edu_sma', 1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">+</button>
-              </div>
-            </div>
-
-            {/* PT */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">Diploma/Sarjana</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('edu_pt', -1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-sm">−</button>
-                <input
-                  type="text"
-                  value={demographics.edu_pt}
-                  onChange={(e) => setDemographics({ ...demographics, edu_pt: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-1.5 bg-white border-x-2 border-slate-200 font-black text-xs text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('edu_pt', 1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">+</button>
-              </div>
-            </div>
-
-            {/* Belum Sekolah */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">Belum/Tdk Sekolah</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('edu_tidak_sekolah', -1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-sm">−</button>
-                <input
-                  type="text"
-                  value={demographics.edu_tidak_sekolah}
-                  onChange={(e) => setDemographics({ ...demographics, edu_tidak_sekolah: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-1.5 bg-white border-x-2 border-slate-200 font-black text-xs text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('edu_tidak_sekolah', 1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CARD 1.5: JENIS PROFESI */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-lg font-black text-slate-900">5. Rumpun Pekerjaan / Profesi Warga</h3>
-            <p className="text-xs text-slate-550 font-semibold mt-1">Pembagian kategori profesi untuk warga aktif terdata.</p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            {/* PNS */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">PNS/TNI/Polri</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('prof_pns', -1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-sm">−</button>
-                <input
-                  type="text"
-                  value={demographics.prof_pns}
-                  onChange={(e) => setDemographics({ ...demographics, prof_pns: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-1.5 bg-white border-x-2 border-slate-200 font-black text-xs text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('prof_pns', 1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">+</button>
-              </div>
-            </div>
-
-            {/* Swasta */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">Swasta (Karyawan)</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('prof_swasta', -1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-sm">−</button>
-                <input
-                  type="text"
-                  value={demographics.prof_swasta}
-                  onChange={(e) => setDemographics({ ...demographics, prof_swasta: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-1.5 bg-white border-x-2 border-slate-200 font-black text-xs text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('prof_swasta', 1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">+</button>
-              </div>
-            </div>
-
-            {/* Wiraswasta */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">Wiraswasta/Dagang</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('prof_wiraswasta', -1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-sm">−</button>
-                <input
-                  type="text"
-                  value={demographics.prof_wiraswasta}
-                  onChange={(e) => setDemographics({ ...demographics, prof_wiraswasta: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-1.5 bg-white border-x-2 border-slate-200 font-black text-xs text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('prof_wiraswasta', 1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">+</button>
-              </div>
-            </div>
-
-            {/* Nelayan */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">Nelayan/Petani</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('prof_nelayan', -1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-sm">−</button>
-                <input
-                  type="text"
-                  value={demographics.prof_nelayan}
-                  onChange={(e) => setDemographics({ ...demographics, prof_nelayan: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-1.5 bg-white border-x-2 border-slate-200 font-black text-xs text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('prof_nelayan', 1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">+</button>
-              </div>
-            </div>
-
-            {/* Lainnya */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">IRT/Belum Kerja/Lain</label>
-              <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                <button type="button" onClick={() => adjustDemoField('prof_lainnya', -1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-200 text-slate-655 font-bold text-sm">−</button>
-                <input
-                  type="text"
-                  value={demographics.prof_lainnya}
-                  onChange={(e) => setDemographics({ ...demographics, prof_lainnya: parseInt(e.target.value.replace(/\D/g, '')) || 0 })}
-                  className="w-full text-center py-1.5 bg-white border-x-2 border-slate-200 font-black text-xs text-slate-800 focus:outline-none"
-                />
-                <button type="button" onClick={() => adjustDemoField('prof_lainnya', 1)} className="px-2.5 py-1.5 bg-slate-50 hover:bg-[#85A389]/10 text-[#5F8D4E]">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CARD 1.6: WARGA BARU BULANAN */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-lg font-black text-slate-900">6. Mutasi Pendaftaran Warga Baru per Bulan</h3>
-            <p className="text-xs text-slate-550 font-semibold mt-1">Angka statistik warga masuk baru pada tahun berjalan untuk analisis grafik.</p>
-          </div>
-
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
-            {[
-              { label: 'Januari', key: 'warga_baru_jan' },
-              { label: 'Februari', key: 'warga_baru_feb' },
-              { label: 'Maret', key: 'warga_baru_mar' },
-              { label: 'April', key: 'warga_baru_apr' },
-              { label: 'Mei', key: 'warga_baru_mei' },
-              { label: 'Juni', key: 'warga_baru_jun' },
-              { label: 'Juli', key: 'warga_baru_jul' },
-              { label: 'Agustus', key: 'warga_baru_agu' },
-              { label: 'September', key: 'warga_baru_sep' },
-              { label: 'Oktober', key: 'warga_baru_okt' },
-              { label: 'November', key: 'warga_baru_nov' },
-              { label: 'Desember', key: 'warga_baru_des' }
-            ].map((m) => (
-              <div key={m.key} className="space-y-1.5">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-tight">{m.label}</label>
-                <div className="flex items-center border border-slate-250 rounded-lg overflow-hidden bg-slate-50 focus-within:border-[#85A389] transition-all">
-                  <button type="button" onClick={() => adjustDemoField(m.key as any, -1)} className="px-1.5 py-1 bg-slate-55 hover:bg-slate-200 text-slate-655 font-bold text-xs select-none">−</button>
-                  <input
-                    type="text"
-                    value={(demographics as any)[m.key]}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value.replace(/\D/g, '')) || 0;
-                      setDemographics({ ...demographics, [m.key]: val });
-                    }}
-                    className="w-full text-center py-1 bg-white border-x border-slate-200 font-extrabold text-[11px] text-slate-800 focus:outline-none"
-                  />
-                  <button type="button" onClick={() => adjustDemoField(m.key as any, 1)} className="px-1.5 py-1 bg-slate-55 hover:bg-[#85A389]/10 text-[#5F8D4E] select-none">+</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex justify-end pt-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#1E4D6B] to-[#85A389] hover:opacity-95 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center space-x-2 hover:scale-[1.02]"
-          >
-            <Save className="w-5 h-5 text-white" />
-            <span>Simpan Transparansi Data Warga</span>
-          </button>
-        </div>
-
-      </form>
-
-      {/* LIVE GRAPHICS PREVIEW PANEL (STICKY ON DESKTOP) */}
-      <div className="xl:col-span-1 space-y-6 xl:sticky xl:top-6">
-        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-md space-y-6">
-          <div>
-            <h3 className="text-base font-black text-[#1E4D6B] flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5 text-[#85A389]" />
-              <span>Grafik Live Preview</span>
-            </h3>
-            <p className="text-[10px] text-slate-400 mt-1 leading-relaxed font-semibold">
-              Pratinjau visual ini ter-update secara real-time mengikuti tombol (+) dan (-) di sebelah kiri sebelum disimpan ke database.
-            </p>
-          </div>
-
-          {/* Rasio Gender */}
-          <div className="space-y-2.5">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">Proporsi Gender Penduduk</h4>
-            <div className="h-44 w-full relative flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={genderData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={62}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {genderData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-2">
-                <span className="text-lg font-black text-slate-800 leading-none">
-                  {Number(demographics.total_pria || 0) + Number(demographics.total_wanita || 0)}
-                </span>
-                <span className="text-[8px] text-slate-400 font-extrabold uppercase mt-1">Total Jiwa</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-center text-xs font-bold">
-              <div className="bg-[#1E4D6B]/5 p-2.5 rounded-xl border border-[#1E4D6B]/15">
-                <span className="text-[#1A5F7A] text-[9px] block">Pria</span>
-                <strong className="text-slate-800 text-sm mt-0.5 block">{demographics.total_pria}</strong>
-              </div>
-              <div className="bg-[#85A389]/5 p-2.5 rounded-xl border border-[#85A389]/15">
-                <span className="text-[#57C5B6] text-[9px] block">Wanita</span>
-                <strong className="text-slate-800 text-sm mt-0.5 block">{demographics.total_wanita}</strong>
-              </div>
-            </div>
-          </div>
-
-          {/* Distribusi Pendapatan */}
-          <div className="space-y-2.5 pt-4 border-t border-slate-100">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">Estimasi Pendapatan (KK)</h4>
-            <div className="h-40 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={incomeData} margin={{ top: 10, right: 0, left: -28, bottom: 0 }}>
-                  <XAxis dataKey="range" tick={{ fill: '#64748B', fontSize: 9, fontWeight: 'bold' }} />
-                  <YAxis tick={{ fill: '#64748B', fontSize: 9, fontWeight: 'bold' }} />
-                  <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                  <Bar dataKey="KK" radius={[4, 4, 0, 0]}>
-                    {incomeData.map((entry, index) => (
-                      <Cell key={`bar-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Rasio Pendidikan */}
-          <div className="space-y-2.5 pt-4 border-t border-slate-100">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">Rasio Jenjang Pendidikan</h4>
-            <div className="h-44 w-full relative flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={educationData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={36}
-                    outerRadius={52}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {educationData.map((entry, index) => (
-                      <Cell key={`cell-edu-prev-${index}`} fill={entry.color} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Tren Warga Baru */}
-          <div className="space-y-2.5 pt-4 border-t border-slate-100">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">Tren Warga Baru Bulanan</h4>
-            <div className="h-36 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={newWargaData} margin={{ top: 5, right: 0, left: -32, bottom: 0 }}>
-                  <XAxis dataKey="month" tick={{ fill: '#64748B', fontSize: 8, fontWeight: 'bold' }} />
-                  <YAxis tick={{ fill: '#64748B', fontSize: 8, fontWeight: 'bold' }} />
-                  <Tooltip contentStyle={{ fontSize: '9px', borderRadius: '8px' }} />
-                  <Area type="monotone" dataKey="jumlah" stroke="#85A389" fill="#85A389" fillOpacity={0.2} strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-        </div>
+      {/* Tab Switcher */}
+      <div className="flex border-b border-slate-200">
+        <button
+          onClick={() => { setActiveSubTab('database'); setSelectedKkId(null); }}
+          className={`px-6 py-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${
+            activeSubTab === 'database'
+              ? 'border-[#1E4D6B] text-[#1E4D6B]'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
+          }`}
+        >
+          Database Kartu Keluarga (KK)
+        </button>
+        <button
+          onClick={() => setActiveSubTab('visualisasi')}
+          className={`px-6 py-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${
+            activeSubTab === 'visualisasi'
+              ? 'border-[#1E4D6B] text-[#1E4D6B]'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
+          }`}
+        >
+          Visualisasi & Ringkasan Grafik
+        </button>
       </div>
 
+      {activeSubTab === 'database' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* LEFT: KK LIST or MEMBER DETAIL */}
+          <div className="lg:col-span-8 space-y-6">
+            {!selectedKkId ? (
+              <div className="premium-card p-6 sm:p-8 space-y-6">
+                <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">Daftar KK Terdaftar</h3>
+                    <p className="text-xs text-slate-500 font-semibold mt-1">Pilih KK untuk melihat detail & menambah anggota keluarga.</p>
+                  </div>
+                  <span className="text-xs font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
+                    {kkList.length} KK Terdaftar
+                  </span>
+                </div>
+
+                {kkList.length === 0 ? (
+                  <div className="text-center py-12 text-xs font-semibold text-slate-400">
+                    Belum ada Kartu Keluarga terdaftar. Silakan tambah data di panel kanan.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {kkList.map((kk) => (
+                      <div 
+                        key={kk.id} 
+                        onClick={() => setSelectedKkId(kk.id)}
+                        className="py-4 flex items-center justify-between hover:bg-slate-50/50 px-4 rounded-xl transition-all cursor-pointer group"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 rounded-xl bg-[#1E4D6B]/5 flex items-center justify-center text-[#1E4D6B] group-hover:scale-105 transition-transform">
+                            <Users className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-black text-slate-900">KK: {kk.no_kk}</h4>
+                            <p className="text-xs text-slate-500 font-bold">Kepala: {kk.kepala_keluarga}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-[10px] font-black text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/25 px-2.5 py-0.5 rounded-full">
+                            {kk.members.length} Jiwa
+                          </span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleEditKkClick(kk); }}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteKk(kk.id); }}
+                            className="p-1.5 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              // MEMBER DETAIL VIEW
+              <div className="premium-card p-6 sm:p-8 space-y-6">
+                <button
+                  onClick={() => { setSelectedKkId(null); setShowAddMember(false); setEditingMemberId(null); }}
+                  className="flex items-center space-x-1.5 text-slate-500 hover:text-slate-900 transition-colors text-xs font-black"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Kembali ke Daftar KK</span>
+                </button>
+
+                <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900">KK: {activeKk?.no_kk}</h3>
+                    <p className="text-xs text-slate-500 font-bold">Kepala Keluarga: <span className="text-slate-800">{activeKk?.kepala_keluarga}</span></p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-black text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                      Pendapatan: {activeKk?.income === 'under_2m' ? '< 2 Juta' : activeKk?.income === '2m_5m' ? '2 - 5 Juta' : activeKk?.income === '5m_10m' ? '5 - 10 Jt' : '> 10 Juta'}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setShowAddMember(!showAddMember);
+                        setEditingMemberId(null);
+                        setMemberName('');
+                        setMemberNik('');
+                        setMemberBirthDate('');
+                      }}
+                      className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-850 text-white font-extrabold text-xs shadow transition-all flex items-center space-x-1.5"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>{showAddMember ? 'Batal' : 'Tambah Anggota'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Inline Member Form */}
+                {showAddMember && (
+                  <form onSubmit={handleAddOrEditMember} className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-4 text-xs font-bold text-slate-700">
+                    <h4 className="text-sm font-black text-slate-900">{editingMemberId ? 'Edit Anggota Keluarga' : 'Tambah Anggota Keluarga Baru'}</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Nama Lengkap</label>
+                        <input
+                          type="text"
+                          value={memberName}
+                          onChange={(e) => setMemberName(e.target.value)}
+                          placeholder="Contoh: Dessy Adelia"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">NIK (KTP)</label>
+                        <input
+                          type="text"
+                          value={memberNik}
+                          onChange={(e) => setMemberNik(e.target.value)}
+                          placeholder="NIK 16 Digit"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Jenis Kelamin</label>
+                        <select
+                          value={memberGender}
+                          onChange={(e) => setMemberGender(e.target.value as any)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-850"
+                        >
+                          <option value="Laki-laki">Laki-laki</option>
+                          <option value="Perempuan">Perempuan</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Tanggal Lahir</label>
+                        <input
+                          type="date"
+                          value={memberBirthDate}
+                          onChange={(e) => setMemberBirthDate(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-850"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Pendidikan Terakhir</label>
+                        <select
+                          value={memberEducation}
+                          onChange={(e) => setMemberEducation(e.target.value as any)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-850"
+                        >
+                          <option value="SD">SD/Sederajat</option>
+                          <option value="SMP">SMP/Sederajat</option>
+                          <option value="SMA">SMA/Sederajat</option>
+                          <option value="Sarjana/Diploma">Diploma/Sarjana</option>
+                          <option value="Tidak Sekolah">Belum/Tidak Sekolah</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-end gap-4 pt-2">
+                      <div className="flex-1">
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Pekerjaan</label>
+                        <select
+                          value={memberJob}
+                          onChange={(e) => setMemberJob(e.target.value as any)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-850"
+                        >
+                          <option value="PNS">PNS / TNI / Polri</option>
+                          <option value="Swasta">Karyawan Swasta</option>
+                          <option value="Wiraswasta">Wiraswasta / UMKM</option>
+                          <option value="Nelayan">Nelayan / Sektor Maritim</option>
+                          <option value="Lainnya">Lainnya / Belum Bekerja</option>
+                        </select>
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-white font-extrabold text-xs shadow-sm transition-all"
+                      >
+                        {editingMemberId ? 'Simpan Perubahan' : 'Simpan Anggota'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Member List Table */}
+                {activeKk?.members.length === 0 ? (
+                  <div className="text-center py-12 text-xs font-semibold text-slate-400">
+                    Belum ada anggota keluarga terdaftar. Klik "+ Tambah Anggota" untuk menambahkan.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs font-bold text-slate-700">
+                      <thead>
+                        <tr className="border-b border-slate-100 text-[10px] text-slate-400 uppercase tracking-wider">
+                          <th className="pb-3">Nama</th>
+                          <th className="pb-3">NIK</th>
+                          <th className="pb-3">L/P</th>
+                          <th className="pb-3">Usia</th>
+                          <th className="pb-3">Pendidikan</th>
+                          <th className="pb-3">Pekerjaan</th>
+                          <th className="pb-3 text-right">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {activeKk?.members.map((m) => {
+                          const birthYear = m.birthDate ? new Date(m.birthDate).getFullYear() : 0;
+                          const currentYear = new Date().getFullYear();
+                          const age = birthYear ? currentYear - birthYear : '-';
+                          return (
+                            <tr key={m.id} className="hover:bg-slate-50/50">
+                              <td className="py-3.5 pr-2 font-black text-slate-900">{m.name}</td>
+                              <td className="py-3.5 pr-2 font-mono">{m.nik}</td>
+                              <td className="py-3.5 pr-2">{m.gender === 'Laki-laki' ? 'L' : 'P'}</td>
+                              <td className="py-3.5 pr-2">{age} thn</td>
+                              <td className="py-3.5 pr-2">{m.education === 'Sarjana/Diploma' ? 'S1/Dip' : m.education}</td>
+                              <td className="py-3.5 pr-2">{m.job}</td>
+                              <td className="py-3.5 text-right space-x-1.5">
+                                <button
+                                  onClick={() => handleEditMemberClick(m)}
+                                  className="p-1 rounded text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                                  title="Edit"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteMember(m.id)}
+                                  className="p-1 rounded text-rose-500 hover:text-rose-600 hover:bg-rose-55 transition-colors"
+                                  title="Hapus"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT: ADD/EDIT KK FORM */}
+          <div className="lg:col-span-4">
+            <form onSubmit={handleAddOrEditKk} className="premium-card p-6 sm:p-8 space-y-6 text-xs font-bold text-slate-700">
+              <div className="border-b border-slate-100 pb-3">
+                <h3 className="text-base font-black text-slate-900">
+                  {editingKkId ? 'Ubah Kartu Keluarga' : 'Tambah Kartu Keluarga (KK)'}
+                </h3>
+                <p className="text-xs text-slate-500 font-semibold mt-1">
+                  Masukkan No. KK dan nama Kepala Keluarga untuk mendaftarkan KK baru.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Nomor Kartu Keluarga (KK)</label>
+                  <input
+                    type="text"
+                    value={newNoKk}
+                    onChange={(e) => setNewNoKk(e.target.value.replace(/\D/g, ''))}
+                    placeholder="16 Digit No. KK"
+                    maxLength={16}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Nama Kepala Keluarga</label>
+                  <input
+                    type="text"
+                    value={newKepala}
+                    onChange={(e) => setNewKepala(e.target.value)}
+                    placeholder="Nama Lengkap Kepala Keluarga"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Estimasi Pendapatan Keluarga</label>
+                  <select
+                    value={newIncome}
+                    onChange={(e) => setNewIncome(e.target.value as any)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-850"
+                  >
+                    <option value="under_2m">&lt; Rp 2 Juta (Sederhana)</option>
+                    <option value="2m_5m">Rp 2 - 5 Juta (Menengah)</option>
+                    <option value="5m_10m">Rp 5 - 10 Juta (Mapan)</option>
+                    <option value="above_10m">&gt; Rp 10 Juta (Sejahtera)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-2">
+                {editingKkId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingKkId(null);
+                      setNewNoKk('');
+                      setNewKepala('');
+                      setNewIncome('under_2m');
+                    }}
+                    className="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all font-extrabold text-xs"
+                  >
+                    Batal
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-2 w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-850 text-white transition-all font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{editingKkId ? 'Simpan Perubahan' : 'Tambah KK'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+          
+        </div>
+      ) : (
+        // VISUALISASI & LIVE PREVIEW GRAPHICS
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start animate-fade-in">
+          
+          <div className="xl:col-span-2 space-y-6">
+            <div className="bg-[#85A389]/10 border border-[#85A389]/25 p-4.5 rounded-2xl flex items-start space-x-3 text-slate-700 text-xs font-semibold leading-relaxed">
+              <AlertCircle className="w-5 h-5 text-[#5F8D4E] shrink-0 mt-0.5" />
+              <div>
+                <span className="font-black text-[#5F8D4E] block mb-0.5">Mode Kalkulasi Otomatis Aktif</span>
+                Seluruh data demografi warga dan grafik di bawah ini dihitung dan diperbarui secara otomatis dari basis data KK (Tab Database) yang dikelola oleh sekretaris RT.
+              </div>
+            </div>
+
+            {/* Read-Only Summary of Demographics Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Total KK</span>
+                <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_kk}</p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Total Jiwa</span>
+                <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_warga}</p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Laki-laki</span>
+                <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_pria}</p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Perempuan</span>
+                <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_wanita}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Balita (&lt;5 thn)</span>
+                <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_balita}</p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Lansia (&gt;60 thn)</span>
+                <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_lansia}</p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Usia Kerja</span>
+                <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_usia_produktif}</p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-4.5 text-center shadow-sm">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Total UMKM</span>
+                <p className="text-2xl font-black text-slate-900 mt-1">{demographics.total_umkm}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right column with preview charts */}
+          <div className="space-y-6">
+            {/* GENDER DOUGHNUT */}
+            <div className="premium-card p-6 flex flex-col items-center">
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 pb-3 border-b border-slate-100 w-full text-center">
+                Proporsi Gender Penduduk
+              </h4>
+              <div className="w-full h-48 mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={genderData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {genderData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex space-x-6 text-[10px] font-black uppercase text-slate-600 mt-2">
+                <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-[#1E4D6B] mr-1.5" />Pria: {demographics.total_pria}</span>
+                <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-[#85A389] mr-1.5" />Wanita: {demographics.total_wanita}</span>
+              </div>
+            </div>
+
+            {/* INCOME ESTIMATES */}
+            <div className="premium-card p-6">
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 pb-3 border-b border-slate-100 text-center mb-4">
+                Estimasi Pendapatan (KK)
+              </h4>
+              <div className="w-full h-44">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={incomeData}>
+                    <XAxis dataKey="range" tick={{ fontSize: 9, fontWeight: 700 }} />
+                    <YAxis tick={{ fontSize: 9 }} />
+                    <Tooltip />
+                    <Bar dataKey="KK" fill="#1E4D6B" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* EDUCATION */}
+            <div className="premium-card p-6">
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 pb-3 border-b border-slate-100 text-center mb-4">
+                Rasio Jenjang Pendidikan
+              </h4>
+              <div className="w-full h-44">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={educationData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} fill="#85A389" label={{ fontSize: 8, fontWeight: 700 }}>
+                      {educationData.map((entry, idx) => (
+                        <Cell key={idx} fill={idx % 2 === 0 ? '#1E4D6B' : '#85A389'} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      )}
+      
     </div>
   );
 };
