@@ -72,6 +72,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [memberStatus, setMemberStatus] = useState<'Aktif' | 'Keluar' | 'Meninggal'>('Aktif');
   const [memberExitDate, setMemberExitDate] = useState('');
   const [memberExitReason, setMemberExitReason] = useState<'Pindah' | 'Meninggal' | 'Lainnya'>('Pindah');
+  const [selectedTrendYear, setSelectedTrendYear] = useState<number>(new Date().getFullYear());
 
   useEffect(() => {
     if (initialDemographics) {
@@ -426,7 +427,28 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     );
   }
 
-  // Get Monthly Trend Data dynamically including outgoing residents
+  // Get unique list of years from registration/exit dates in database
+  const getAvailableTrendYears = () => {
+    const yearsSet = new Set<number>();
+    yearsSet.add(new Date().getFullYear()); // Always include current year
+
+    kkList.forEach(kk => {
+      kk.members.forEach(m => {
+        if (m.registrationDate) {
+          const d = new Date(m.registrationDate);
+          if (!isNaN(d.getTime())) yearsSet.add(d.getFullYear());
+        }
+        if (m.exitDate) {
+          const d = new Date(m.exitDate);
+          if (!isNaN(d.getTime())) yearsSet.add(d.getFullYear());
+        }
+      });
+    });
+
+    return Array.from(yearsSet).sort((a, b) => b - a); // Descending order
+  };
+
+  // Get Monthly Trend Data dynamically including outgoing residents filtered by selected trend year
   const getMonthlyTrendData = () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
     const trend = months.map(m => ({ month: m, masuk: 0, keluar: 0 }));
@@ -437,8 +459,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         if (m.registrationDate) {
           const regDate = new Date(m.registrationDate);
           if (!isNaN(regDate.getTime())) {
+            const year = regDate.getFullYear();
             const monthIdx = regDate.getMonth();
-            if (monthIdx >= 0 && monthIdx < 12) {
+            if (year === selectedTrendYear && monthIdx >= 0 && monthIdx < 12) {
               trend[monthIdx].masuk++;
             }
           }
@@ -447,8 +470,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         if ((m.status === 'Keluar' || m.status === 'Meninggal') && m.exitDate) {
           const outDate = new Date(m.exitDate);
           if (!isNaN(outDate.getTime())) {
+            const year = outDate.getFullYear();
             const monthIdx = outDate.getMonth();
-            if (monthIdx >= 0 && monthIdx < 12) {
+            if (year === selectedTrendYear && monthIdx >= 0 && monthIdx < 12) {
               trend[monthIdx].keluar++;
             }
           }
@@ -1041,12 +1065,26 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
 
             {/* Monthly new citizens trend / exit citizens trend dual-line chart */}
             <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-md">
-              <div className="border-b border-slate-100 pb-4 mb-6">
-                <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
-                  <TrendingUp className="w-5 h-5 text-slate-700" />
-                  <span>Tren Pertumbuhan & Mutasi Penduduk RT</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">Statistik pendaftaran warga masuk (mutasi masuk) dan warga keluar/meninggal per bulan</p>
+              <div className="border-b border-slate-100 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5 text-slate-700" />
+                    <span>Tren Pertumbuhan & Mutasi Penduduk RT</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">Statistik pendaftaran warga masuk (mutasi masuk) dan warga keluar/meninggal per bulan</p>
+                </div>
+                <div className="flex items-center space-x-2 shrink-0">
+                  <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Tahun:</span>
+                  <select
+                    value={selectedTrendYear}
+                    onChange={(e) => setSelectedTrendYear(Number(e.target.value))}
+                    className="px-3 py-1.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
+                  >
+                    {getAvailableTrendYears().map(yr => (
+                      <option key={yr} value={yr}>{yr}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="h-72 w-full">
