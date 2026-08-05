@@ -63,10 +63,15 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
     { name: 'Lainnya/Tdk Bekerja', jumlah: demographics.prof_lainnya || 0, color: '#475569' },
   ];
 
-  // Get unique list of years from registration/exit dates in database
+  // Get unique list of years from registration/exit dates in database, plus a standard 2020-future range
   const getAvailableTrendYears = () => {
     const yearsSet = new Set<number>();
-    yearsSet.add(new Date().getFullYear()); // Always include current year
+    
+    // Generate standard range from 2020 to current year + 5
+    const currentYear = new Date().getFullYear();
+    for (let y = 2020; y <= currentYear + 5; y++) {
+      yearsSet.add(y);
+    }
 
     if (settings?.kk_list) {
       settings.kk_list.forEach(kk => {
