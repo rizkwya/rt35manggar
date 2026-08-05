@@ -61,6 +61,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [memberBirthDate, setMemberBirthDate] = useState('');
   const [memberEducation, setMemberEducation] = useState<'SD' | 'SMP' | 'SMA' | 'Sarjana/Diploma' | 'Tidak Sekolah'>('Tidak Sekolah');
   const [memberJob, setMemberJob] = useState<'PNS' | 'Swasta' | 'Wiraswasta' | 'Nelayan' | 'Lainnya'>('Lainnya');
+  const [memberRegDate, setMemberRegDate] = useState('');
+  const [memberIsUmkm, setMemberIsUmkm] = useState(false);
+  const [memberUmkmName, setMemberUmkmName] = useState('');
 
   useEffect(() => {
     if (initialDemographics) {
@@ -84,6 +87,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       let total_balita = 0;
       let total_lansia = 0;
       let total_usia_produktif = 0;
+      let total_umkm = 0;
       
       let income_under_2m = 0;
       let income_2m_to_5m = 0;
@@ -101,6 +105,19 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       let prof_wiraswasta = 0;
       let prof_nelayan = 0;
       let prof_lainnya = 0;
+
+      let warga_baru_jan = 0;
+      let warga_baru_feb = 0;
+      let warga_baru_mar = 0;
+      let warga_baru_apr = 0;
+      let warga_baru_mei = 0;
+      let warga_baru_jun = 0;
+      let warga_baru_jul = 0;
+      let warga_baru_agu = 0;
+      let warga_baru_sep = 0;
+      let warga_baru_okt = 0;
+      let warga_baru_nov = 0;
+      let warga_baru_des = 0;
 
       updatedList.forEach(kk => {
         // Count incomes per KK
@@ -138,6 +155,29 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
           else if (m.job === 'Wiraswasta') prof_wiraswasta++;
           else if (m.job === 'Nelayan') prof_nelayan++;
           else prof_lainnya++;
+
+          // UMKM check
+          if (m.isUmkm) total_umkm++;
+
+          // Monthly registration trends for new residents (warga baru)
+          if (m.registrationDate) {
+            const regDate = new Date(m.registrationDate);
+            if (!isNaN(regDate.getTime())) {
+              const month = regDate.getMonth();
+              if (month === 0) warga_baru_jan++;
+              else if (month === 1) warga_baru_feb++;
+              else if (month === 2) warga_baru_mar++;
+              else if (month === 3) warga_baru_apr++;
+              else if (month === 4) warga_baru_mei++;
+              else if (month === 5) warga_baru_jun++;
+              else if (month === 6) warga_baru_jul++;
+              else if (month === 7) warga_baru_agu++;
+              else if (month === 8) warga_baru_sep++;
+              else if (month === 9) warga_baru_okt++;
+              else if (month === 10) warga_baru_nov++;
+              else if (month === 11) warga_baru_des++;
+            }
+          }
         });
       });
 
@@ -165,6 +205,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
           total_balita,
           total_lansia,
           total_usia_produktif,
+          total_umkm,
           income_under_2m,
           income_2m_to_5m,
           income_5m_to_10m,
@@ -179,6 +220,18 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
           prof_wiraswasta,
           prof_nelayan,
           prof_lainnya,
+          warga_baru_jan,
+          warga_baru_feb,
+          warga_baru_mar,
+          warga_baru_apr,
+          warga_baru_mei,
+          warga_baru_jun,
+          warga_baru_jul,
+          warga_baru_agu,
+          warga_baru_sep,
+          warga_baru_okt,
+          warga_baru_nov,
+          warga_baru_des,
           updated_at: new Date().toISOString()
         };
         const savedDemo = await SupabaseService.updateDemographics(updatedDemo);
@@ -255,6 +308,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     const targetKk = kkList.find(kk => kk.id === selectedKkId);
     if (!targetKk) return;
 
+    const regDateStr = memberRegDate || new Date().toISOString().split('T')[0];
+
     let updatedMembers: KKMember[];
     if (editingMemberId) {
       updatedMembers = targetKk.members.map(m => {
@@ -266,7 +321,10 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
             gender: memberGender,
             birthDate: memberBirthDate,
             education: memberEducation,
-            job: memberJob
+            job: memberJob,
+            registrationDate: regDateStr,
+            isUmkm: memberIsUmkm,
+            umkmName: memberIsUmkm ? memberUmkmName.trim() : ''
           };
         }
         return m;
@@ -280,7 +338,10 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         gender: memberGender,
         birthDate: memberBirthDate,
         education: memberEducation,
-        job: memberJob
+        job: memberJob,
+        registrationDate: regDateStr,
+        isUmkm: memberIsUmkm,
+        umkmName: memberIsUmkm ? memberUmkmName.trim() : ''
       };
       updatedMembers = [...targetKk.members, newMember];
     }
@@ -298,6 +359,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     setMemberBirthDate('');
     setMemberEducation('Tidak Sekolah');
     setMemberJob('Lainnya');
+    setMemberRegDate('');
+    setMemberIsUmkm(false);
+    setMemberUmkmName('');
     setShowAddMember(false);
     recalculateAndSave(updatedKkList);
   };
@@ -310,6 +374,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     setMemberBirthDate(m.birthDate);
     setMemberEducation(m.education);
     setMemberJob(m.job);
+    setMemberRegDate(m.registrationDate || '');
+    setMemberIsUmkm(!!m.isUmkm);
+    setMemberUmkmName(m.umkmName || '');
     setShowAddMember(true);
   };
 
@@ -574,6 +641,43 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                       </div>
                     </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Tanggal Pendaftaran/Masuk RT</label>
+                        <input
+                          type="date"
+                          value={memberRegDate}
+                          onChange={(e) => setMemberRegDate(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-850"
+                        />
+                      </div>
+                      <div className="flex flex-col justify-center pt-2">
+                        <label className="flex items-center space-x-2 text-sm font-black text-slate-800 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={memberIsUmkm}
+                            onChange={(e) => setMemberIsUmkm(e.target.checked)}
+                            className="w-4 h-4 rounded text-[#1E4D6B] border-slate-300 focus:ring-[#1E4D6B]"
+                          />
+                          <span>Memiliki Usaha / UMKM Aktif</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {memberIsUmkm && (
+                      <div className="animate-fade-in">
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Nama / Bidang Usaha UMKM</label>
+                        <input
+                          type="text"
+                          value={memberUmkmName}
+                          onChange={(e) => setMemberUmkmName(e.target.value)}
+                          placeholder="Contoh: Warung Sembako Berkah, Bengkel Motor"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
+                          required
+                        />
+                      </div>
+                    )}
+
                     <div className="flex justify-between items-end gap-4 pt-2">
                       <div className="flex-1">
                         <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Pekerjaan</label>
@@ -625,10 +729,20 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                           const age = birthYear ? currentYear - birthYear : '-';
                           return (
                             <tr key={m.id} className="hover:bg-slate-50/50">
-                              <td className="py-3.5 pr-2 font-black text-slate-900">{m.name}</td>
+                              <td className="py-3.5 pr-2 font-black text-slate-900">
+                                <div>{m.name}</div>
+                                {m.isUmkm && (
+                                  <div className="inline-block mt-1 text-[9px] font-black uppercase tracking-wider text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/20 px-2 py-0.5 rounded">
+                                    UMKM: {m.umkmName || 'Aktif'}
+                                  </div>
+                                )}
+                              </td>
                               <td className="py-3.5 pr-2 font-mono">{m.nik}</td>
                               <td className="py-3.5 pr-2">{m.gender === 'Laki-laki' ? 'L' : 'P'}</td>
-                              <td className="py-3.5 pr-2">{age} thn</td>
+                              <td className="py-3.5 pr-2">
+                                <div>{age} thn</div>
+                                <div className="text-[10px] text-slate-400 font-semibold">{m.registrationDate ? `Masuk: ${m.registrationDate}` : ''}</div>
+                              </td>
                               <td className="py-3.5 pr-2">{m.education === 'Sarjana/Diploma' ? 'S1/Dip' : m.education}</td>
                               <td className="py-3.5 pr-2">{m.job}</td>
                               <td className="py-3.5 text-right space-x-1.5">

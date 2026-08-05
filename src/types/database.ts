@@ -163,6 +163,9 @@ export interface KKMember {
   birthDate: string; // YYYY-MM-DD
   education: 'SD' | 'SMP' | 'SMA' | 'Sarjana/Diploma' | 'Tidak Sekolah';
   job: 'PNS' | 'Swasta' | 'Wiraswasta' | 'Nelayan' | 'Lainnya';
+  registrationDate?: string; // YYYY-MM-DD for Dukcapil tracking
+  isUmkm?: boolean;
+  umkmName?: string;
 }
 
 export interface KKRecord {
