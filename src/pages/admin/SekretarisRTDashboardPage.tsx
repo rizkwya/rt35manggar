@@ -319,7 +319,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
       
       {/* 1. SIDEBAR CONTROLLER */}
-      <aside className="w-full lg:w-72 bg-slate-900 text-white p-6 flex flex-col justify-between shrink-0 border-r border-slate-800">
+      <aside className="w-full lg:w-72 lg:h-screen lg:sticky lg:top-0 lg:overflow-y-auto bg-slate-900 text-white p-6 flex flex-col justify-between shrink-0 border-r border-slate-800">
         
         <div className="space-y-8">
           {/* Logo & Info Header */}
