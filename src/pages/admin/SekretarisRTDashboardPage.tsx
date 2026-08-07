@@ -316,10 +316,10 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   const pendingMessagesCount = settings?.messages_list?.filter(m => m.status === 'pending').length || 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
+    <div className="h-screen w-screen bg-slate-50 flex flex-col lg:flex-row overflow-hidden">
       
       {/* 1. SIDEBAR CONTROLLER */}
-      <aside className="w-full lg:w-72 lg:h-screen lg:sticky lg:top-0 lg:overflow-y-auto bg-slate-900 text-white p-6 flex flex-col justify-between shrink-0 border-r border-slate-800">
+      <aside className="w-full lg:w-72 h-fit lg:h-full bg-slate-900 text-white p-6 flex flex-col justify-between shrink-0 border-r border-slate-800 lg:overflow-y-auto">
         
         <div className="space-y-8">
           {/* Logo & Info Header */}
@@ -517,9 +517,10 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       </aside>
 
       {/* 2. MAIN CONTENT AREA */}
-      <main className="flex-grow p-6 sm:p-8 lg:p-12 overflow-y-auto relative z-10 max-w-[1400px] mx-auto w-full space-y-8">
-        
-        {/* TAB HEADER */}
+      <main className="flex-grow h-full overflow-y-auto bg-slate-50 relative z-10 w-full">
+        <div className="p-6 sm:p-8 lg:p-12 max-w-[1400px] mx-auto w-full space-y-8">
+          
+          {/* TAB HEADER */}
         <div className="flex items-center justify-between border-b-2 border-slate-200 pb-4">
           <div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight capitalize">
@@ -1017,6 +1018,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
           </div>
         )}
 
+        </div>
       </main>
 
     </div>
