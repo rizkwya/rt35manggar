@@ -97,10 +97,17 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
 
       let updatedGridItems = [...(contentObj.grid_items || [])];
       
+      const getPlainSummary = (htmlContent: string) => {
+        const plain = htmlContent.replace(/<[^>]*>/g, ' ');
+        const cleaned = plain.replace(/\s+/g, ' ').trim();
+        if (cleaned.length <= 120) return cleaned;
+        return cleaned.substring(0, 120) + '...';
+      };
+
       const newItem = {
         title: kegiatanTitle,
         badge: kegiatanBadge,
-        summary: kegiatanSummary,
+        summary: getPlainSummary(kegiatanDesc),
         description: kegiatanDesc,
         image_url: kegiatanImageUrl,
         created_at: editingKegiatanIdx !== null && updatedGridItems[editingKegiatanIdx]?.created_at
@@ -326,18 +333,6 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                 value={kegiatanBadge}
                 onChange={(e) => setKegiatanBadge(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-[#85A389]"
-              />
-            </div>
-
-            {/* Ringkasan Singkat (Summary) */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-black uppercase tracking-wider text-slate-500">Ringkasan Singkat (Summary)</label>
-              <textarea
-                rows={2}
-                placeholder="Tulis ringkasan singkat untuk kartu di halaman depan..."
-                value={kegiatanSummary}
-                onChange={(e) => setKegiatanSummary(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-[#85A389] resize-none"
               />
             </div>
 

@@ -65,17 +65,26 @@ export const NewsTab: React.FC<NewsTabProps> = ({
 
   const handleSaveNews = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newContent.trim() || !newSummary.trim()) return;
+    if (!newTitle.trim() || !newContent.trim()) return;
+
+    const getPlainSummary = (htmlContent: string) => {
+      const plain = htmlContent.replace(/<[^>]*>/g, ' ');
+      const cleaned = plain.replace(/\s+/g, ' ').trim();
+      if (cleaned.length <= 120) return cleaned;
+      return cleaned.substring(0, 120) + '...';
+    };
 
     setLoading(true);
     try {
+      const computedSummary = getPlainSummary(newContent);
+      
       if (editingNewsId) {
         const existing = newsList.find(n => n.id === editingNewsId);
         const updatedItem: NewsPost = {
           id: editingNewsId,
           title: newTitle,
           slug: existing && existing.title === newTitle ? existing.slug : `${slugify(newTitle)}-${Date.now()}`,
-          summary: newSummary,
+          summary: computedSummary,
           content: newContent,
           category: newCategory,
           image_url: newImageUrl.trim(),
@@ -92,7 +101,7 @@ export const NewsTab: React.FC<NewsTabProps> = ({
           id: generateUUID(),
           title: newTitle,
           slug: `${slugify(newTitle)}-${Date.now()}`,
-          summary: newSummary,
+          summary: computedSummary,
           content: newContent,
           category: newCategory,
           image_url: newImageUrl.trim(),
@@ -231,18 +240,6 @@ export const NewsTab: React.FC<NewsTabProps> = ({
                   {uploadingNewsImg && <span className="text-[10px] text-slate-500 animate-pulse font-bold">Mengunggah...</span>}
                 </div>
               </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Ringkasan Singkat (Summary)</label>
-              <textarea
-                required
-                rows={2}
-                value={newSummary}
-                onChange={(e) => setNewSummary(e.target.value)}
-                placeholder="Tulis ringkasan singkat berita untuk kartu halaman utama..."
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-slate-800 transition-all resize-none"
-              />
             </div>
 
             <div className="space-y-1">
