@@ -28,28 +28,35 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
 
   const handleUpdateStatus = async (messageId: string, nextStatus: 'pending' | 'read' | 'resolved') => {
     if (!settings) return;
+    
+    // Optimistic update for instant UI feedback
+    const updatedMessages = messagesList.map(m => {
+      if (m.id === messageId) {
+        return { ...m, status: nextStatus };
+      }
+      return m;
+    });
+
+    const updatedSettings: RTSettings = {
+      ...settings,
+      messages_list: updatedMessages
+    };
+
+    if (onSettingsUpdate) {
+      onSettingsUpdate(updatedSettings);
+    }
+
     setLoading(true);
     try {
-      const updatedMessages = messagesList.map(m => {
-        if (m.id === messageId) {
-          return { ...m, status: nextStatus };
-        }
-        return m;
-      });
-
-      const updatedSettings: RTSettings = {
-        ...settings,
-        messages_list: updatedMessages
-      };
-
-      const savedSettings = await SupabaseService.updateSettings(updatedSettings);
-      if (onSettingsUpdate) {
-        onSettingsUpdate(savedSettings);
-      }
+      await SupabaseService.updateSettings(updatedSettings);
       showSuccess('Status pesan berhasil diperbarui!');
     } catch (err: any) {
       console.error(err);
       alert('Gagal memperbarui status: ' + err.message);
+      // Revert state if api fails
+      if (onSettingsUpdate) {
+        onSettingsUpdate(settings);
+      }
     } finally {
       setLoading(false);
     }
@@ -57,23 +64,30 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
 
   const handleDeleteMessage = async (messageId: string) => {
     if (!settings || !confirm('Apakah Anda yakin ingin menghapus data laporan ini secara permanen?')) return;
+    
+    // Optimistic update for instant UI feedback
+    const updatedMessages = messagesList.filter(m => m.id !== messageId);
+
+    const updatedSettings: RTSettings = {
+      ...settings,
+      messages_list: updatedMessages
+    };
+
+    if (onSettingsUpdate) {
+      onSettingsUpdate(updatedSettings);
+    }
+
     setLoading(true);
     try {
-      const updatedMessages = messagesList.filter(m => m.id !== messageId);
-
-      const updatedSettings: RTSettings = {
-        ...settings,
-        messages_list: updatedMessages
-      };
-
-      const savedSettings = await SupabaseService.updateSettings(updatedSettings);
-      if (onSettingsUpdate) {
-        onSettingsUpdate(savedSettings);
-      }
+      await SupabaseService.updateSettings(updatedSettings);
       showSuccess('Data laporan berhasil dihapus!');
     } catch (err: any) {
       console.error(err);
       alert('Gagal menghapus data: ' + err.message);
+      // Revert state if api fails
+      if (onSettingsUpdate) {
+        onSettingsUpdate(settings);
+      }
     } finally {
       setLoading(false);
     }
