@@ -162,6 +162,8 @@ export const App: React.FC<AppProps> = () => {
             let boundary_south = '';
             let boundary_east = '';
             let boundary_west = '';
+            let kk_list = [];
+            let messages_list = [];
 
             if (row.emergency_description) {
               try {
@@ -178,6 +180,8 @@ export const App: React.FC<AppProps> = () => {
                 if (extra.boundary_south) boundary_south = extra.boundary_south;
                 if (extra.boundary_east) boundary_east = extra.boundary_east;
                 if (extra.boundary_west) boundary_west = extra.boundary_west;
+                if (extra.kk_list) kk_list = extra.kk_list;
+                if (extra.messages_list) messages_list = extra.messages_list;
               } catch (jsonErr) {
                 console.warn('Failed to parse emergency_description as JSON:', jsonErr);
                 emergency_description = row.emergency_description;
@@ -196,7 +200,9 @@ export const App: React.FC<AppProps> = () => {
               boundary_north,
               boundary_south,
               boundary_east,
-              boundary_west
+              boundary_west,
+              kk_list,
+              messages_list
             });
           }
         }
