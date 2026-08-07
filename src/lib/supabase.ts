@@ -361,6 +361,7 @@ export const SupabaseService = {
           let boundary_east = '';
           let boundary_west = '';
           let kk_list = [];
+          let messages_list = [];
 
           if (firstRow.emergency_description) {
             try {
@@ -378,6 +379,7 @@ export const SupabaseService = {
               if (extra.boundary_east) boundary_east = extra.boundary_east;
               if (extra.boundary_west) boundary_west = extra.boundary_west;
               if (extra.kk_list) kk_list = extra.kk_list;
+              if (extra.messages_list) messages_list = extra.messages_list;
             } catch (jsonErr) {
               console.warn('Failed to parse emergency_description as JSON:', jsonErr);
               emergency_description = firstRow.emergency_description;
@@ -397,7 +399,8 @@ export const SupabaseService = {
             boundary_south,
             boundary_east,
             boundary_west,
-            kk_list
+            kk_list,
+            messages_list
           } as RTSettings;
       }
     } catch (e) {
@@ -430,7 +433,8 @@ export const SupabaseService = {
       boundary_south: settings.boundary_south || '',
       boundary_east: settings.boundary_east || '',
       boundary_west: settings.boundary_west || '',
-      kk_list: settings.kk_list || []
+      kk_list: settings.kk_list || [],
+      messages_list: settings.messages_list || []
     };
     const dbObj: any = {
       portal_name: settings.portal_name,
