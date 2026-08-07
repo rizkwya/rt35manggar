@@ -13,6 +13,7 @@ interface LandingPageProps {
   settings?: RTSettings;
   navItems: NavigationItem[];
   pengurusList: RTPengurus[];
+  onSettingsUpdate?: (settings: RTSettings) => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
@@ -20,7 +21,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   navigateTo,
   settings,
   navItems,
-  pengurusList
+  pengurusList,
+  onSettingsUpdate
 }) => {
   return (
     <>
@@ -46,7 +48,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <LatestActivitiesSection navigateTo={navigateTo} navItems={navItems} />
 
       {/* 7. POSKO, LOKASI & CONTACT ASPIRASI WARGA */}
-      <ContactLocationSection settings={settings} />
+      <ContactLocationSection settings={settings} onSettingsUpdate={onSettingsUpdate} />
     </>
   );
 };

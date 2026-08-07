@@ -151,8 +151,27 @@ export interface RTSettings {
   boundary_west?: string;
 
   kk_list?: KKRecord[];
+  messages_list?: RTMessage[];
 
   updated_at?: string;
+}
+
+export interface RTMessage {
+  id: string;
+  type: 'aspirasi' | 'wajib_lapor';
+  name: string;
+  phone?: string;
+  // Aspirasi fields
+  message?: string;
+  // Wajib Lapor fields
+  guestNik?: string;
+  relation?: string;
+  hostName?: string;
+  startDate?: string;
+  duration?: string;
+  
+  status: 'pending' | 'read' | 'resolved';
+  createdAt: string;
 }
 
 export interface KKMember {

@@ -697,6 +697,7 @@ export const App: React.FC<AppProps> = () => {
             settings={settings}
             navItems={navItems}
             pengurusList={pengurusList}
+            onSettingsUpdate={setSettings}
           />
         );
     }

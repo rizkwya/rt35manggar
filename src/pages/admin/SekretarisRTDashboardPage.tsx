@@ -17,7 +17,8 @@ import {
   Upload,
   Smartphone,
   MapPin,
-  Newspaper
+  Newspaper,
+  MessageSquare
 } from 'lucide-react';
 import { RTDemographics, RTAnnouncement, UserProfile, RTPengurus, TeamMember, ProkerItem, RTSettings, NavigationItem, NewsPost } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
@@ -29,12 +30,13 @@ import { PortalSettingsTab } from '../../components/admin/PortalSettingsTab';
 import { MenuNavigationTab } from '../../components/admin/MenuNavigationTab';
 import { FasilitasTab } from '../../components/admin/FasilitasTab';
 import { NewsTab } from '../../components/admin/NewsTab';
+import { AspirasiTab } from '../../components/admin/AspirasiTab';
 
 interface SekretarisRTDashboardProps {
   user: UserProfile;
   onLogout: () => void;
   onUserProfileUpdate?: (profile: UserProfile) => void;
-  activeTab?: 'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita';
+  activeTab?: 'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi';
   onChangeTab?: (path: string) => void;
   settings?: RTSettings;
   onSettingsUpdate?: (settings: RTSettings) => void;
@@ -81,7 +83,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   onUpdateProkerList,
   navItems
 }) => {
-  const [activeTab, setActiveTab] = useState<'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita'>('demografis');
+  const [activeTab, setActiveTab] = useState<'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi'>('demografis');
   
   
   const [loading, setLoading] = useState(false);
@@ -286,7 +288,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
     }
   };
 
-  const handleTabClick = (tabId: 'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita') => {
+  const handleTabClick = (tabId: 'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi') => {
     setActiveTab(tabId);
     
     const pathMap = {
@@ -299,7 +301,8 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       menu_navigation: '/admin/navigation',
       kegiatan_warga: '/admin/kegiatan-warga',
       fasilitas: '/admin/fasilitas',
-      berita: '/admin/berita'
+      berita: '/admin/berita',
+      aspirasi: '/admin/aspirasi'
     };
 
     if (onChangeTab) {
@@ -309,6 +312,8 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       window.dispatchEvent(new Event('popstate'));
     }
   };
+
+  const pendingMessagesCount = settings?.messages_list?.filter(m => m.status === 'pending').length || 0;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
@@ -402,6 +407,25 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
             >
               <Newspaper className="w-4.5 h-4.5" />
               <span>Berita RT</span>
+            </button>
+
+            <button
+              onClick={() => handleTabClick('aspirasi')}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all ${
+                activeTab === 'aspirasi' 
+                  ? 'bg-white text-slate-900 shadow-sm' 
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <MessageSquare className="w-4.5 h-4.5" />
+                <span>Aspirasi & Lapor Tamu</span>
+              </div>
+              {pendingMessagesCount > 0 && (
+                <span className="bg-rose-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full animate-pulse">
+                  {pendingMessagesCount}
+                </span>
+              )}
             </button>
 
             <div className="pt-4 pb-2">
@@ -658,6 +682,15 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
             newsList={newsList}
             user={user}
             onUpdateNews={onUpdateNews}
+            showSuccess={showSuccess}
+          />
+        )}
+
+        {/* ASPIRASI & LAPOR TAMU TAB */}
+        {activeTab === 'aspirasi' && (
+          <AspirasiTab
+            settings={settings}
+            onSettingsUpdate={onSettingsUpdate}
             showSuccess={showSuccess}
           />
         )}

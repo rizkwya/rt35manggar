@@ -1,27 +1,98 @@
 import React, { useState } from 'react';
-import { MapPin, Phone, Send, CheckCircle, ShieldAlert, Clock, Anchor } from 'lucide-react';
-import { RTSettings } from '../../types/database';
+import { MapPin, Phone, Send, CheckCircle, ShieldAlert, Clock, MessageSquare, Shield, Calendar, UserCheck } from 'lucide-react';
+import { RTSettings, RTMessage } from '../../types/database';
+import { SupabaseService } from '../../lib/supabase';
 
 interface ContactLocationSectionProps {
   settings?: RTSettings;
+  onSettingsUpdate?: (settings: RTSettings) => void;
 }
 
-export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({ settings }) => {
+export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({ 
+  settings,
+  onSettingsUpdate
+}) => {
+  const [activeFormTab, setActiveFormTab] = useState<'aspirasi' | 'wajib_lapor'>('aspirasi');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  // Shared Form fields
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  
+  // Aspirasi fields
   const [message, setMessage] = useState('');
+  
+  // Wajib Lapor fields
+  const [guestNik, setGuestNik] = useState('');
+  const [relation, setRelation] = useState('');
+  const [hostName, setHostName] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [duration, setDuration] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !message) return;
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
+    if (!name) return;
+    
+    setLoading(true);
+    try {
+      // 1. Fetch latest settings to avoid overwriting newer data
+      const latestSettings = await SupabaseService.fetchSettings();
+      const currentMessages = latestSettings.messages_list || [];
+
+      // 2. Build the new message / guest report payload
+      const newMessage: RTMessage = {
+        id: Math.random().toString(36).substring(2, 9),
+        type: activeFormTab,
+        name: name.trim(),
+        phone: phone.trim() || undefined,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        ...(activeFormTab === 'aspirasi' ? {
+          message: message.trim()
+        } : {
+          guestNik: guestNik.trim(),
+          relation: relation.trim(),
+          hostName: hostName.trim(),
+          startDate: startDate,
+          duration: duration.trim()
+        })
+      };
+
+      // 3. Update settings record in Supabase
+      const updatedSettings: RTSettings = {
+        ...latestSettings,
+        messages_list: [newMessage, ...currentMessages]
+      };
+
+      const savedSettings = await SupabaseService.updateSettings(updatedSettings);
+      
+      // 4. Update parent state if available
+      if (onSettingsUpdate) {
+        onSettingsUpdate(savedSettings);
+      }
+
+      setSubmitted(true);
+      
+      // Reset form fields
       setName('');
       setPhone('');
       setMessage('');
-    }, 4000);
+      setGuestNik('');
+      setRelation('');
+      setHostName('');
+      setStartDate('');
+      setDuration('');
+
+      setTimeout(() => {
+        setSubmitted(false);
+      }, 5000);
+    } catch (err: any) {
+      console.error('Error submitting message/report:', err);
+      alert('Gagal mengirim laporan: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,13 +104,13 @@ export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({ 
         <div className="text-center space-y-3">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#85A389]/10 border border-[#85A389]/30 text-[#5F8D4E] text-xs font-bold uppercase tracking-wider">
             <MapPin className="w-4 h-4 text-[#85A389]" />
-            <span>Lokasi & Kontak Layanan</span>
+            <span>Lokasi & Pelayanan Mandiri</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">
-            Pusat Sekretariat & <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1E4D6B] via-[#85A389] to-[#bca481]">Aspirasi Warga RT 35</span>
+            Pusat Sekretariat & <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1E4D6B] via-[#85A389] to-[#bca481]">Aspirasi & Lapor Tamu RT 35</span>
           </h2>
           <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-medium">
-            Temukan alamat balai pelayanan RT 35, nomor kontak darurat wilayah pesisir, serta kirim saran & permohonan bantuan secara online.
+            Temukan lokasi balai pelayanan RT 35, nomor kontak darurat, serta lakukan kewajiban wajib lapor tamu 24 jam atau kirim aspirasi warga secara online.
           </p>
         </div>
 
@@ -99,8 +170,6 @@ export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({ 
                   </div>
                 </div>
               </div>
-
-
             </div>
 
             {/* GOOGLE MAPS EMBED */}
@@ -134,66 +203,195 @@ export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({ 
 
           </div>
 
-          {/* RIGHT: ASPIRASI / CITIZEN SUGGESTION FORM */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 space-y-6 shadow-sm flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-base sm:text-lg font-bold text-slate-800 flex items-center space-x-2">
-                  <Send className="w-4.5 h-4.5 text-[#85A389]" />
-                  <span>Kirim Saran & Aspirasi Warga</span>
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">Sampaikan masukan, pengaduan lingkungan, atau pertanyaan ke pengurus RT</p>
+          {/* RIGHT: DUAL FORM PORTAL (ASPIRASI & WAJIB LAPOR) */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+            <div>
+              {/* Form Tab Switched */}
+              <div className="flex border-b border-slate-150 mb-6">
+                <button
+                  type="button"
+                  onClick={() => { setActiveFormTab('aspirasi'); setSubmitted(false); }}
+                  className={`flex-1 pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 text-center flex items-center justify-center space-x-1.5 ${
+                    activeFormTab === 'aspirasi'
+                      ? 'border-[#1E4D6B] text-[#1E4D6B]'
+                      : 'border-transparent text-slate-450 hover:text-slate-800'
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Kirim Aspirasi</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setActiveFormTab('wajib_lapor'); setSubmitted(false); }}
+                  className={`flex-1 pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 text-center flex items-center justify-center space-x-1.5 ${
+                    activeFormTab === 'wajib_lapor'
+                      ? 'border-[#1E4D6B] text-[#1E4D6B]'
+                      : 'border-transparent text-slate-455 hover:text-slate-800'
+                  }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Wajib Lapor Tamu</span>
+                </button>
               </div>
 
               {submitted && (
-                <div className="p-4 rounded-2xl bg-[#85A389]/15 border border-[#85A389]/30 text-[#5F8D4E] flex items-center space-x-3 text-xs font-bold animate-fade-in">
+                <div className="p-4 rounded-2xl bg-[#85A389]/15 border border-[#85A389]/30 text-[#5F8D4E] flex items-center space-x-3 text-xs font-bold mb-6 animate-fade-in">
                   <CheckCircle className="w-5 h-5 text-[#85A389] shrink-0" />
-                  <span>Terima kasih! Aspirasi Anda telah terkirim secara online ke Sekretariat RT 35.</span>
+                  <span>
+                    {activeFormTab === 'aspirasi' 
+                      ? 'Terima kasih! Aspirasi Anda telah berhasil terkirim secara online ke pengurus RT 35.' 
+                      : 'Laporan tamu menginap berhasil dikirim. Terima kasih atas kepatuhan Anda terhadap aturan Wajib Lapor.'}
+                  </span>
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Nama Lengkap</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Budi Santoso"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white"
-                    required
-                  />
-                </div>
+                {activeFormTab === 'aspirasi' ? (
+                  /* Form Aspirasi & Pengaduan */
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Nama Lengkap</label>
+                      <input
+                        type="text"
+                        placeholder="Contoh: Budi Santoso"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white font-bold"
+                        required
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Nomor HP/WA (Opsional)</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: 0812XXXXXXXX"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Nomor HP/WA (Untuk Konfirmasi)</label>
+                      <input
+                        type="text"
+                        placeholder="Contoh: 0812XXXXXXXX"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white font-bold"
+                        required
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Aspirasi / Pengaduan</label>
-                  <textarea
-                    rows={5}
-                    placeholder="Tulis pesan atau masukan Anda tentang kebersihan, keamanan, atau layanan warga di sini..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white"
-                    required
-                  />
-                </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Aspirasi / Pengaduan Lingkungan</label>
+                      <textarea
+                        rows={4}
+                        placeholder="Tulis saran, keluhan kebersihan/keamanan, atau masukan Anda di sini secara objektif..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white font-bold"
+                        required
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  /* Form Wajib Lapor Tamu 1x24 Jam */
+                  <div className="space-y-4">
+                    <div className="bg-[#1E4D6B]/5 border border-[#1E4D6B]/10 p-3.5 rounded-xl text-slate-600 text-[10px] font-bold flex items-start space-x-2">
+                      <ShieldAlert className="w-4 h-4 text-[#1E4D6B] shrink-0 mt-0.5" />
+                      <span>
+                        Sesuai aturan keamanan lingkungan, setiap warga yang menerima tamu menginap lebih dari 24 jam wajib melaporkan data tamu kepada Ketua RT.
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Nama Tamu</label>
+                        <input
+                          type="text"
+                          placeholder="Nama lengkap tamu"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white font-bold"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">NIK / KTP Tamu</label>
+                        <input
+                          type="text"
+                          placeholder="KTP Tamu (16 Digit NIK)"
+                          value={guestNik}
+                          onChange={(e) => setGuestNik(e.target.value.replace(/\D/g, ''))}
+                          maxLength={16}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white font-bold"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Hubungan dengan Tuan Rumah</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: Keluarga, Teman, Rekan Kerja"
+                          value={relation}
+                          onChange={(e) => setRelation(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white font-bold"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Nama & Alamat Tuan Rumah</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: Bapak Ahmad / Rumah No. 12"
+                          value={hostName}
+                          onChange={(e) => setHostName(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white font-bold"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Tanggal Mulai Menginap</label>
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-850 font-bold focus:outline-none focus:border-[#85A389] focus:bg-white"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Durasi (Hari)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="Contoh: 3"
+                          value={duration}
+                          onChange={(e) => setDuration(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white font-bold"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">No. HP Penanggung Jawab / Tamu</label>
+                      <input
+                        type="text"
+                        placeholder="Contoh: 0812XXXXXXXX"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#85A389] focus:bg-white font-bold"
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#1E4D6B] to-[#85A389] hover:opacity-95 text-white font-bold text-xs shadow-sm transition-colors flex items-center justify-center space-x-2"
+                  disabled={loading}
+                  className="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-850 disabled:bg-slate-400 text-white font-extrabold text-xs shadow transition-all flex items-center justify-center space-x-2"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Kirim Aspirasi Online</span>
+                  <span>{loading ? 'Mengirim Data...' : activeFormTab === 'aspirasi' ? 'Kirim Aspirasi Online' : 'Kirim Laporan Tamu (Wajib Lapor)'}</span>
                 </button>
               </form>
             </div>
