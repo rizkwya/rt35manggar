@@ -134,7 +134,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           
           {/* Logo HUT RI */}
           <img 
-            src="/hutri.png" 
+            src={scrolled ? "/hutri_black.png" : "/hutri.png"} 
             alt="Logo HUT RI" 
             className="w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
             style={{ height: '46px' }}
