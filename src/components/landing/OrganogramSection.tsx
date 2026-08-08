@@ -13,8 +13,8 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const { scrollLeft, clientWidth } = scrollContainerRef.current;
-      const scrollAmount = 320; // approximate width of one card + gap
+      const { scrollLeft } = scrollContainerRef.current;
+      const scrollAmount = 320; // width of card + gap
       scrollContainerRef.current.scrollTo({
         left: direction === 'left' ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
         behavior: 'smooth',
@@ -23,7 +23,7 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
   };
 
   return (
-    <section id="pengurus-rt" className="py-24 bg-white relative border-t border-slate-200/60 scroll-mt-16">
+    <section id="pengurus-rt" className="py-24 bg-white relative border-t border-slate-200/60 scroll-mt-16 overflow-hidden w-full">
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10 animate-fade-in">
         
@@ -42,7 +42,7 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
             </p>
           </div>
 
-          {/* Carousel Control Buttons (Desktop & Mobile) */}
+          {/* Carousel Control Buttons */}
           <div className="flex items-center space-x-2.5 self-start md:self-auto">
             <button
               onClick={() => scroll('left')}
@@ -63,57 +63,62 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
 
         {/* ORGANOGRAM HORIZONTAL CAROUSEL */}
         {pengurusList.length > 0 ? (
-          <div 
-            ref={scrollContainerRef}
-            className="flex overflow-x-auto gap-6 pb-6 pt-2 px-4 -mx-4 snap-x snap-mandatory scroll-smooth scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
-            style={{ scrollbarWidth: 'thin' }}
-          >
-            {pengurusList.map((p) => (
-              <div
-                key={p.id}
-                className="w-[280px] sm:w-[300px] shrink-0 p-6 rounded-3xl bg-slate-50 border border-slate-200 shadow-sm hover:border-[#0b5665]/40 transition-all duration-300 flex flex-col justify-between space-y-4 group snap-center"
-              >
-                <div className="space-y-4 text-center">
-                  <div className="relative inline-block mx-auto">
-                    <img
-                      src={p.foto_url || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23CBD5E1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'}
-                      alt={p.nama}
-                      className="w-24 h-24 rounded-2xl object-cover border border-slate-200 group-hover:border-[#0b5665] transition-all duration-300 mx-auto shadow-sm bg-slate-100"
-                    />
-                    <span className="absolute -bottom-2 -right-2 p-1.5 rounded-lg bg-[#0b5665] text-white shadow">
-                      <ShieldCheck className="w-4.5 h-4.5" />
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-extrabold text-[#0b5665] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0b5665]/10 border border-[#0b5665]/20">
-                      {p.jabatan}
-                    </span>
-                    <h3 className="text-sm sm:text-base font-black text-slate-900 mt-3.5 tracking-tight">{p.nama}</h3>
-                    <p className="text-xs text-slate-500 mt-1 flex items-center justify-center space-x-1.5 font-bold">
-                      <PhoneCall className="w-3.5 h-3.5 text-[#0b5665] inline" />
-                      <span>{p.phone}</span>
-                    </p>
-                  </div>
-                </div>
-
-                <a
-                  href={`https://wa.me/62${p.phone.replace(/^0/, '')}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-2.5 rounded-xl bg-white hover:bg-[#0b5665] text-slate-700 hover:text-white font-bold text-xs text-center transition-all flex items-center justify-center space-x-1.5 border border-slate-200 hover:border-transparent shadow-sm"
+          <div className="relative w-full overflow-hidden">
+            <div 
+              ref={scrollContainerRef}
+              className="flex overflow-x-auto gap-6 pb-6 pt-2 px-1 snap-x snap-mandatory scroll-smooth scrollbar-none"
+              style={{ 
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}
+            >
+              {pengurusList.map((p) => (
+                <div
+                  key={p.id}
+                  className="w-[280px] sm:w-[300px] shrink-0 p-6 rounded-3xl bg-slate-50 border border-slate-200 shadow-sm hover:border-[#0b5665]/40 transition-all duration-300 flex flex-col justify-between space-y-4 group snap-center"
                 >
-                  <HeartHandshake className="w-4 h-4 text-[#0b5665] group-hover:text-white" />
-                  <span>Hubungi via WA</span>
-                </a>
-              </div>
-            ))}
+                  <div className="space-y-4 text-center">
+                    <div className="relative inline-block mx-auto">
+                      <img
+                        src={p.foto_url || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23CBD5E1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'}
+                        alt={p.nama}
+                        className="w-24 h-24 rounded-2xl object-cover border border-slate-200 group-hover:border-[#0b5665] transition-all duration-300 mx-auto shadow-sm bg-slate-100"
+                      />
+                      <span className="absolute -bottom-2 -right-2 p-1.5 rounded-lg bg-[#0b5665] text-white shadow">
+                        <ShieldCheck className="w-4.5 h-4.5" />
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-extrabold text-[#0b5665] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0b5665]/10 border border-[#0b5665]/20">
+                        {p.jabatan}
+                      </span>
+                      <h3 className="text-sm sm:text-base font-black text-slate-900 mt-3.5 tracking-tight">{p.nama}</h3>
+                      <p className="text-xs text-slate-500 mt-1 flex items-center justify-center space-x-1.5 font-bold">
+                        <PhoneCall className="w-3.5 h-3.5 text-[#0b5665] inline" />
+                        <span>{p.phone}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={`https://wa.me/62${p.phone.replace(/^0/, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-2.5 rounded-xl bg-white hover:bg-[#0b5665] text-slate-700 hover:text-white font-bold text-xs text-center transition-all flex items-center justify-center space-x-1.5 border border-slate-200 hover:border-transparent shadow-sm"
+                  >
+                    <HeartHandshake className="w-4 h-4 text-[#0b5665] group-hover:text-white" />
+                    <span>Hubungi via WA</span>
+                  </a>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="p-10 text-center rounded-3xl border-2 border-dashed border-slate-250 bg-slate-50 max-w-lg mx-auto">
             <UserCheck className="w-12 h-12 text-slate-400 mx-auto mb-3" />
             <p className="text-sm font-extrabold text-slate-700">Belum ada data aparatur RT</p>
-            <p className="text-xs text-slate-455 mt-1 font-semibold leading-relaxed">Struktur organisasi kepengurusan RT sedang diperbarui oleh Sekretaris.</p>
+            <p className="text-xs text-slate-450 mt-1 font-semibold leading-relaxed">Struktur organisasi kepengurusan RT sedang diperbarui oleh Sekretaris.</p>
           </div>
         )}
 
