@@ -37,14 +37,6 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
           
           {/* CENTERED TEXT & ACTION CONTROLS */}
           <div className="max-w-3xl mx-auto text-center space-y-8 pt-10">
-            
-            {/* OFFICIAL BADGE */}
-            <div className="flex flex-wrap items-center justify-center gap-3 animate-fade-in">
-              <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white font-extrabold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                <span>Portal Pengabdian KKN Universitas Mulia</span>
-              </div>
-            </div>
 
             {/* HERO TITLE */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1] drop-shadow-sm">

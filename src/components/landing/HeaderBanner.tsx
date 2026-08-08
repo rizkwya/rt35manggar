@@ -48,21 +48,7 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
       <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[150px] pointer-events-none" />
 
-      {/* Main hero wrapper */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-8 flex-grow flex flex-col justify-center items-center">
-        
-        {/* OFFICIAL BADGES */}
-        <div className="flex flex-wrap items-center justify-center gap-3 animate-fade-in">
-          <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white font-extrabold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span>Portal Resmi Pemerintahan RT 35</span>
-          </div>
-
-          <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white font-extrabold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm backdrop-blur-md">
-            <MapPin className="w-3.5 h-3.5 text-amber-400" />
-            <span>{settings?.address || 'Kelurahan Manggar, Balikpapan Timur'}</span>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-8 flex-grow flex flex-col justify-center items-center pt-8">
 
         {/* HERO TITLE */}
         <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-white tracking-tight leading-[1.1] max-w-5xl mx-auto drop-shadow-sm">
