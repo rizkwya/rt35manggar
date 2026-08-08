@@ -19,24 +19,28 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
     <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-[#0b5665] selection:text-white">
       
       {/* 1. HERO BANNER - CLEAN FULL GROUP PHOTO ONLY (NO CUTOUT OVERLAYS) */}
-      <section 
-        className="relative min-h-[580px] lg:min-h-[720px] flex flex-col justify-start pt-36 pb-60 sm:pb-72 lg:pb-80 overflow-hidden text-white bg-[#0b5665]"
-        style={{
-          backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.42) 0%, rgba(6, 48, 57, 0.65) 100%), url("/hero_sawah.jpg")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center bottom',
-          backgroundAttachment: 'scroll'
-        }}
-      >
+      <section className="relative min-h-[580px] lg:min-h-[680px] flex flex-col justify-center items-center py-24 sm:py-32 overflow-hidden text-white bg-slate-50">
+        
+        {/* Absolute Background Photo - Offset by wave height at the bottom to prevent cropping */}
+        <div 
+          className="absolute inset-0 bottom-[30px] sm:bottom-[45px] z-10"
+          style={{
+            backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.42) 0%, rgba(6, 48, 57, 0.65) 100%), url("/hero_sawah.jpg")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center bottom',
+            backgroundAttachment: 'scroll'
+          }}
+        />
+
         {/* Glowing auras */}
-        <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none z-10" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none z-10" />
 
         {/* Outer container of the banner */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full flex flex-col justify-center items-center text-center">
           
-          {/* CENTERED TEXT & ACTION CONTROLS - Positioned higher to leave the bottom photo banner fully visible */}
-          <div className="max-w-3xl mx-auto text-center space-y-8 pt-6">
+          {/* CENTERED TEXT & ACTION CONTROLS */}
+          <div className="max-w-3xl mx-auto text-center space-y-8">
             
             {/* HERO TITLE */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1] drop-shadow-sm">
@@ -68,7 +72,12 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
           </div>
         </div>
 
-
+        {/* Dynamic wave SVG transition - Placed in the offset area below the photo */}
+        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none z-20">
+          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[30px] sm:h-[45px]">
+            <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" className="fill-slate-50"></path>
+          </svg>
+        </div>
       </section>
 
       {/* DETAILED INFO SECTION */}
