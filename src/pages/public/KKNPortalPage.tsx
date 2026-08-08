@@ -20,11 +20,11 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
       
       {/* 1. HERO BANNER - CLEAN & MAJESTIC GROUP BACKGROUND */}
       <section 
-        className="relative min-h-[500px] lg:min-h-[580px] flex flex-col justify-between pt-36 pb-24 overflow-hidden text-white bg-[#0b5665]"
+        className="relative min-h-[580px] lg:min-h-[680px] flex flex-col justify-between pt-36 pb-36 overflow-hidden text-white bg-[#0b5665]"
         style={{
-          backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.45) 0%, rgba(6, 48, 57, 0.75) 100%), url("/hero_sawah.jpg")',
+          backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.42) 0%, rgba(6, 48, 57, 0.72) 100%), url("/hero_sawah.jpg")',
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: 'center 88%',
           backgroundAttachment: 'scroll'
         }}
       >
