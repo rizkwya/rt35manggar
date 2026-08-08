@@ -90,6 +90,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           element.scrollIntoView({ behavior: 'smooth' });
         }
       }
+    } else {
+      window.history.pushState(null, '', `/page/${item.target_id}`);
+      window.dispatchEvent(new Event('popstate'));
     }
   };
 
