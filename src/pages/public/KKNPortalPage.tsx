@@ -20,9 +20,9 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
       
       {/* 1. HERO BANNER WITH SYMMETRICAL 2x2 GRID (BANNER STYLE) */}
       <section 
-        className="relative min-h-[650px] flex items-end justify-between pt-36 pb-20 overflow-hidden text-white bg-[#0b5665]"
+        className="relative min-h-[780px] lg:min-h-[850px] flex items-end justify-between pt-40 pb-28 overflow-hidden text-white bg-[#0b5665]"
         style={{
-          backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.72) 0%, rgba(6, 48, 57, 0.85) 100%), url("/hero_sawah.jpg")',
+          backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.42) 0%, rgba(6, 48, 57, 0.62) 100%), url("/hero_sawah.jpg")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'scroll'
@@ -36,14 +36,14 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full flex-grow flex flex-col justify-center items-center">
           
           {/* LEFT SIDE MEMBERS (4 students in 2x2 Grid) - Desktop Only */}
-          <div className="hidden xl:block absolute bottom-[-50px] left-[-40px] h-[560px] w-[500px] z-10 select-none pointer-events-none">
+          <div className="hidden xl:block absolute bottom-[-45px] left-[-45px] h-[600px] w-[500px] z-10 select-none pointer-events-none">
             {/* Back Row */}
-            <img src="/kkn_member_1.png" className="absolute bottom-[130px] left-[20px] h-[370px] z-10 opacity-75 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
-            <img src="/kkn_member_2.png" className="absolute bottom-[130px] left-[180px] h-[370px] z-10 opacity-75 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+            <img src="/kkn_member_1.png" className="absolute bottom-[140px] left-[20px] h-[390px] z-10 opacity-75 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+            <img src="/kkn_member_2.png" className="absolute bottom-[140px] left-[180px] h-[390px] z-10 opacity-75 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
             
             {/* Front Row */}
-            <img src="/kkn_member_3.png" className="absolute bottom-0 left-[-30px] h-[480px] z-30 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" />
-            <img src="/kkn_member_4.png" className="absolute bottom-0 left-[140px] h-[480px] z-30 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" />
+            <img src="/kkn_member_3.png" className="absolute bottom-0 left-[-30px] h-[520px] z-30 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" />
+            <img src="/kkn_member_4.png" className="absolute bottom-0 left-[140px] h-[520px] z-30 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" />
           </div>
 
           {/* LEFT SIDE FALLBACK (2 students) - Tablet/Medium Screens */}
@@ -93,14 +93,14 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
           </div>
 
           {/* RIGHT SIDE MEMBERS (4 students in 2x2 Grid) - Desktop Only */}
-          <div className="hidden xl:block absolute bottom-[-50px] right-[-40px] h-[560px] w-[500px] z-10 select-none pointer-events-none">
+          <div className="hidden xl:block absolute bottom-[-45px] right-[-45px] h-[600px] w-[500px] z-10 select-none pointer-events-none">
             {/* Back Row */}
-            <img src="/kkn_member_5.png" className="absolute bottom-[130px] right-[180px] h-[370px] z-10 opacity-75 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
-            <img src="/kkn_member_6.png" className="absolute bottom-[130px] right-[20px] h-[370px] z-10 opacity-75 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+            <img src="/kkn_member_5.png" className="absolute bottom-[140px] right-[180px] h-[390px] z-10 opacity-75 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+            <img src="/kkn_member_6.png" className="absolute bottom-[140px] right-[20px] h-[390px] z-10 opacity-75 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
             
             {/* Front Row */}
-            <img src="/kkn_member_7.png" className="absolute bottom-0 right-[140px] h-[480px] z-30 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" />
-            <img src="/kkn_member_8.png" className="absolute bottom-0 right-[-30px] h-[480px] z-30 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" />
+            <img src="/kkn_member_7.png" className="absolute bottom-0 right-[140px] h-[520px] z-30 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" />
+            <img src="/kkn_member_8.png" className="absolute bottom-0 right-[-30px] h-[520px] z-30 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" />
           </div>
 
           {/* RIGHT SIDE FALLBACK (2 students) - Tablet/Medium Screens */}
