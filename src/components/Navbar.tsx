@@ -121,7 +121,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             src="/logo.png" 
             alt="Logo RT 35" 
             className="w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
-            style={{ height: '48px' }}
+            style={{ height: '46px' }}
           />
           
           {/* Vertical divider line */}
@@ -137,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             src="/hutri.png" 
             alt="Logo HUT RI" 
             className="w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
-            style={{ height: '42px' }}
+            style={{ height: '46px' }}
           />
 
           {/* Text branding */}
