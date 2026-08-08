@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Camera, Calendar, ArrowRight, BookOpen, Compass } from 'lucide-react';
-import { SupabaseService } from '../../lib/supabase';
+import React from 'react';
+import { Camera, ArrowRight, BookOpen } from 'lucide-react';
 import { NavigationItem } from '../../types/database';
-import { getPreviewText } from '../../lib/utils';
 
 interface LatestActivitiesSectionProps {
   navigateTo: (path: string) => void;
@@ -25,20 +23,20 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
   if (activities.length === 0) return null;
 
   return (
-    <section id="kegiatan-terbaru" className="py-24 bg-[#FAF9F6] relative border-t border-slate-100 scroll-mt-16 bg-grid-dots">
+    <section id="kegiatan-terbaru" className="py-24 bg-white relative border-t border-slate-200/60 scroll-mt-16 bg-grid-dots">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 relative z-10 animate-fade-in">
         
         {/* SECTION HEADER & VIEW ALL BUTTON */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-3 text-left">
-            <div className="badge-premium-sage">
-              <Camera className="w-4 h-4 text-[#85A389]" />
+            <div className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-full bg-[#0b5665]/10 border border-[#0b5665]/20 text-[#0b5665] text-xs font-black uppercase tracking-wider">
+              <Camera className="w-4 h-4 text-[#0b5665]" />
               <span>Dokumentasi & Galeri Warga</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              Kegiatan Terbaru <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1E4D6B] via-[#85A389] to-[#bca481]">Warga RT 35</span>
+              Kegiatan Terbaru <span className="text-[#0b5665]">Warga RT 35</span>
             </h2>
-            <p className="text-slate-600 max-w-xl text-sm sm:text-base leading-relaxed font-semibold">
+            <p className="text-slate-500 max-w-xl text-xs sm:text-sm leading-relaxed font-bold">
               Dokumentasi foto kegiatan gotong royong, arisan warga, posyandu, dan penyuluhan sosial terkini di wilayah RT 35.
             </p>
           </div>
@@ -46,7 +44,7 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
           <button
             type="button"
             onClick={() => navigateTo('/page/kegiatan-warga')}
-            className="px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-sm flex items-center space-x-2 transition-all hover:scale-[1.02] shrink-0 self-start md:self-auto active:scale-98"
+            className="px-6 py-3.5 rounded-full bg-[#0b5665] hover:bg-[#08424e] text-white font-black text-xs shadow-sm flex items-center space-x-2 transition-all hover:scale-[1.02] shrink-0 self-start md:self-auto active:scale-98"
           >
             <span>Lihat Semua Dokumentasi</span>
             <ArrowRight className="w-4 h-4 text-white" />
@@ -66,12 +64,12 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
               <div
                 key={idx}
                 onClick={() => navigateTo(`/page/kegiatan-warga?slug=${generateSlug(item.title)}`)}
-                className="premium-card overflow-hidden cursor-pointer group"
+                className="premium-card overflow-hidden cursor-pointer group hover:border-[#0b5665]/40"
               >
                 <div>
                   {/* Image */}
                   {item.image_url ? (
-                    <div className="h-52 w-full overflow-hidden relative bg-slate-50 border-b border-slate-100">
+                    <div className="h-52 w-full overflow-hidden relative bg-slate-50 border-b border-slate-200">
                       <img 
                         src={item.image_url} 
                         alt={item.title} 
@@ -79,18 +77,18 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
                       />
                     </div>
                   ) : (
-                    <div className="h-52 w-full bg-gradient-to-tr from-[#1E4D6B]/5 via-[#85A389]/10 to-[#E5D3B3]/5 flex items-center justify-center relative border-b border-slate-100">
-                      <BookOpen className="w-10 h-10 text-[#85A389] opacity-40 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="h-52 w-full bg-slate-100 flex items-center justify-center relative border-b border-slate-200">
+                      <BookOpen className="w-10 h-10 text-[#0b5665] opacity-40 group-hover:scale-110 transition-transform duration-500" />
                     </div>
                   )}
 
                   {/* Body */}
                   <div className="p-6 space-y-2">
-                    <h4 className="text-base font-black text-slate-900 leading-snug group-hover:text-slate-700 transition-colors line-clamp-2">
+                    <h4 className="text-sm sm:text-base font-black text-slate-900 leading-snug group-hover:text-[#0b5665] transition-colors line-clamp-2">
                       {item.title}
                     </h4>
-                    <p className="text-[11px] text-slate-400 font-bold">
-                      {new Date(item.created_at || new Date().toISOString()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    <p className="text-[10px] text-slate-400 font-bold">
+                      {new Date(item.created_at || new Date().toISOString()).toLocaleDateString('id-ID', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </p>
                   </div>
                 </div>
@@ -103,3 +101,4 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
     </section>
   );
 };
+export default LatestActivitiesSection;

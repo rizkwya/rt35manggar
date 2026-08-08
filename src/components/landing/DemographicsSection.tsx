@@ -183,17 +183,17 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
         
         {/* SECTION HEADER */}
         <div className="text-center space-y-4">
-          <div className="badge-premium-sage">
+          <div className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-full bg-[#0b5665]/10 border border-[#0b5665]/20 text-[#0b5665] text-xs font-black uppercase tracking-wider">
             <TrendingUp className="w-4 h-4" />
             <span>Keterbukaan Data & Demografi RT</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Visualisasi Data Penduduk <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1E4D6B] via-[#85A389] to-[#bda682]">
+            <span className="text-[#0b5665]">
               RT 35 Kelurahan Manggar
             </span>
           </h2>
-          <p className="text-slate-650 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-semibold">
+          <p className="text-slate-500 max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed font-bold">
             Statistik agregat kependudukan, pembagian kelompok usia, dan pemetaan tingkat pendapatan keluarga untuk transparansi publik yang rapi.
           </p>
         </div>
@@ -203,12 +203,12 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
           <div className="premium-card p-6">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider">Kepala Keluarga</span>
-              <div className="p-2.5 rounded-2xl bg-[#E5D3B3]/10 text-[#a38b64]">
+              <div className="p-2.5 rounded-2xl bg-[#0b5665]/10 text-[#0b5665]">
                 <Home className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-black text-slate-800 leading-none">{demographics.total_kk}</span>
+              <span className="text-3xl font-black text-slate-900 leading-none">{demographics.total_kk}</span>
               <span className="text-xs text-slate-500 ml-1.5 font-bold">KK</span>
             </div>
             <p className="text-[11px] text-slate-400 mt-2 font-semibold">Terdata Aktif di Lingkungan</p>
@@ -217,12 +217,12 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
           <div className="premium-card p-6">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider">Total Penduduk</span>
-              <div className="p-2.5 rounded-2xl bg-[#85A389]/10 text-[#5F8D4E]">
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600">
                 <Users className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-black text-slate-800 leading-none">{demographics.total_warga}</span>
+              <span className="text-3xl font-black text-slate-900 leading-none">{demographics.total_warga}</span>
               <span className="text-xs text-slate-500 ml-1.5 font-bold">Jiwa</span>
             </div>
             <p className="text-[11px] text-slate-400 mt-2 font-semibold">Laki-laki & Perempuan</p>
@@ -231,12 +231,12 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
           <div className="premium-card p-6">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider">Usia Produktif</span>
-              <div className="p-2.5 rounded-2xl bg-sky-50 text-sky-600">
+              <div className="p-2.5 rounded-2xl bg-[#0b5665]/10 text-[#0b5665]">
                 <TrendingUp className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-black text-slate-800 leading-none">{demographics.total_usia_produktif}</span>
+              <span className="text-3xl font-black text-slate-900 leading-none">{demographics.total_usia_produktif}</span>
               <span className="text-xs text-slate-500 ml-1.5 font-bold">Jiwa</span>
             </div>
             <p className="text-[11px] text-slate-400 mt-2 font-semibold">Rentang Usia 15 - 60 Tahun</p>
@@ -245,12 +245,12 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
           <div className="premium-card p-6">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider">Usaha / UMKM</span>
-              <div className="p-2.5 rounded-2xl bg-amber-50 text-amber-600">
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600">
                 <Store className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-black text-slate-800 leading-none">{demographics.total_umkm}</span>
+              <span className="text-3xl font-black text-slate-900 leading-none">{demographics.total_umkm}</span>
               <span className="text-xs text-slate-500 ml-1.5 font-bold">Unit</span>
             </div>
             <p className="text-[11px] text-slate-400 mt-2 font-semibold">Usaha Mandiri Warga RT</p>
@@ -265,7 +265,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
             <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
               <div>
                 <h3 className="text-base font-bold text-slate-800 flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-[#85A389]" />
+                  <Users className="w-5 h-5 text-[#0b5665]" />
                   <span>Rasio Pembagian Gender</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">Perbandingan jumlah warga berjenis kelamin pria dan wanita</p>
@@ -443,7 +443,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
                 <select
                   value={selectedTrendYear}
                   onChange={(e) => setSelectedTrendYear(Number(e.target.value))}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#85A389]"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0b5665]"
                 >
                   {getAvailableTrendYears().map(yr => (
                     <option key={yr} value={yr}>{yr}</option>
@@ -552,7 +552,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
 
             <div className="space-y-5 text-xs sm:text-sm text-slate-600">
               <div className="flex items-start space-x-3">
-                <Clock className="w-4.5 h-4.5 text-[#85A389] shrink-0 mt-0.5" />
+                <Clock className="w-4.5 h-4.5 text-[#0b5665] shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <p className="font-bold text-slate-800">Jam Operasional Pelayanan</p>
                   {(settings?.service_hours || 'Senin - Jumat: 19.30 - 21.30 WITA\nSabtu - Minggu: Dengan Perjanjian')
@@ -581,7 +581,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
                 <div className="space-y-1">
                   <p className="font-bold text-slate-800">{settings?.emergency_title || 'Pusat Kontak Darurat'}</p>
                   {settings?.emergency_description && (
-                    <p className="text-[#85A389] text-[11px] font-bold pb-1">{settings.emergency_description}</p>
+                    <p className="text-[#0b5665] text-[11px] font-bold pb-1">{settings.emergency_description}</p>
                   )}
                   {getKontakList().map((item, idx) => (
                     <p key={idx} className="text-slate-500 text-xs">{item}</p>
@@ -597,7 +597,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
                 href={`https://wa.me/${cleanPhoneForWA(settings?.phone_secretary)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-block w-full py-2.5 px-4 rounded-xl bg-[#85A389] hover:bg-[#728d76] text-white text-xs font-bold transition-all shadow-sm"
+                className="inline-block w-full py-2.5 px-4 rounded-xl bg-[#0b5665] hover:bg-[#08424e] text-white text-xs font-bold transition-all shadow-sm text-center"
               >
                 Hubungi Sekretaris (WhatsApp)
               </a>

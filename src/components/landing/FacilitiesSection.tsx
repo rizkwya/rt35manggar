@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Landmark, MapPin, Sparkles } from 'lucide-react';
+import { Landmark, MapPin } from 'lucide-react';
 import { RTFacility } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 
@@ -31,20 +31,20 @@ export const FacilitiesSection: React.FC = () => {
   }
 
   return (
-    <section id="fasilitas-umum" className="py-24 bg-[#FAF9F6] relative border-t border-slate-100 scroll-mt-16 bg-grid-dots">
+    <section id="fasilitas-umum" className="py-24 bg-white relative border-t border-slate-200/60 scroll-mt-16 bg-grid-dots">
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 relative z-10 animate-fade-in">
         
         {/* HEADER */}
         <div className="text-center space-y-3">
-          <div className="badge-premium-sage">
-            <Landmark className="w-4 h-4 text-slate-700" />
+          <div className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-full bg-[#0b5665]/10 border border-[#0b5665]/20 text-[#0b5665] text-xs font-black uppercase tracking-wider">
+            <Landmark className="w-4 h-4 text-[#0b5665]" />
             <span>Sarana & Prasarana Wilayah</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Fasilitas Umum <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1e293b] via-[#475569] to-[#94a3b8]">RT 35 Manggar 2</span>
+            Fasilitas Umum <span className="text-[#0b5665]">RT 35 Manggar</span>
           </h2>
-          <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-semibold">
+          <p className="text-slate-500 max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed font-bold">
             Infrastruktur penunjang kegiatan warga, pos keamanan, serta ruang sosial terbuka yang dikelola bersama.
           </p>
         </div>
@@ -60,36 +60,35 @@ export const FacilitiesSection: React.FC = () => {
             {facilities.map((f) => (
             <div
               key={f.id}
-              className="premium-card overflow-hidden flex flex-col justify-between group"
+              className="premium-card overflow-hidden flex flex-col justify-between group hover:border-[#0b5665]/40"
             >
               <div>
                 {/* Cover Image */}
                 {f.image_url ? (
-                  <div className="h-52 w-full overflow-hidden relative bg-slate-50">
+                  <div className="h-52 w-full overflow-hidden relative bg-slate-50 border-b border-slate-200">
                     <img 
                       src={f.image_url} 
                       alt={f.name} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                   </div>
                 ) : (
-                  <div className="h-52 w-full bg-gradient-to-tr from-[#1E4D6B]/5 via-[#85A389]/10 to-[#E5D3B3]/5 flex items-center justify-center relative border-b border-slate-100">
-                    <Landmark className="w-10 h-10 text-[#85A389] opacity-40 group-hover:scale-110 transition-transform duration-500" />
+                  <div className="h-52 w-full bg-slate-100 flex items-center justify-center relative border-b border-slate-200">
+                    <Landmark className="w-10 h-10 text-[#0b5665] opacity-40 group-hover:scale-110 transition-transform duration-500" />
                   </div>
                 )}
 
                 {/* Card Body */}
                 <div className="p-6 space-y-3">
-                  <span className="inline-block text-[9px] font-black uppercase tracking-wider text-[#85A389] bg-[#85A389]/10 px-2.5 py-0.5 rounded-md">
+                  <span className="inline-block text-[9px] font-black uppercase tracking-wider text-[#0b5665] bg-[#0b5665]/10 px-2.5 py-0.5 rounded-md">
                     Fasilitas Umum
                   </span>
 
-                  <h3 className="text-sm sm:text-base font-black text-slate-900 leading-snug group-hover:text-[#1E4D6B] transition-colors">
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 leading-snug group-hover:text-[#0b5665] transition-colors">
                     {f.name}
                   </h3>
 
-                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                  <p className="text-xs text-slate-500 font-bold leading-relaxed">
                     {f.description}
                   </p>
                 </div>
@@ -97,8 +96,8 @@ export const FacilitiesSection: React.FC = () => {
 
               {/* Card Footer */}
               {f.location && (
-                <div className="flex items-center space-x-1.5 text-[10px] text-[#5F8D4E] font-extrabold border-t border-slate-100 pt-4 pb-5 px-6">
-                  <MapPin className="w-4 h-4 text-[#85A389]" />
+                <div className="flex items-center space-x-1.5 text-[10px] text-[#0b5665] font-black border-t border-slate-250/60 pt-4 pb-5 px-6">
+                  <MapPin className="w-4 h-4 text-[#0b5665]" />
                   <span>Lokasi: {f.location}</span>
                 </div>
               )}
@@ -111,3 +110,4 @@ export const FacilitiesSection: React.FC = () => {
     </section>
   );
 };
+export default FacilitiesSection;

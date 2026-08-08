@@ -117,19 +117,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           <img 
             src="/logo.png" 
             alt="Logo RT 35" 
-            className="h-11 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+            className="h-13 sm:h-15 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
           />
           
           {/* Vertical divider line */}
-          <div className={`h-8 w-[1.5px] transition-colors duration-300 ${
-            scrolled ? 'bg-slate-350' : 'bg-white/30'
+          <div className={`h-9 w-[2px] transition-colors duration-300 ${
+            scrolled ? 'bg-[#0b5665]/50' : 'bg-white/60'
           }`} />
           
           {/* Logo HUT RI */}
           <img 
             src="/hutri.png" 
             alt="Logo HUT RI" 
-            className="h-10 sm:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+            className="h-12 sm:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
           />
 
           {/* Text branding */}
