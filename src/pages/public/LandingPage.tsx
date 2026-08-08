@@ -5,6 +5,7 @@ import { ProfileSection } from '../../components/landing/ProfileSection';
 import { DemographicsSection } from '../../components/landing/DemographicsSection';
 import { OrganogramSection } from '../../components/landing/OrganogramSection';
 import { LatestActivitiesSection } from '../../components/landing/LatestActivitiesSection';
+import { DeveloperCreditsSection } from '../../components/landing/DeveloperCreditsSection';
 import { ContactLocationSection } from '../../components/landing/ContactLocationSection';
 
 interface LandingPageProps {
@@ -46,6 +47,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* 6. DOKUMENTASI KEGIATAN TERBARU */}
       <LatestActivitiesSection navigateTo={navigateTo} navItems={navItems} />
+
+      {/* TENTANG PENGEMBANG KKN UNIVERSITAS MULIA */}
+      <DeveloperCreditsSection navigateTo={navigateTo} />
 
       {/* 7. POSKO, LOKASI & CONTACT ASPIRASI WARGA */}
       <ContactLocationSection settings={settings} onSettingsUpdate={onSettingsUpdate} />
