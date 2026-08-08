@@ -10,80 +10,108 @@ interface KKNPortalPageProps {
 
 export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTeam, onBackToHome }) => {
 
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-[#0b5665] selection:text-white">
       
-      {/* 1. HERO BANNER WITH 8-MEMBER LINEUP */}
-      <div className="relative min-h-[500px] flex items-end overflow-hidden bg-slate-950 pt-32 pb-16">
-        
-        {/* Background Rice Field Image */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="/hero_sawah.jpg" 
-            alt="Sawah KKN" 
-            className="w-full h-full object-cover object-center opacity-40" 
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/75 to-transparent z-10" />
-        </div>
+      {/* 1. HERO BANNER WITH SYMMETRICAL LINEUP (4 LEFT, 4 RIGHT, CENTERED CONTENT) */}
+      <section 
+        className="relative min-h-[92vh] lg:min-h-screen flex flex-col justify-between pt-36 pb-36 overflow-hidden text-white bg-[#0b5665]"
+        style={{
+          backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.72) 0%, rgba(6, 48, 57, 0.85) 100%), url("/hero_sawah.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'scroll'
+        }}
+      >
+        {/* Glowing auras */}
+        <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+        {/* Outer container of the banner */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full flex-grow flex flex-col justify-center items-center">
           
-          {/* Header Texts */}
-          <div className="space-y-6 max-w-xl text-left pb-6">
-            <button
-              onClick={onBackToHome}
-              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs backdrop-blur-sm transition-all border border-white/20"
-            >
-              <ArrowLeft className="w-4 h-4 text-white" />
-              <span>Kembali ke Portal RT 35</span>
-            </button>
+          {/* LEFT SIDE MEMBERS (4 students) - Desktop Only */}
+          <div className="hidden xl:flex items-end justify-start absolute bottom-[-144px] left-[-30px] h-[450px] w-[450px] z-10 select-none pointer-events-none">
+            <img src="/kkn_member_1.png" className="absolute bottom-0 left-[0px] h-[360px] z-10 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_2.png" className="absolute bottom-0 left-[100px] h-[390px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_3.png" className="absolute bottom-0 left-[200px] h-[370px] z-15 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_4.png" className="absolute bottom-0 left-[300px] h-[400px] z-30 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]" />
+          </div>
 
-            <div className="space-y-4">
-              <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-black uppercase tracking-wider">
-                <GraduationCap className="w-4 h-4 text-amber-400" />
-                <span>Portal Pengabdian Masyarakat KKN</span>
+          {/* LEFT SIDE FALLBACK (2 students) - Tablet/Medium Screens */}
+          <div className="hidden md:flex xl:hidden items-end justify-start absolute bottom-[-144px] left-[-20px] h-[450px] w-[260px] z-10 select-none pointer-events-none">
+            <img src="/kkn_member_1.png" className="absolute bottom-0 left-0 h-[350px] z-10 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+            <img src="/kkn_member_3.png" className="absolute bottom-0 left-[90px] h-[360px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+          </div>
+
+          {/* CENTERED TEXT & ACTION CONTROLS */}
+          <div className="max-w-2xl mx-auto text-center space-y-8 relative z-30 pt-10">
+            
+            {/* OFFICIAL BADGE */}
+            <div className="flex flex-wrap items-center justify-center gap-3 animate-fade-in">
+              <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white font-extrabold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                <span>Portal Pengabdian KKN Universitas Mulia</span>
               </div>
-              
-              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-                Kuliah Kerja Nyata (KKN) <br />
-                <span className="text-amber-400">
-                  Kelompok 7 Universitas Mulia
-                </span>
-              </h1>
-              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-bold">
-                Selamat datang di sub-portal pengabdian mahasiswa KKN Universitas Mulia. Halaman ini didedikasikan untuk transparansi program kerja, laporan kegiatan harian, serta informasi tim pelaksana KKN di lingkungan RT 35 Kelurahan Manggar, Balikpapan Timur.
-              </p>
+            </div>
+
+            {/* HERO TITLE */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1] drop-shadow-sm">
+              KKN Kelompok 7 <br />
+              <span className="text-amber-400">Universitas Mulia</span>
+            </h1>
+
+            {/* SUBTITLE */}
+            <p className="text-white/85 max-w-xl mx-auto text-xs sm:text-sm leading-relaxed font-bold drop-shadow-sm">
+              Sistem Informasi Portal RT 35 Manggar ini dirancang, dibangun, dan dihibahkan oleh mahasiswa Kuliah Kerja Nyata (KKN) Kelompok 7 Universitas Mulia Balikpapan sebagai program kerja utama digitalisasi pelayanan administrasi kependudukan.
+            </p>
+
+            {/* BUTTONS */}
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+              <button
+                onClick={onBackToHome}
+                className="py-3 px-6 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-black transition-all border border-white/20 flex items-center space-x-2 active:scale-98"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Kembali ke Beranda</span>
+              </button>
+              <button
+                onClick={() => scrollToSection('proker-kkn')}
+                className="py-3 px-6 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition-all flex items-center space-x-2 active:scale-98 shadow-md shadow-amber-500/10"
+              >
+                <span>Lihat Program Kerja</span>
+              </button>
             </div>
           </div>
 
-          {/* Lineup of 8 KKN Team Cutouts (Desktop) */}
-          <div className="hidden lg:flex items-end justify-end relative h-[380px] w-[540px] shrink-0 self-end z-30 mr-4">
-            <img src="/kkn_member_1.png" className="absolute bottom-0 right-[350px] h-[310px] z-10 hover:z-50 hover:scale-105 transition-all duration-300 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] select-none pointer-events-none" />
-            <img src="/kkn_member_2.png" className="absolute bottom-0 right-[300px] h-[330px] z-20 hover:z-50 hover:scale-105 transition-all duration-300 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] select-none pointer-events-none" />
-            <img src="/kkn_member_3.png" className="absolute bottom-0 right-[250px] h-[310px] z-15 hover:z-50 hover:scale-105 transition-all duration-300 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] select-none pointer-events-none" />
-            <img src="/kkn_member_4.png" className="absolute bottom-0 right-[200px] h-[340px] z-30 hover:z-50 hover:scale-105 transition-all duration-300 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] select-none pointer-events-none" />
-            <img src="/kkn_member_5.png" className="absolute bottom-0 right-[150px] h-[320px] z-25 hover:z-50 hover:scale-105 transition-all duration-300 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] select-none pointer-events-none" />
-            <img src="/kkn_member_6.png" className="absolute bottom-0 right-[100px] h-[335px] z-35 hover:z-50 hover:scale-105 transition-all duration-300 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] select-none pointer-events-none" />
-            <img src="/kkn_member_7.png" className="absolute bottom-0 right-[50px]  h-[315px] z-20 hover:z-50 hover:scale-105 transition-all duration-300 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] select-none pointer-events-none" />
-            <img src="/kkn_member_8.png" className="absolute bottom-0 right-0       h-[345px] z-40 hover:z-50 hover:scale-105 transition-all duration-300 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] select-none pointer-events-none" />
+          {/* RIGHT SIDE MEMBERS (4 students) - Desktop Only */}
+          <div className="hidden xl:flex items-end justify-end absolute bottom-[-144px] right-[-30px] h-[450px] w-[450px] z-10 select-none pointer-events-none">
+            <img src="/kkn_member_5.png" className="absolute bottom-0 right-[300px] h-[370px] z-15 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_6.png" className="absolute bottom-0 right-[200px] h-[385px] z-30 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_7.png" className="absolute bottom-0 right-[100px] h-[365px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_8.png" className="absolute bottom-0 right-[0px] h-[395px] z-40 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]" />
           </div>
 
-          {/* Overlapping Lineup (Tablet/Medium Screen fallback - 4 members) */}
-          <div className="hidden md:flex lg:hidden items-end justify-end relative h-[380px] w-[320px] shrink-0 self-end z-30">
-            <img src="/kkn_member_2.png" className="absolute bottom-0 right-[180px] h-[330px] z-10 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
-            <img src="/kkn_member_4.png" className="absolute bottom-0 right-[120px] h-[340px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
-            <img src="/kkn_member_6.png" className="absolute bottom-0 right-[60px]  h-[335px] z-30 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
-            <img src="/kkn_member_8.png" className="absolute bottom-0 right-0       h-[345px] z-40 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+          {/* RIGHT SIDE FALLBACK (2 students) - Tablet/Medium Screens */}
+          <div className="hidden md:flex xl:hidden items-end justify-end absolute bottom-[-144px] right-[-20px] h-[450px] w-[260px] z-10 select-none pointer-events-none">
+            <img src="/kkn_member_6.png" className="absolute bottom-0 right-[90px] h-[360px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+            <img src="/kkn_member_8.png" className="absolute bottom-0 right-0 h-[370px] z-40 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
           </div>
         </div>
 
-        {/* Dynamic bottom wave curve (Gold and White transition) */}
+        {/* Dynamic wave SVG transition */}
         <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none z-20">
           <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[30px] sm:h-[45px]">
+            <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" className="fill-slate-550/0"></path>
             <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" className="fill-slate-50"></path>
           </svg>
         </div>
-      </div>
+      </section>
 
       {/* DETAILED INFO SECTION */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
@@ -122,7 +150,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
         </div>
 
         {/* PROGRAM KERJA (PROKER) SECTION */}
-        <div className="space-y-8">
+        <div id="proker-kkn" className="space-y-8 scroll-mt-20">
           <div className="border-b border-slate-200 pb-4 space-y-2">
             <h2 className="text-xl sm:text-2xl font-black text-slate-850 flex items-center gap-2">
               <CheckCircle2 className="w-6 h-6 text-[#0b5665]" />
