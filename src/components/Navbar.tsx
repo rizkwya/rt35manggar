@@ -60,11 +60,17 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'nav-1', label: 'Beranda', type: 'anchor', target_id: 'beranda', order_index: 1, is_visible: true },
     { id: 'nav-2', label: 'Fasilitas RT', type: 'custom_page', target_id: 'fasilitas', order_index: 2, is_visible: true },
     { id: 'nav-3', label: 'Kegiatan Warga', type: 'custom_page', target_id: 'kegiatan-warga', order_index: 3, is_visible: true },
-    { id: 'nav-4', label: 'Berita RT', type: 'custom_page', target_id: 'berita', order_index: 4, is_visible: true }
+    { id: 'nav-4', label: 'Berita RT', type: 'custom_page', target_id: 'berita', order_index: 4, is_visible: true },
+    { id: 'nav-5', label: 'Tim KKN', type: 'custom_page', target_id: 'kkn', order_index: 5, is_visible: true }
   ];
 
   const handleNavItemClick = (item: NavigationItem) => {
     setMobileMenuOpen(false);
+    if (item.target_id === 'kkn') {
+      window.history.pushState(null, '', '/kkn');
+      window.dispatchEvent(new Event('popstate'));
+      return;
+    }
     if (item.target_id === 'fasilitas') {
       window.history.pushState(null, '', '/fasilitas');
       window.dispatchEvent(new Event('popstate'));
