@@ -36,17 +36,17 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full flex-grow flex flex-col justify-center items-center">
           
           {/* LEFT SIDE MEMBERS (4 students in a straight horizontal row) - Desktop Only */}
-          <div className="hidden xl:block absolute bottom-[-45px] left-[-35px] h-[450px] w-[420px] z-10 select-none pointer-events-none">
-            <img src="/kkn_member_1.png" className="absolute bottom-0 left-[0px] h-[430px] z-10 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
-            <img src="/kkn_member_2.png" className="absolute bottom-0 left-[95px] h-[430px] z-20 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
-            <img src="/kkn_member_3.png" className="absolute bottom-0 left-[190px] h-[430px] z-30 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
-            <img src="/kkn_member_4.png" className="absolute bottom-0 left-[285px] h-[430px] z-40 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
+          <div className="hidden xl:block absolute bottom-[-45px] left-[-90px] h-[520px] w-[350px] z-10 select-none pointer-events-none">
+            <img src="/kkn_member_1.png" className="absolute bottom-0 left-[0px] h-[500px] z-10 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_2.png" className="absolute bottom-0 left-[75px] h-[500px] z-20 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_3.png" className="absolute bottom-0 left-[150px] h-[500px] z-30 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_4.png" className="absolute bottom-0 left-[225px] h-[500px] z-45 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
           </div>
 
           {/* LEFT SIDE FALLBACK (2 students) - Tablet/Medium Screens */}
-          <div className="hidden md:block xl:hidden absolute bottom-[-40px] left-[-20px] h-[400px] w-[220px] z-10 select-none pointer-events-none">
-            <img src="/kkn_member_1.png" className="absolute bottom-0 left-0 h-[380px] z-10 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
-            <img src="/kkn_member_3.png" className="absolute bottom-0 left-[90px] h-[380px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+          <div className="hidden md:block xl:hidden absolute bottom-[-40px] left-[-30px] h-[450px] w-[220px] z-10 select-none pointer-events-none">
+            <img src="/kkn_member_1.png" className="absolute bottom-0 left-0 h-[420px] z-10 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+            <img src="/kkn_member_3.png" className="absolute bottom-0 left-[90px] h-[420px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
           </div>
 
           {/* CENTERED TEXT & ACTION CONTROLS */}
@@ -90,17 +90,17 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
           </div>
 
           {/* RIGHT SIDE MEMBERS (4 students in a straight horizontal row) - Desktop Only */}
-          <div className="hidden xl:block absolute bottom-[-35px] right-[-35px] h-[450px] w-[420px] z-10 select-none pointer-events-none">
-            <img src="/kkn_member_5.png" className="absolute bottom-0 right-[285px] h-[430px] z-10 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
-            <img src="/kkn_member_6.png" className="absolute bottom-0 right-[190px] h-[430px] z-20 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
-            <img src="/kkn_member_7.png" className="absolute bottom-0 right-[95px]  h-[430px] z-30 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
-            <img src="/kkn_member_8.png" className="absolute bottom-0 right-[0px]   h-[430px] z-40 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
+          <div className="hidden xl:block absolute bottom-[-35px] right-[-90px] h-[520px] w-[350px] z-10 select-none pointer-events-none">
+            <img src="/kkn_member_5.png" className="absolute bottom-0 right-[225px] h-[500px] z-10 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_6.png" className="absolute bottom-0 right-[150px] h-[500px] z-20 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_7.png" className="absolute bottom-0 right-[75px]  h-[500px] z-30 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
+            <img src="/kkn_member_8.png" className="absolute bottom-0 right-[0px]   h-[500px] z-45 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
           </div>
 
           {/* RIGHT SIDE FALLBACK (2 students) - Tablet/Medium Screens */}
-          <div className="hidden md:block xl:hidden absolute bottom-[-40px] right-[-20px] h-[400px] w-[220px] z-10 select-none pointer-events-none">
-            <img src="/kkn_member_6.png" className="absolute bottom-0 right-[90px] h-[380px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
-            <img src="/kkn_member_8.png" className="absolute bottom-0 right-0 h-[380px] z-40 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+          <div className="hidden md:block xl:hidden absolute bottom-[-40px] right-[-30px] h-[450px] w-[220px] z-10 select-none pointer-events-none">
+            <img src="/kkn_member_6.png" className="absolute bottom-0 right-[90px] h-[420px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+            <img src="/kkn_member_8.png" className="absolute bottom-0 right-0 h-[420px] z-40 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
           </div>
         </div>
 
