@@ -14,40 +14,62 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
     <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-[#0b5665] selection:text-white">
       
       {/* BEACH HEADER SECTION */}
-      <div className="relative py-24 overflow-hidden bg-white border-b border-slate-200">
-        
-        {/* Coastal / Wave Accents */}
-        <div className="absolute inset-0 opacity-[0.05] pointer-events-none">
-          <svg className="absolute w-full bottom-0 left-0" viewBox="0 0 1440 320" fill="none">
-            <path fill="#0b5665" d="M0,192L48,197.3C96,203,192,213,288,208C384,203,480,181,576,181.3C672,181,768,203,864,197.3C960,192,1056,160,1152,149.3C1248,139,1344,149,1392,154.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-          </svg>
+      <div className="relative min-h-[460px] flex items-end overflow-hidden bg-slate-950 pt-32 pb-16">
+        {/* Background Sawah Image */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/hero_sawah.jpg" 
+            alt="Sawah KKN" 
+            className="w-full h-full object-cover object-center opacity-40 z-0" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent z-10" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative space-y-6 pt-16">
-          <button
-            onClick={onBackToHome}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-full bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm hover:bg-[#0b5665]/10 hover:text-[#0b5665] transition-all"
-          >
-            <ArrowLeft className="w-4 h-4 text-[#0b5665]" />
-            <span>Kembali ke Portal RT 35</span>
-          </button>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div className="space-y-6 max-w-2xl text-left pb-6">
+            <button
+              onClick={onBackToHome}
+              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs backdrop-blur-sm transition-all border border-white/20"
+            >
+              <ArrowLeft className="w-4 h-4 text-white" />
+              <span>Kembali ke Portal RT 35</span>
+            </button>
 
-          <div className="space-y-4">
-            <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#0b5665]/10 border border-[#0b5665]/20 text-[#0b5665] text-xs font-black uppercase tracking-wider">
-              <GraduationCap className="w-4 h-4 text-[#0b5665]" />
-              <span>Portal Pengabdian Masyarakat KKN</span>
+            <div className="space-y-4">
+              <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-black uppercase tracking-wider">
+                <GraduationCap className="w-4 h-4 text-amber-400" />
+                <span>Portal Pengabdian Masyarakat KKN</span>
+              </div>
+              
+              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+                Kuliah Kerja Nyata (KKN) <br />
+                <span className="text-amber-400">
+                  Kelompok 7 Universitas Mulia
+                </span>
+              </h1>
+              <p className="text-slate-300 max-w-3xl text-xs sm:text-sm leading-relaxed font-bold">
+                Selamat datang di sub-portal pengabdian mahasiswa KKN Universitas Mulia. Halaman ini didedikasikan untuk transparansi program kerja, laporan kegiatan harian, serta informasi tim pelaksana KKN di lingkungan RT 35 Kelurahan Manggar, Balikpapan Timur.
+              </p>
             </div>
-            
-            <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-              Kuliah Kerja Nyata (KKN) <br />
-              <span className="text-[#0b5665]">
-                Kelompok 7 Universitas Mulia
-              </span>
-            </h1>
-            <p className="text-slate-500 max-w-3xl text-xs sm:text-sm leading-relaxed font-bold">
-              Selamat datang di sub-portal pengabdian mahasiswa KKN Universitas Mulia. Halaman ini didedikasikan untuk transparansi program kerja, laporan kegiatan harian, serta informasi tim pelaksana KKN di lingkungan RT 35 Kelurahan Manggar, Balikpapan Timur.
-            </p>
           </div>
+
+          {/* Transparent student cutout on the right */}
+          <div className="hidden md:block w-72 lg:w-80 shrink-0 relative self-end z-30">
+            <img 
+              src="/student_cutout.png" 
+              alt="Tim KKN Universitas Mulia" 
+              className="w-full h-auto object-contain select-none pointer-events-none drop-shadow-xl" 
+              style={{ maxHeight: '380px' }}
+            />
+          </div>
+        </div>
+
+        {/* Dynamic bottom wave curve (Gold and White transition) */}
+        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none z-20">
+          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[30px] sm:h-[45px]">
+            <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" className="fill-slate-550/0"></path>
+            <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" className="fill-slate-50"></path>
+          </svg>
         </div>
       </div>
 
