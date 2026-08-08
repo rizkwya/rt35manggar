@@ -1,5 +1,5 @@
-import React from 'react';
-import { UserCheck, HeartHandshake, PhoneCall, ShieldCheck } from 'lucide-react';
+import React, { useRef } from 'react';
+import { UserCheck, HeartHandshake, PhoneCall, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { RTPengurus } from '../../types/database';
 
 interface OrganogramSectionProps {
@@ -7,34 +7,71 @@ interface OrganogramSectionProps {
 }
 
 export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusList }) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   if (pengurusList.length === 0) return null;
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, clientWidth } = scrollContainerRef.current;
+      const scrollAmount = 320; // approximate width of one card + gap
+      scrollContainerRef.current.scrollTo({
+        left: direction === 'left' ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   return (
     <section id="pengurus-rt" className="py-24 bg-white relative border-t border-slate-200/60 scroll-mt-16">
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10 animate-fade-in">
         
-        {/* HEADER */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#0b5665]/10 border border-[#0b5665]/20 text-[#0b5665] text-xs font-black uppercase tracking-wider">
-            <UserCheck className="w-4 h-4 text-[#0b5665]" />
-            <span>Struktur Pemerintahan Lingkungan</span>
+        {/* HEADER & SLIDE BUTTONS */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-3 text-left">
+            <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#0b5665]/10 border border-[#0b5665]/20 text-[#0b5665] text-xs font-black uppercase tracking-wider">
+              <UserCheck className="w-4 h-4 text-[#0b5665]" />
+              <span>Struktur Pemerintahan Lingkungan</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              Jajaran Pengurus <span className="text-[#0b5665]">RT 35 Manggar</span>
+            </h2>
+            <p className="text-slate-500 max-w-xl text-xs sm:text-sm leading-relaxed font-bold">
+              Aparatur RT 35 Kelurahan Manggar yang berdedikasi melayani administrasi kependudukan dan kerukunan warga pesisir.
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Jajaran Pengurus <span className="text-[#0b5665]">RT 35 Manggar</span>
-          </h2>
-          <p className="text-slate-500 max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed font-bold">
-            Aparatur RT 35 Kelurahan Manggar yang berdedikasi melayani administrasi kependudukan dan kerukunan warga pesisir.
-          </p>
+
+          {/* Carousel Control Buttons (Desktop & Mobile) */}
+          <div className="flex items-center space-x-2.5 self-start md:self-auto">
+            <button
+              onClick={() => scroll('left')}
+              className="p-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              className="p-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* ORGANOGRAM GRID */}
+        {/* ORGANOGRAM HORIZONTAL CAROUSEL */}
         {pengurusList.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div 
+            ref={scrollContainerRef}
+            className="flex overflow-x-auto gap-6 pb-6 pt-2 px-4 -mx-4 snap-x snap-mandatory scroll-smooth scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+            style={{ scrollbarWidth: 'thin' }}
+          >
             {pengurusList.map((p) => (
               <div
                 key={p.id}
-                className="p-6 rounded-3xl bg-slate-50 border border-slate-200 shadow-sm hover:border-[#0b5665]/40 transition-all duration-300 flex flex-col justify-between space-y-4 group"
+                className="w-[280px] sm:w-[300px] shrink-0 p-6 rounded-3xl bg-slate-50 border border-slate-200 shadow-sm hover:border-[#0b5665]/40 transition-all duration-300 flex flex-col justify-between space-y-4 group snap-center"
               >
                 <div className="space-y-4 text-center">
                   <div className="relative inline-block mx-auto">
@@ -76,7 +113,7 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
           <div className="p-10 text-center rounded-3xl border-2 border-dashed border-slate-250 bg-slate-50 max-w-lg mx-auto">
             <UserCheck className="w-12 h-12 text-slate-400 mx-auto mb-3" />
             <p className="text-sm font-extrabold text-slate-700">Belum ada data aparatur RT</p>
-            <p className="text-xs text-slate-450 mt-1 font-semibold leading-relaxed">Struktur organisasi kepengurusan RT sedang diperbarui oleh Sekretaris.</p>
+            <p className="text-xs text-slate-455 mt-1 font-semibold leading-relaxed">Struktur organisasi kepengurusan RT sedang diperbarui oleh Sekretaris.</p>
           </div>
         )}
 
