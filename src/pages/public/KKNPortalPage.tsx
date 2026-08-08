@@ -18,9 +18,9 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-[#0b5665] selection:text-white">
       
-      {/* 1. HERO BANNER WITH SYMMETRICAL 2x2 GRID (BANNER STYLE) */}
+      {/* 1. HERO BANNER WITH RESPONSIVE SYMMETRICAL LINEUP */}
       <section 
-        className="relative min-h-[780px] lg:min-h-[850px] flex items-end justify-between pt-40 pb-28 overflow-hidden text-white bg-[#0b5665]"
+        className="relative min-h-[780px] lg:min-h-screen flex flex-col justify-between pt-32 pb-24 overflow-hidden text-white bg-[#0b5665]"
         style={{
           backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.42) 0%, rgba(6, 48, 57, 0.62) 100%), url("/hero_sawah.jpg")',
           backgroundSize: 'cover',
@@ -35,7 +35,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
         {/* Outer container of the banner */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full flex-grow flex flex-col justify-center items-center">
           
-          {/* LEFT SIDE MEMBERS (4 students in a straight horizontal row) - Desktop Only */}
+          {/* LEFT SIDE MEMBERS (4 students) - Desktop (xl and larger) */}
           <div className="hidden xl:block absolute bottom-[-45px] left-[-90px] h-[520px] w-[350px] z-10 select-none pointer-events-none">
             <img src="/kkn_member_1.png" className="absolute bottom-0 left-[0px] h-[500px] z-10 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
             <img src="/kkn_member_2.png" className="absolute bottom-0 left-[105px] h-[500px] z-20 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
@@ -43,10 +43,12 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
             <img src="/kkn_member_4.png" className="absolute bottom-0 left-[225px] h-[500px] z-40 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
           </div>
 
-          {/* LEFT SIDE FALLBACK (2 students) - Tablet/Medium Screens */}
-          <div className="hidden md:block xl:hidden absolute bottom-[-40px] left-[-30px] h-[450px] w-[220px] z-10 select-none pointer-events-none">
-            <img src="/kkn_member_1.png" className="absolute bottom-0 left-0 h-[420px] z-10 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
-            <img src="/kkn_member_3.png" className="absolute bottom-0 left-[90px] h-[420px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+          {/* LEFT SIDE MEMBERS (4 students) - Tablet/Medium Screens (md to xl) */}
+          <div className="hidden md:block xl:hidden absolute bottom-[-35px] left-[-70px] h-[320px] w-[260px] z-10 select-none pointer-events-none">
+            <img src="/kkn_member_1.png" className="absolute bottom-0 left-[0px] h-[300px] z-10 filter drop-shadow-md" />
+            <img src="/kkn_member_2.png" className="absolute bottom-0 left-[55px] h-[300px] z-20 filter drop-shadow-md" />
+            <img src="/kkn_member_3.png" className="absolute bottom-0 left-[110px] h-[300px] z-30 filter drop-shadow-md" />
+            <img src="/kkn_member_4.png" className="absolute bottom-0 left-[165px] h-[300px] z-40 filter drop-shadow-md" />
           </div>
 
           {/* CENTERED TEXT & ACTION CONTROLS */}
@@ -68,7 +70,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
 
             {/* SUBTITLE */}
             <p className="text-white/85 max-w-xl mx-auto text-xs sm:text-sm leading-relaxed font-bold drop-shadow-sm">
-              Sistem Informasi Portal RT 35 Manggar ini dirancang, dibangun, dan dihibahkan oleh mahasiswa Kuliah Kerja Nyata (KKN) Kelompok 7 Universitas Mulia Balikpapan sebagai program kerja utama digitalisasi pelayanan administrasi kependudukan.
+              Sistem Informasi Portal RT 35 Manggar ini dirancang, dibangun, dan dihibahkan oleh mahasiswa Kulajah Kerja Nyata (KKN) Kelompok 7 Universitas Mulia Balikpapan sebagai program kerja utama digitalisasi pelayanan administrasi kependudukan.
             </p>
 
             {/* BUTTONS */}
@@ -87,9 +89,24 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
                 <span>Lihat Program Kerja</span>
               </button>
             </div>
+
+            {/* MOBILE ONLY LINEUP (8 members standing in a tight overlapping row) */}
+            <div className="flex md:hidden items-end justify-center w-full h-[190px] pt-6 select-none pointer-events-none overflow-visible">
+              <div className="flex items-end justify-center -space-x-4.5">
+                <img src="/kkn_member_1.png" className="h-[160px] filter drop-shadow-md" />
+                <img src="/kkn_member_2.png" className="h-[160px] filter drop-shadow-md" />
+                <img src="/kkn_member_3.png" className="h-[160px] filter drop-shadow-md" />
+                <img src="/kkn_member_4.png" className="h-[160px] filter drop-shadow-md" />
+                <img src="/kkn_member_5.png" className="h-[160px] filter drop-shadow-md" />
+                <img src="/kkn_member_6.png" className="h-[160px] filter drop-shadow-md" />
+                <img src="/kkn_member_7.png" className="h-[160px] filter drop-shadow-md" />
+                <img src="/kkn_member_8.png" className="h-[160px] filter drop-shadow-md" />
+              </div>
+            </div>
+
           </div>
 
-          {/* RIGHT SIDE MEMBERS (4 students in a straight horizontal row) - Desktop Only */}
+          {/* RIGHT SIDE MEMBERS (4 students) - Desktop (xl and larger) */}
           <div className="hidden xl:block absolute bottom-[-35px] right-[-90px] h-[520px] w-[350px] z-10 select-none pointer-events-none">
             <img src="/kkn_member_5.png" className="absolute bottom-0 right-[225px] h-[500px] z-10 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
             <img src="/kkn_member_6.png" className="absolute bottom-0 right-[150px] h-[500px] z-20 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
@@ -97,10 +114,12 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
             <img src="/kkn_member_8.png" className="absolute bottom-0 right-[0px]   h-[500px] z-45 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
           </div>
 
-          {/* RIGHT SIDE FALLBACK (2 students) - Tablet/Medium Screens */}
-          <div className="hidden md:block xl:hidden absolute bottom-[-40px] right-[-30px] h-[450px] w-[220px] z-10 select-none pointer-events-none">
-            <img src="/kkn_member_6.png" className="absolute bottom-0 right-[90px] h-[420px] z-20 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
-            <img src="/kkn_member_8.png" className="absolute bottom-0 right-0 h-[420px] z-40 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]" />
+          {/* RIGHT SIDE MEMBERS (4 students) - Tablet/Medium Screens (md to xl) */}
+          <div className="hidden md:block xl:hidden absolute bottom-[-35px] right-[-70px] h-[320px] w-[260px] z-10 select-none pointer-events-none">
+            <img src="/kkn_member_5.png" className="absolute bottom-0 right-[165px] h-[300px] z-10 filter drop-shadow-md" />
+            <img src="/kkn_member_6.png" className="absolute bottom-0 right-[110px] h-[300px] z-20 filter drop-shadow-md" />
+            <img src="/kkn_member_7.png" className="absolute bottom-0 right-[55px]  h-[300px] z-30 filter drop-shadow-md" />
+            <img src="/kkn_member_8.png" className="absolute bottom-0 right-0       h-[300px] z-40 filter drop-shadow-md" />
           </div>
         </div>
 
