@@ -24,7 +24,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
         style={{
           backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.42) 0%, rgba(6, 48, 57, 0.65) 100%), url("/hero_sawah.jpg")',
           backgroundSize: 'cover',
-          backgroundPosition: 'center 68%',
+          backgroundPosition: 'center bottom',
           backgroundAttachment: 'scroll'
         }}
       >
