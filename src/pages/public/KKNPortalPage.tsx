@@ -176,61 +176,118 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
           </div>
         </div>
 
-        {/* 3D INTERACTIVE TEAM SHOWCASE SECTION */}
-        <div id="tim-mahasiswa" className="space-y-12 scroll-mt-20">
-          <div className="border-b border-slate-200 pb-4 space-y-2">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-950 flex items-center gap-2">
-              <Award className="w-6 h-6 text-amber-500" />
-              <span>Tim Mahasiswa KKN Kelompok 7</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 font-bold">
-              Kolaborasi mahasiswa lintas program studi Universitas Mulia dalam program pengabdian masyarakat. Sorot kartu untuk melihat efek 3D!
-            </p>
-          </div>
+          {/* 3D INTERACTIVE TEAM SHOWCASE SECTION */}
+          <div id="tim-mahasiswa" className="space-y-12 scroll-mt-20">
+            <div className="border-b border-slate-200 pb-4 space-y-2">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-950 flex items-center gap-2">
+                <Award className="w-6 h-6 text-amber-500" />
+                <span>Tim Mahasiswa KKN Kelompok 7</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-bold">
+                Kolaborasi mahasiswa lintas program studi Universitas Mulia dalam program pengabdian masyarakat. Klik salah satu anggota untuk menyorot profil 3D mereka!
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pt-8">
-            {kknTeam.map((m, idx) => {
-              // Map avatars cleanly to matching optimized transparent PNG files
-              const cutoutSrc = `/kkn_member_${(idx % 8) + 1}.png`;
-              
+            {/* Interactive Spotlight Layout */}
+            {kknTeam.length > 0 && (() => {
+              const [activeIdx, setActiveIdx] = React.useState(0);
+              const activeMember = kknTeam[activeIdx] || kknTeam[0];
+              const activeCutout = `/kkn_member_${(activeIdx % 8) + 1}.png`;
+
               return (
-                <div
-                  key={m.id}
-                  className="group relative rounded-3xl bg-white border border-slate-200/80 shadow-sm p-6 hover:shadow-xl hover:border-[#0b5665]/35 transition-all duration-500 flex flex-col justify-between overflow-visible h-[360px] cursor-pointer hover:-translate-y-2.5"
-                >
-                  {/* Subtle 3D background shadow aura */}
-                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-[#0b5665]/0 to-[#0b5665]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch pt-4">
+                  
+                  {/* LEFT/CENTER: Big Spotlight Card (3D Pop-out) */}
+                  <div className="lg:col-span-7 xl:col-span-8 bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-8 shadow-xl border border-slate-800/80 relative overflow-hidden flex flex-col md:flex-row items-center gap-8 min-h-[380px] group">
+                    {/* Glowing Auras */}
+                    <div className="absolute -right-20 -top-20 w-80 h-80 bg-[#0b5665]/20 rounded-full blur-[100px] pointer-events-none" />
+                    <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
+                    <div className="absolute inset-0 bg-grid-white/[0.02] pointer-events-none" />
 
-                  {/* 3D POP OUT FRAME CONTAINER */}
-                  <div className="relative w-36 h-36 mx-auto rounded-full bg-slate-50 border border-slate-100 shadow-inner flex items-end justify-center overflow-visible mt-2">
-                    {/* Ring glow behind head */}
-                    <div className="absolute inset-2 rounded-full bg-[#0b5665]/5 scale-0 group-hover:scale-110 transition-transform duration-500" />
-                    
-                    {/* The cutout photo that overflows the container (Creating the 3D popout effect!) */}
-                    <img
-                      src={cutoutSrc}
-                      alt={m.name}
-                      className="absolute bottom-0 h-[125%] w-auto object-contain select-none pointer-events-none filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] group-hover:scale-110 group-hover:-translate-y-3 transition-all duration-500 z-10"
-                    />
+                    {/* Left Frame: Large 3D character cutout overflow */}
+                    <div className="relative w-48 h-48 sm:w-60 sm:h-60 shrink-0 bg-gradient-to-b from-[#0b5665]/20 to-transparent rounded-2xl border border-white/10 shadow-inner flex items-end justify-center overflow-visible">
+                      <div className="absolute inset-4 rounded-full bg-amber-500/10 blur-xl animate-pulse" />
+                      
+                      {/* Big 3D Image popping out at the top */}
+                      <img
+                        src={activeCutout}
+                        alt={activeMember.name}
+                        className="absolute bottom-0 h-[135%] w-auto object-contain select-none pointer-events-none filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] transform hover:scale-105 transition-transform duration-500 z-10"
+                      />
+                    </div>
+
+                    {/* Right Frame: Spotlighted Member Details */}
+                    <div className="flex-1 space-y-5 text-center md:text-left relative z-10">
+                      <div className="space-y-1">
+                        <span className="inline-flex px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-wider">
+                          {activeMember.role_kkn}
+                        </span>
+                        <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+                          {activeMember.name}
+                        </h3>
+                        <p className="text-xs text-[#0b5665] font-black tracking-wide uppercase">
+                          {activeMember.prodi}
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-xs text-white/70 leading-relaxed font-semibold">
+                        Bertanggung jawab penuh atas kelancaran program kerja pengabdian masyarakat di RT 35 Manggar, berkolaborasi aktif dengan warga sekitar untuk menciptakan solusi berbasis digital dan pemberdayaan berkelanjutan.
+                      </div>
+
+                      <div className="text-[10px] text-white/40 font-bold italic">
+                        *Menampilkan visualisasi 3D Interaktif KKN Kelompok 7
+                      </div>
+                    </div>
                   </div>
 
-                  {/* DETAILS */}
-                  <div className="text-center relative z-20 space-y-2 mt-4">
-                    <span className="inline-block px-3 py-1 rounded-full bg-[#0b5665]/10 border border-[#0b5665]/20 text-[#0b5665] text-[10px] font-black uppercase tracking-wider">
-                      {m.role_kkn}
-                    </span>
-                    <h4 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-[#0b5665] transition-colors duration-300 truncate">
-                      {m.name}
-                    </h4>
-                    <p className="text-[10px] text-slate-400 font-bold">
-                      {m.prodi}
+                  {/* RIGHT: Member List / Selector */}
+                  <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-3 justify-between">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1">
+                      Anggota Kelompok ({kknTeam.length})
                     </p>
+                    <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
+                      {kknTeam.map((m, idx) => {
+                        const isSelected = idx === activeIdx;
+                        const miniCutout = `/kkn_member_${(idx % 8) + 1}.png`;
+
+                        return (
+                          <button
+                            key={m.id}
+                            onClick={() => setActiveIdx(idx)}
+                            className={`flex items-center gap-3.5 p-3 rounded-2xl transition-all text-left border ${
+                              isSelected
+                                ? 'bg-white border-[#0b5665] shadow-md scale-[1.01]'
+                                : 'bg-white/60 hover:bg-white border-slate-200/80 hover:border-slate-300'
+                            }`}
+                          >
+                            {/* Small Avatar Frame */}
+                            <div className="relative w-11 h-11 rounded-xl bg-slate-100/80 border border-slate-200/60 overflow-hidden flex items-end justify-center shrink-0">
+                              <img
+                                src={miniCutout}
+                                alt={m.name}
+                                className="h-[120%] w-auto object-contain select-none pointer-events-none transform group-hover:scale-105"
+                              />
+                            </div>
+
+                            {/* Brief Info */}
+                            <div className="min-w-0 flex-1">
+                              <h4 className={`text-xs font-black truncate ${isSelected ? 'text-[#0b5665]' : 'text-slate-800'}`}>
+                                {m.name}
+                              </h4>
+                              <p className="text-[9px] text-slate-400 font-bold truncate">
+                                {m.role_kkn}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
+
                 </div>
               );
-            })}
+            })()}
           </div>
-        </div>
 
       </div>
 
