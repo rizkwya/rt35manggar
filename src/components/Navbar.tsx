@@ -165,7 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         ? 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm py-2.5' 
         : 'bg-gradient-to-b from-black/60 to-transparent py-4'
     }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 relative">
         
         {/* BRAND LOGOS: logo.png | hutri.png (Simkopdes style, no border, bigger) */}
         <div 
@@ -214,7 +214,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* DESKTOP NAV LINKS (Bright/readable/modern) */}
-        <nav className="hidden md:flex items-center gap-1 xl:gap-2">
+        <nav className="hidden md:flex items-center gap-1 xl:gap-2 absolute left-1/2 transform -translate-x-1/2">
           {visibleItems.map((item) => {
             const [basePath] = currentPath.split('?');
             const isActive = item.type === 'anchor' 
