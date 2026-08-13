@@ -19,7 +19,7 @@ interface NavbarProps {
   onLogout: () => void;
   onLaporTamu?: () => void;
   activeSection: string;
-  setActiveSection: (sec: string) => void;
+  setActiveSection?: (sec: string) => void;
   navItems: NavigationItem[];
 }
 
@@ -92,7 +92,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       return;
     }
     if (item.type === 'anchor') {
-      setActiveSection(item.target_id);
+      if (setActiveSection) {
+        setActiveSection(item.target_id);
+      }
       const currentPathName = typeof window !== 'undefined' ? window.location.pathname : '/';
       const isOutsideHome = currentPathName !== '/' && currentPathName !== '/home' && currentPathName !== '/index.html';
       
