@@ -709,9 +709,9 @@ export const App = () => {
         <Navbar
           currentRole={currentRole}
           userProfile={userProfile}
-          onOpenAuth={() => navigateTo('/login')}
+          onOpenAuth={() => { window.location.href = '/login'; }}
           onOpenDashboard={() => {
-            navigateTo(lastDashboardPath);
+            window.location.href = lastDashboardPath;
           }}
           onLogout={handleLogout}
           activeSection={activeSection}

@@ -1,8 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { App } from '../../App';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+import { CustomPageDetail } from '../../react-pages/CustomPageDetail';
 import { SupabaseService } from '../../lib/supabase';
-import { INITIAL_NAV_ITEMS } from '../../lib/initialData';
+import { INITIAL_NAV_ITEMS, INITIAL_SETTINGS } from '../../lib/initialData';
 
 export async function getStaticPaths() {
   let navItems = INITIAL_NAV_ITEMS;
@@ -18,14 +20,43 @@ export async function getStaticPaths() {
     params: { slug: page.target_id }
   }));
 }
+
+const { slug } = Astro.params;
+
+let navItems = INITIAL_NAV_ITEMS;
+let settings = INITIAL_SETTINGS;
+let pageItem = null;
+
+try {
+  const [nvData, sData] = await Promise.all([
+    SupabaseService.fetchNavItems(),
+    SupabaseService.fetchSettings()
+  ]);
+  if (nvData) navItems = nvData;
+  if (sData) settings = sData;
+  pageItem = navItems.find(item => item.target_id === slug && item.type === 'custom_page');
+} catch (e) {
+  console.warn("Custom page fetch failed:", e);
+}
+
+if (!pageItem) {
+  return Astro.redirect('/');
+}
 ---
 
-<Layout title="Portal RT 35 Manggar – Layanan Informasi">
-  <App client:only="react">
-    <!-- Static Skeleton Loader while client JS loads -->
-    <div class="flex flex-col items-center justify-center min-h-screen bg-slate-50 space-y-4">
-      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0b5665]"></div>
-      <p class="text-xs font-bold text-slate-400 animate-pulse">Memuat halaman kependudukan...</p>
-    </div>
-  </App>
+<Layout title={`${pageItem.label} – Portal RT 35 Kelurahan Manggar`}>
+  <Navbar 
+    currentRole="public" 
+    userProfile={null} 
+    onOpenAuth={() => { window.location.href = '/login'; }}
+    onOpenDashboard={() => { window.location.href = '/admin/dashboard'; }}
+    onLogout={() => {}} 
+    activeSection="" 
+    navItems={navItems}
+    client:load
+  />
+  <main class="flex-grow pt-[64px] min-h-screen bg-slate-50">
+    <CustomPageDetail pageItem={pageItem} slug={slug} client:load />
+  </main>
+  <Footer settings={settings} />
 </Layout>
