@@ -169,7 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         
         {/* BRAND LOGOS: logo.png | hutri.png (Simkopdes style, no border, bigger) */}
         <div 
-          className="flex items-center space-x-3.5 cursor-pointer group shrink-0" 
+          className="flex items-center space-x-3.5 cursor-pointer group shrink-0 lg:w-[290px] xl:w-[410px] justify-start" 
           onClick={() => {
             window.location.href = '/';
           }}
@@ -214,7 +214,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* DESKTOP NAV LINKS (Bright/readable/modern) */}
-        <nav className="hidden md:flex items-center gap-1 xl:gap-2">
+        <nav className="hidden md:flex items-center justify-center gap-1 xl:gap-2 flex-1">
           {visibleItems.map((item) => {
             const [basePath] = currentPath.split('?');
             const isActive = item.type === 'anchor' 
@@ -242,7 +242,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* RIGHT ACTION BUTTONS */}
-        <div className="hidden md:flex items-center justify-end space-x-3 shrink-0 w-[410px]">
+        <div className="hidden md:flex items-center justify-end space-x-3 shrink-0 lg:w-[290px] xl:w-[410px]">
           
           {/* Lapor Tamu Pill (Simkopdes style) */}
           <button
@@ -282,7 +282,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           ) : (
             <div className="flex items-center space-x-2">
               {localRole === 'sekretaris_rt' && (
-                <div className={`flex items-center space-x-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                <div className={`hidden xl:flex items-center space-x-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
                   scrolled 
                     ? 'bg-[#0b5665]/10 text-[#0b5665]' 
                     : 'bg-white/15 text-white'
@@ -293,7 +293,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
 
               {localRole === 'developer' && (
-                <div className={`flex items-center space-x-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                <div className={`hidden xl:flex items-center space-x-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
                   scrolled 
                     ? 'bg-[#0b5665]/10 text-[#0b5665]' 
                     : 'bg-white/15 text-white'
