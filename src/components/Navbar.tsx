@@ -75,10 +75,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const isHomeActive = (targetId: string) => {
+    const [pathOnly] = currentPath.split('?');
+    const normalized = pathOnly.endsWith('/') ? pathOnly.slice(0, -1) : pathOnly;
+    const isHome = normalized === '' || normalized === '/home';
+    
     if (targetId === 'beranda') {
-      return ['beranda', 'statistik-warga', 'pengumuman-rt', 'pengurus-rt', 'kkn-rt35', 'kontak-layanan'].includes(activeSection) && (currentPath === '/home' || currentPath === '/');
+      return ['beranda', 'statistik-warga', 'pengumuman-rt', 'pengurus-rt', 'kkn-rt35', 'kontak-layanan'].includes(activeSection) && isHome;
     }
-    return activeSection === targetId && (currentPath === '/home' || currentPath === '/');
+    return activeSection === targetId && isHome;
   };
 
   const visibleItems: NavigationItem[] = [
