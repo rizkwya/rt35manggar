@@ -355,14 +355,30 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       `}>
         
         <div className="space-y-8">
-          {/* Logo & Info Header */}
-          <div className="flex items-center space-x-3 pb-6 border-b border-slate-800">
-            <div className="w-10 h-10 flex items-center justify-center">
-              <img src="/logo.png" alt="Logo RT 35" className="w-10 h-10 object-contain" />
+          {/* Logo & Info Header (Clickable to Edit Profile) */}
+          <div 
+            onClick={() => {
+              setEditProfileName(user.full_name || '');
+              setEditProfileAvatar(user.avatar_url || '');
+              setIsEditingProfile(true);
+            }}
+            className="flex items-center space-x-3.5 pb-6 border-b border-slate-800 cursor-pointer group hover:bg-slate-800/40 p-2 -m-2 rounded-2xl transition-all"
+            title="Klik untuk Edit Nama & Foto Profil"
+          >
+            <div className="w-11 h-11 rounded-full overflow-hidden border border-slate-700 bg-slate-800 flex items-center justify-center shrink-0 shadow-inner group-hover:border-slate-500 transition-colors">
+              <img 
+                src={user.avatar_url || "/logo.png"} 
+                alt="Avatar Admin" 
+                className="w-full h-full object-cover" 
+              />
             </div>
-            <div>
-              <h1 className="text-sm font-black text-white leading-none">{user.full_name || 'Sekretaris RT 35'}</h1>
-              <p className="text-[9px] text-[#85A389] font-black mt-1.5 uppercase tracking-wider">Manggar - Balikpapan</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-sm font-black text-white leading-tight truncate group-hover:text-[#85A389] transition-colors">
+                {user.full_name || 'Sekretaris RT 35'}
+              </h1>
+              <p className="text-[9px] text-[#85A389] font-black mt-1 uppercase tracking-wider">
+                Dashboard Admin
+              </p>
             </div>
           </div>
 
