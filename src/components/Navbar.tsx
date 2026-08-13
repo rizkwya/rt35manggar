@@ -34,6 +34,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [localRole, setLocalRole] = useState<UserRole>(currentRole);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedRole = localStorage.getItem('userRole') as UserRole;
+      if (storedRole) {
+        setLocalRole(storedRole);
+      } else {
+        setLocalRole(currentRole);
+      }
+    }
+  }, [currentRole]);
   const [currentPath, setCurrentPath] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.location.pathname + window.location.search;
@@ -246,7 +258,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Lapor Tamu 24 Jam</span>
           </button>
 
-          {currentRole === 'public' ? (
+          {localRole === 'public' ? (
             /* Masuk Button (Simkopdes outline style, bright & readable) */
             <button
               onClick={handleOpenAuth}
@@ -261,7 +273,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           ) : (
             <div className="flex items-center space-x-2">
-              {currentRole === 'sekretaris_rt' && (
+              {localRole === 'sekretaris_rt' && (
                 <div className={`flex items-center space-x-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
                   scrolled 
                     ? 'bg-[#0b5665]/10 text-[#0b5665]' 
@@ -272,7 +284,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
 
-              {currentRole === 'developer' && (
+              {localRole === 'developer' && (
                 <div className={`flex items-center space-x-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
                   scrolled 
                     ? 'bg-[#0b5665]/10 text-[#0b5665]' 
@@ -371,7 +383,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Lapor Tamu 24 Jam</span>
             </button>
 
-            {currentRole === 'public' ? (
+            {localRole === 'public' ? (
               <button
                 onClick={() => { setMobileMenuOpen(false); handleOpenAuth(); }}
                 className={`w-full py-3 rounded-full font-black text-xs transition-all text-center flex items-center justify-center space-x-1.5 border ${
