@@ -33,8 +33,28 @@ export const App = () => {
   });
 
   // ROLE & AUTH STATE
-  const [currentRole, setCurrentRole] = useState<UserRole>('public');
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [currentRole, setCurrentRole] = useState<UserRole>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('userRole') as UserRole) || 'public';
+    }
+    return 'public';
+  });
+
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('userProfile');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {
+          console.warn("Failed to parse stored user profile session on init:", e);
+          return null;
+        }
+      }
+    }
+    return null;
+  });
+
   const [isAppLoading, setIsAppLoading] = useState(true);
 
   // DATA STATES WITH INSTANT INITIAL FALLBACKS
@@ -66,22 +86,6 @@ export const App = () => {
     window.history.pushState(null, '', path);
     setCurrentPath(path);
   };
-
-  // Restore user session from localStorage on initialization (critical for Astro refresh persistence)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedRole = localStorage.getItem('userRole') as UserRole;
-      const storedProfile = localStorage.getItem('userProfile');
-      if (storedRole && storedProfile) {
-        try {
-          setCurrentRole(storedRole);
-          setUserProfile(JSON.parse(storedProfile));
-        } catch (e) {
-          console.warn("Failed to parse stored user profile session:", e);
-        }
-      }
-    }
-  }, []);
 
   useEffect(() => {
     const handlePopState = () => {
