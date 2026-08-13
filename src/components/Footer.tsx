@@ -10,7 +10,11 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
   const handleNavClick = (id: string) => {
     const currentPath = window.location.pathname;
     if (currentPath !== '/' && currentPath !== '/index.html' && currentPath !== '/home') {
-      window.location.href = '/#' + id;
+      if (id === 'beranda') {
+        window.location.href = '/';
+      } else {
+        window.location.href = '/#' + id;
+      }
     } else {
       const element = document.getElementById(id);
       if (element) {
@@ -22,9 +26,7 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
   };
 
   const handleKKNClick = () => {
-    window.history.pushState(null, '', '/kkn');
-    window.dispatchEvent(new Event('popstate'));
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    window.location.href = '/kkn';
   };
 
   return (
