@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^6.0.2",
+    "@astrojs/sitemap": "^3.7.3",
     "@astrojs/tailwind": "^6.0.2",
     "@supabase/supabase-js": "^2.49.1",
     "@tiptap/pm": "^3.29.1",
