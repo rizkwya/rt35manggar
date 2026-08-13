@@ -1,32 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { UserRole, UserProfile, ProkerItem, PresensiRecord, TeamMember, RTSettings, NavigationItem, RTAnnouncement, NewsPost, RTDemographics, RTPengurus, RTFacility } from './types/database';
-import { SupabaseService, INITIAL_PROKER, INITIAL_KKN_TEAM, INITIAL_SETTINGS, INITIAL_NAV_ITEMS, INITIAL_ANNOUNCEMENTS, supabase } from './lib/supabase';
+import { UserRole, UserProfile, ProkerItem, TeamMember, RTSettings, NavigationItem, RTAnnouncement, NewsPost, RTDemographics, RTPengurus, RTFacility } from './types/database';
+import { SupabaseService, supabase } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { stripHtml, getPreviewText } from './lib/utils';
+import { INITIAL_SETTINGS, INITIAL_NAV_ITEMS } from './lib/initialData';
 
 // Page imports (Clean routing layout)
-import { LandingPage } from './pages/public/LandingPage';
-import { LoginPage } from './pages/public/LoginPage';
-import { SekretarisRTDashboardPage } from './pages/admin/SekretarisRTDashboardPage';
-import { MahasiswaDashboardPage } from './pages/mahasiswa/MahasiswaDashboardPage';
-import { DeveloperDashboardPage } from './pages/developer/DeveloperDashboardPage';
-import { KKNPortalPage } from './pages/public/KKNPortalPage';
-import { NewsListPage } from './pages/public/NewsListPage';
-import { FacilitiesPage } from './pages/public/FacilitiesPage';
+import { LandingPage } from './react-pages/public/LandingPage';
+import { LoginPage } from './react-pages/public/LoginPage';
+import { SekretarisRTDashboardPage } from './react-pages/admin/SekretarisRTDashboardPage';
+import { DeveloperDashboardPage } from './react-pages/developer/DeveloperDashboardPage';
+import { KKNPortalPage } from './react-pages/public/KKNPortalPage';
+import { NewsListPage } from './react-pages/public/NewsListPage';
+import { FacilitiesPage } from './react-pages/public/FacilitiesPage';
 
+// Safe fetch helper to handle errors without breaking components
+const safeFetch = async <T,>(fetchFn: () => Promise<T>, fallback: T): Promise<T> => {
+  try {
+    return await fetchFn();
+  } catch (error) {
+    console.error('Fetch error:', error);
+    return fallback;
+  }
+};
 
-interface AppProps {}
-
-export const App: React.FC<AppProps> = () => {
-  // BROWSER PATH ROUTING STATE (/home, /login, /admin/dashboard, /presensi)
+export const App = () => {
+  // ROUTING CONTROLLER
   const [currentPath, setCurrentPath] = useState<string>(() => {
-    const path = window.location.pathname;
-    if (path === '' || path === '/') {
-      window.history.replaceState(null, '', '/home');
-      return '/home';
-    }
+    const path = window.location.pathname + window.location.search;
+    if (path === '/') return '/home';
     return path;
   });
 
@@ -38,7 +42,6 @@ export const App: React.FC<AppProps> = () => {
   // DATA STATES WITH INSTANT INITIAL FALLBACKS
   const [prokerList, setProkerList] = useState<ProkerItem[]>([]);
   const [kknTeam, setKknTeam] = useState<TeamMember[]>([]);
-  const [presensiList, setPresensiList] = useState<PresensiRecord[]>([]);
   const [settings, setSettings] = useState<RTSettings>(INITIAL_SETTINGS);
   const [navItems, setNavItems] = useState<NavigationItem[]>([]);
   const [announcements, setAnnouncements] = useState<RTAnnouncement[]>([]);
@@ -46,7 +49,6 @@ export const App: React.FC<AppProps> = () => {
   const [demographics, setDemographics] = useState<RTDemographics | null>(null);
   const [pengurusList, setPengurusList] = useState<RTPengurus[]>([]);
   const [facilitiesList, setFacilitiesList] = useState<RTFacility[]>([]);
-
   const [activeSection, setActiveSection] = useState('beranda');
 
   // TRACK LAST PATHS FOR DASHBOARD <-> PUBLIC PORTAL PERSISTENT HISTORY
@@ -56,7 +58,7 @@ export const App: React.FC<AppProps> = () => {
   useEffect(() => {
     if (currentPath.startsWith('/admin')) {
       setLastDashboardPath(currentPath);
-    } else if (currentPath !== '/login' && currentPath !== '/presensi') {
+    } else if (currentPath !== '/login') {
       setLastPublicPath(currentPath);
     }
   }, [currentPath]);
@@ -65,43 +67,24 @@ export const App: React.FC<AppProps> = () => {
   const navigateTo = (path: string) => {
     window.history.pushState(null, '', path);
     setCurrentPath(path);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // LISTEN TO BROWSER POPSTATE
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname;
-      if (path.startsWith('/page/')) {
-        setCurrentPath(path + window.location.search);
-      } else {
-        setCurrentPath(path);
-      }
+      setCurrentPath(window.location.pathname + window.location.search);
     };
-
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // DATA LOAD FROM SUPABASE WITH DYNAMIC ROUTE RE-REFRESH
+  // LOAD ALL DYNAMIC PORTAL DATA FROM SUPABASE
   useEffect(() => {
     const loadInitialData = async () => {
       setIsAppLoading(true);
-      const safeFetch = async (fetchFn: () => Promise<any>, fallback: any) => {
-        try {
-          const res = await fetchFn();
-          return res || fallback;
-        } catch (err) {
-          console.warn('Failed fetching data item:', err);
-          return fallback;
-        }
-      };
-
       try {
         const [
           prokerData,
           teamData,
-          presensiData,
           settingsData,
           navData,
           announceData,
@@ -112,7 +95,6 @@ export const App: React.FC<AppProps> = () => {
         ] = await Promise.all([
           safeFetch(() => SupabaseService.fetchProker(), []),
           safeFetch(() => SupabaseService.fetchKKNTeam(), []),
-          safeFetch(() => SupabaseService.fetchPresensi(), []),
           safeFetch(() => SupabaseService.fetchSettings(), INITIAL_SETTINGS),
           safeFetch(() => SupabaseService.fetchNavItems(), INITIAL_NAV_ITEMS),
           safeFetch(() => SupabaseService.fetchAnnouncements(), []),
@@ -124,11 +106,10 @@ export const App: React.FC<AppProps> = () => {
 
         if (prokerData) setProkerList(prokerData);
         if (teamData) setKknTeam(teamData);
-        if (presensiData) setPresensiList(presensiData);
         if (settingsData) setSettings(settingsData);
         if (navData) setNavItems(navData);
         if (announceData) setAnnouncements(announceData);
-        if (newsList) setNewsList(newsData);
+        if (newsData) setNewsList(newsData);
         if (demoData) setDemographics(demoData);
         if (pengurusData) setPengurusList(pengurusData);
         if (facilitiesData) setFacilitiesList(facilitiesData);
@@ -303,12 +284,6 @@ export const App: React.FC<AppProps> = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [currentPath]);
 
-  // HANDLERS FOR PRESENSI & PROKER UPDATES
-  const handleAddPresensi = async (record: PresensiRecord) => {
-    const updated = await SupabaseService.addPresensi(record);
-    setPresensiList(updated);
-  };
-
   const handleUpdateProker = async (item: ProkerItem) => {
     const updated = await SupabaseService.updateProker(item);
     setProkerList(updated);
@@ -318,7 +293,7 @@ export const App: React.FC<AppProps> = () => {
   const handleLoginSuccess = (
     role: UserRole, 
     profile: UserProfile, 
-    _redirectTo: 'presensi' | 'dashboard'
+    _redirectTo?: 'dashboard'
   ) => {
     setCurrentRole(role);
     setUserProfile(profile);
@@ -327,8 +302,6 @@ export const App: React.FC<AppProps> = () => {
       navigateTo('/admin/dashboard');
     } else if (role === 'developer') {
       navigateTo('/admin/developer');
-    } else if (role === 'mahasiswa') {
-      navigateTo('/presensi');
     } else {
       navigateTo('/home');
     }
@@ -574,24 +547,33 @@ export const App: React.FC<AppProps> = () => {
               />
             );
           }
-          if (currentRole === 'developer') return <DeveloperDashboardPage userProfile={userProfile} newsList={newsList} prokerList={prokerList} presensiList={presensiList} onAddNews={async () => []} onDeleteNews={async () => []} onUpdateProker={handleUpdateProker} onGoToLanding={() => navigateTo(lastPublicPath)} onLogout={handleLogout} />;
-          return <MahasiswaDashboardPage userProfile={userProfile} presensiList={presensiList} onAddPresensi={handleAddPresensi} onGoToLanding={() => navigateTo(lastPublicPath)} onLogout={handleLogout} />;
+          if (currentRole === 'developer') return <DeveloperDashboardPage userProfile={userProfile} newsList={newsList} prokerList={prokerList} onAddNews={async () => []} onDeleteNews={async () => []} onUpdateProker={handleUpdateProker} onGoToLanding={() => navigateTo(lastPublicPath)} onLogout={handleLogout} />;
+          return <SekretarisRTDashboardPage 
+            user={userProfile} 
+            onLogout={handleLogout} 
+            onUserProfileUpdate={setUserProfile}
+            activeTab="demografis"
+            onChangeTab={navigateTo}
+            settings={settings}
+            onSettingsUpdate={setSettings}
+            lastPublicPath={lastPublicPath}
+            onNavItemsUpdate={setNavItems}
+            newsList={newsList}
+            onUpdateNews={setNewsList}
+            demographics={demographics}
+            onUpdateDemographics={setDemographics}
+            pengurusList={pengurusList}
+            onUpdatePengurusList={setPengurusList}
+            announcements={announcements}
+            onUpdateAnnouncements={setAnnouncements}
+            kknTeam={kknTeam}
+            onUpdateKknTeam={setKknTeam}
+            prokerList={prokerList}
+            onUpdateProkerList={setProkerList}
+            navItems={navItems}
+          />;
         }
         return <LoginPage onLoginSuccess={handleLoginSuccess} onBackToHome={() => navigateTo(lastPublicPath)} />;
-
-      case '/presensi':
-        if (!userProfile) {
-          return <LoginPage onLoginSuccess={handleLoginSuccess} onBackToHome={() => navigateTo(lastPublicPath)} />;
-        }
-        return (
-          <MahasiswaDashboardPage
-            userProfile={userProfile}
-            presensiList={presensiList}
-            onAddPresensi={handleAddPresensi}
-            onGoToLanding={() => navigateTo(lastPublicPath)}
-            onLogout={handleLogout}
-          />
-        );
 
       case '/admin/dashboard':
       case '/admin/demografis':
@@ -660,7 +642,6 @@ export const App: React.FC<AppProps> = () => {
             userProfile={userProfile}
             newsList={[]}
             prokerList={prokerList}
-            presensiList={presensiList}
             onAddNews={async () => []}
             onDeleteNews={async () => []}
             onUpdateProker={handleUpdateProker}
@@ -724,17 +705,11 @@ export const App: React.FC<AppProps> = () => {
 
       
       {/* TOP NAVBAR */}
-      {!(currentPath === '/login' || currentPath.startsWith('/admin') || currentPath === '/presensi') && (
+      {!(currentPath === '/login' || currentPath.startsWith('/admin')) && (
         <Navbar
           currentRole={currentRole}
           userProfile={userProfile}
           onOpenAuth={() => navigateTo('/login')}
-          onOpenPresensi={() => {
-            if (currentRole === 'developer') navigateTo(lastDashboardPath);
-            else if (currentRole === 'sekretaris_rt') navigateTo(lastDashboardPath);
-            else if (currentRole === 'mahasiswa') navigateTo('/presensi');
-            else navigateTo('/login');
-          }}
           onOpenDashboard={() => {
             navigateTo(lastDashboardPath);
           }}
@@ -751,7 +726,7 @@ export const App: React.FC<AppProps> = () => {
       </main>
 
       {/* FOOTER */}
-      {!(currentPath === '/login' || currentPath.startsWith('/admin') || currentPath === '/presensi') && (
+      {!(currentPath === '/login' || currentPath.startsWith('/admin')) && (
         <Footer settings={settings} />
       )}
 

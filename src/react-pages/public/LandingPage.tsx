@@ -15,6 +15,8 @@ interface LandingPageProps {
   navItems: NavigationItem[];
   pengurusList: RTPengurus[];
   onSettingsUpdate?: (settings: RTSettings) => void;
+  defaultFormTab?: 'aspirasi' | 'wajib_lapor';
+  onClearDefaultFormTab?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
@@ -23,7 +25,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   settings,
   navItems,
   pengurusList,
-  onSettingsUpdate
+  onSettingsUpdate,
+  defaultFormTab,
+  onClearDefaultFormTab
 }) => {
   return (
     <>
@@ -52,7 +56,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <DeveloperCreditsSection navigateTo={navigateTo} />
 
       {/* 7. POSKO, LOKASI & CONTACT ASPIRASI WARGA */}
-      <ContactLocationSection settings={settings} onSettingsUpdate={onSettingsUpdate} />
+      <ContactLocationSection 
+        settings={settings} 
+        onSettingsUpdate={onSettingsUpdate} 
+        defaultFormTab={defaultFormTab}
+        onClearDefaultFormTab={onClearDefaultFormTab}
+      />
     </>
   );
 };

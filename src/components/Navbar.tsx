@@ -15,9 +15,9 @@ interface NavbarProps {
   currentRole: UserRole;
   userProfile: UserProfile | null;
   onOpenAuth: () => void;
-  onOpenPresensi: () => void;
   onOpenDashboard: () => void;
   onLogout: () => void;
+  onLaporTamu?: () => void;
   activeSection: string;
   setActiveSection: (sec: string) => void;
   navItems: NavigationItem[];
@@ -26,15 +26,28 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   currentRole,
   onOpenAuth,
-  onOpenPresensi,
   onOpenDashboard,
   onLogout,
+  onLaporTamu,
   activeSection,
   setActiveSection
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const currentPath = window.location.pathname;
+  const [currentPath, setCurrentPath] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.pathname + window.location.search;
+    }
+    return '/';
+  });
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname + window.location.search);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Track scroll position for transparent -> bright white solid transition
   useEffect(() => {
@@ -126,35 +139,35 @@ export const Navbar: React.FC<NavbarProps> = ({
           <img 
             src="/logo.png" 
             alt="Logo RT 35" 
-            className="w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
-            style={{ height: '38px' }}
+            className="w-auto object-contain transition-transform duration-300 group-hover:scale-102" 
+            style={{ height: '32px' }}
           />
           
           {/* Vertical divider line */}
           <div 
-            className={`w-[2px] transition-colors duration-300 ${
-              scrolled ? 'bg-[#0b5665]/50' : 'bg-white/60'
+            className={`w-[1.5px] transition-colors duration-300 ${
+              scrolled ? 'bg-[#0b5665]/40' : 'bg-white/50'
             }`} 
-            style={{ height: '26px' }}
+            style={{ height: '22px' }}
           />
           
           {/* Logo HUT RI */}
           <img 
             src={scrolled ? "/hutri_black.png" : "/hutri.png"} 
             alt="Logo HUT RI" 
-            className="w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
-            style={{ height: '38px' }}
+            className="w-auto object-contain transition-transform duration-300 group-hover:scale-102" 
+            style={{ height: '32px' }}
           />
 
           {/* Text branding */}
-          <div className="flex flex-col pl-1.5">
-            <span className={`font-black text-[11px] sm:text-xs tracking-wider leading-none transition-colors duration-300 ${
+          <div className="flex flex-col pl-1">
+            <span className={`font-black text-[10px] sm:text-[11px] tracking-wider leading-none transition-colors duration-300 ${
               scrolled ? 'text-[#0b5665]' : 'text-white'
             }`}>
               PORTAL RT 35
             </span>
-            <span className={`text-[8px] font-black mt-1.5 uppercase tracking-wider leading-none transition-colors duration-300 ${
-              scrolled ? 'text-amber-600' : 'text-amber-400'
+            <span className={`text-[7.5px] font-black mt-1 uppercase tracking-wider leading-none transition-colors duration-300 ${
+              scrolled ? 'text-[#5F8D4E]' : 'text-slate-200'
             }`}>
               Manggar Balikpapan
             </span>
@@ -164,9 +177,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* DESKTOP NAV LINKS (Bright/readable/modern) */}
         <nav className="hidden md:flex items-center gap-1 xl:gap-2">
           {visibleItems.map((item) => {
+            const [basePath] = currentPath.split('?');
             const isActive = item.type === 'anchor' 
               ? isHomeActive(item.target_id) 
-              : (currentPath === `/page/${item.target_id}` || (item.target_id === 'fasilitas' && currentPath === '/fasilitas') || (item.target_id === 'berita' && currentPath === '/berita'));
+              : (basePath === `/page/${item.target_id}` || (item.target_id === 'fasilitas' && basePath === '/fasilitas') || (item.target_id === 'berita' && basePath === '/berita') || (item.target_id === 'kkn' && basePath === '/kkn'));
 
             return (
               <button
@@ -194,8 +208,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Lapor Tamu Pill (Simkopdes style) */}
           <button
             onClick={() => {
-              const el = document.getElementById('kontak-layanan');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
+              const [basePath] = currentPath.split('?');
+              const isNotHome = basePath !== '/' && basePath !== '/home';
+              if (isNotHome) {
+                window.history.pushState(null, '', '/home');
+                window.dispatchEvent(new Event('popstate'));
+                setTimeout(() => {
+                  if (onLaporTamu) {
+                    onLaporTamu();
+                  }
+                  const el = document.getElementById('kontak-layanan');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }, 150);
+              } else {
+                if (onLaporTamu) {
+                  onLaporTamu();
+                }
+                const el = document.getElementById('kontak-layanan');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }
             }}
             className={`px-4.5 py-2.5 rounded-full font-black text-xs transition-all shadow-sm flex items-center space-x-1.5 active:scale-98 ${
               scrolled
@@ -233,17 +264,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
 
-              {currentRole === 'mahasiswa' && (
-                <div className={`flex items-center space-x-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                  scrolled 
-                    ? 'bg-[#0b5665]/10 text-[#0b5665]' 
-                    : 'bg-white/15 text-white'
-                }`}>
-                  <GraduationCap className="w-3 h-3 text-amber-500" />
-                  <span>Anggota KKN</span>
-                </div>
-              )}
-
               {currentRole === 'developer' && (
                 <div className={`flex items-center space-x-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
                   scrolled 
@@ -256,7 +276,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
 
               <button
-                onClick={currentRole === 'mahasiswa' ? onOpenPresensi : onOpenDashboard}
+                onClick={onOpenDashboard}
                 className={`px-4.5 py-2.5 rounded-full font-black text-xs transition-all border ${
                   scrolled
                     ? 'bg-[#0b5665] hover:bg-[#08424e] text-white border-transparent'
@@ -324,8 +344,25 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                const el = document.getElementById('kontak-layanan');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                const [basePath] = currentPath.split('?');
+                const isNotHome = basePath !== '/' && basePath !== '/home';
+                if (isNotHome) {
+                  window.history.pushState(null, '', '/home');
+                  window.dispatchEvent(new Event('popstate'));
+                  setTimeout(() => {
+                    if (onLaporTamu) {
+                      onLaporTamu();
+                    }
+                    const el = document.getElementById('kontak-layanan');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }, 150);
+                } else {
+                  if (onLaporTamu) {
+                    onLaporTamu();
+                  }
+                  const el = document.getElementById('kontak-layanan');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }
               }}
               className={`w-full py-3 rounded-full font-black text-xs transition-all shadow-sm text-center flex items-center justify-center space-x-1.5 ${
                 scrolled
@@ -354,8 +391,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    if (currentRole === 'mahasiswa') onOpenPresensi();
-                    else onOpenDashboard();
+                    onOpenDashboard();
                   }}
                   className={`w-full py-3 rounded-full font-black text-xs text-center border ${
                     scrolled

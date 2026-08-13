@@ -1,0 +1,46 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { NewsListPage } from '../react-pages/public/NewsListPage';
+import { Navbar } from '../components/Navbar';
+import { Footer } from '../components/Footer';
+import { SupabaseService } from '../lib/supabase';
+import { INITIAL_SETTINGS, INITIAL_NAV_ITEMS } from '../lib/initialData';
+
+let newsList = [];
+let settings = INITIAL_SETTINGS;
+let navItems = INITIAL_NAV_ITEMS;
+
+try {
+  const [nData, sData, nvData] = await Promise.all([
+    SupabaseService.fetchNews(),
+    SupabaseService.fetchSettings(),
+    SupabaseService.fetchNavItems()
+  ]);
+  if (nData) newsList = nData;
+  if (sData) settings = sData;
+  if (nvData) navItems = nvData;
+} catch (err) {
+  console.warn("News server fetch failed:", err);
+}
+---
+
+<Layout title="Berita RT 35 Manggar – Kabar Warga Terbaru">
+  <Navbar 
+    currentRole="public" 
+    userProfile={null} 
+    onOpenAuth={() => { window.location.href = '/login'; }}
+    onOpenDashboard={() => { window.location.href = '/admin/dashboard'; }}
+    onLogout={() => {}} 
+    activeSection="berita" 
+    navItems={navItems}
+    client:load
+  />
+  <main class="flex-grow pt-[64px]">
+    <NewsListPage 
+      newsList={newsList} 
+      onBackToHome={() => { window.location.href = '/home'; }}
+      client:load
+    />
+  </main>
+  <Footer settings={settings} />
+</Layout>

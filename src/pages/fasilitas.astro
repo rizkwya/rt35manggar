@@ -1,0 +1,47 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { FacilitiesPage } from '../react-pages/public/FacilitiesPage';
+import { Navbar } from '../components/Navbar';
+import { Footer } from '../components/Footer';
+import { SupabaseService } from '../lib/supabase';
+import { INITIAL_SETTINGS, INITIAL_NAV_ITEMS } from '../lib/initialData';
+
+let facilitiesList = [];
+let settings = INITIAL_SETTINGS;
+let navItems = INITIAL_NAV_ITEMS;
+
+try {
+  const [fData, sData, nvData] = await Promise.all([
+    SupabaseService.fetchFacilities(),
+    SupabaseService.fetchSettings(),
+    SupabaseService.fetchNavItems()
+  ]);
+  if (fData) facilitiesList = fData;
+  if (sData) settings = sData;
+  if (nvData) navItems = nvData;
+} catch (err) {
+  console.warn("Facilities server fetch failed:", err);
+}
+---
+
+<Layout title="Fasilitas RT 35 Kelurahan Manggar – Peta & Pembangunan">
+  <Navbar 
+    currentRole="public" 
+    userProfile={null} 
+    onOpenAuth={() => { window.location.href = '/login'; }}
+    onOpenDashboard={() => { window.location.href = '/admin/dashboard'; }}
+    onLogout={() => {}} 
+    activeSection="fasilitas" 
+    navItems={navItems}
+    client:load
+  />
+  <main class="flex-grow pt-[64px]">
+    <FacilitiesPage 
+      facilities={facilitiesList} 
+      settings={settings}
+      onGoToLanding={() => { window.location.href = '/home'; }}
+      client:load
+    />
+  </main>
+  <Footer settings={settings} />
+</Layout>

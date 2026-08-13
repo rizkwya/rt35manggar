@@ -4,7 +4,7 @@ import { SupabaseService } from '../../lib/supabase';
 import { KeyRound, UserCheck, AlertCircle, ArrowLeft, Lock, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
 interface LoginPageProps {
-  onLoginSuccess: (role: UserRole, profile: UserProfile, redirectTo: 'presensi' | 'dashboard') => void;
+  onLoginSuccess: (role: UserRole, profile: UserProfile, redirectTo: 'dashboard') => void;
   onBackToHome: () => void;
 }
 
@@ -39,7 +39,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
       }
 
       const role: UserRole = profile.role;
-      const target = role === 'mahasiswa' ? 'presensi' : 'dashboard';
+      const target = 'dashboard';
       onLoginSuccess(role, profile, target);
     } catch (err) {
       setErrorMsg('Terjadi kesalahan koneksi ke database Supabase Cloud.');
@@ -78,7 +78,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
 
         {/* Brand Footer */}
         <div className="absolute bottom-6 left-6 text-white/50 text-[10px] hidden md:block">
-          Kelompok 7 KKN KKNMANGGAR2 © 2026
+          Kelompok Manggar 2 KKN © 2026
         </div>
       </div>
 
@@ -93,7 +93,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
               Masuk Ke Akun Portal Resmi RT 35 Manggar
             </h2>
             <p className="text-xs text-slate-500 font-semibold">
-              Gunakan akun pengurus RT, sekretaris, atau NIM mahasiswa KKN Anda untuk mengakses dashboard.
+              Gunakan akun pengurus RT, sekretaris, atau akun developer Anda untuk mengakses dashboard.
             </p>
           </div>
 
@@ -109,12 +109,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
           <form onSubmit={handleLoginSubmit} className="space-y-5">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Username atau NIM Mahasiswa <span className="text-rose-500">*</span>
+                Username Petugas <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Masukkan username atau NIM Anda"
+                  placeholder="Masukkan username Anda"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   disabled={isLoading}

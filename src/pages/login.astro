@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { LoginPage } from '../react-pages/public/LoginPage';
+---
+
+<Layout title="Login Petugas RT 35 Manggar">
+  <LoginPage 
+    onLoginSuccess={(role, profile) => {
+      localStorage.setItem('userRole', role);
+      localStorage.setItem('userProfile', JSON.stringify(profile));
+      if (role === 'developer') {
+        window.location.href = '/admin/developer';
+      } else {
+        window.location.href = '/admin/dashboard';
+      }
+    }}
+    onBackToHome={() => { window.location.href = '/home'; }}
+    client:only="react"
+  />
+</Layout>

@@ -481,7 +481,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
         </div>
 
         {/* ANNOUNCEMENT & SERVICES */}
-        <div id="pengumuman-rt" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div id="pengumuman-rt" className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* ANNOUNCEMENTS (SPAN 2) */}
           <div className="lg:col-span-2 p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -499,14 +499,14 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
               </span>
             </div>
 
-            <div className="space-y-4">
+            <div className="flex md:flex-col overflow-x-auto md:overflow-y-auto md:overflow-x-hidden gap-4 pb-4 md:pb-2 md:max-h-[520px] scrollbar-thin snap-x snap-mandatory w-full">
               {announcements.length === 0 ? (
-                <p className="text-slate-400 text-xs text-center py-8">Belum ada pengumuman baru dari pengurus RT.</p>
+                <p className="text-slate-400 text-xs text-center py-8 w-full">Belum ada pengumuman baru dari pengurus RT.</p>
               ) : (
                 announcements.map((item) => (
                   <div
                     key={item.id}
-                    className={`p-5 rounded-2xl border transition-all duration-200 ${
+                    className={`min-w-[280px] sm:min-w-[340px] md:min-w-0 flex-shrink-0 snap-start p-5 rounded-2xl border transition-all duration-200 ${
                       item.is_urgent
                         ? 'bg-rose-50 border-rose-200 text-rose-800'
                         : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-400'

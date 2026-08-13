@@ -6,15 +6,28 @@ import { SupabaseService } from '../../lib/supabase';
 interface ContactLocationSectionProps {
   settings?: RTSettings;
   onSettingsUpdate?: (settings: RTSettings) => void;
+  defaultFormTab?: 'aspirasi' | 'wajib_lapor';
+  onClearDefaultFormTab?: () => void;
 }
 
 export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({ 
   settings,
-  onSettingsUpdate
+  onSettingsUpdate,
+  defaultFormTab,
+  onClearDefaultFormTab
 }) => {
   const [activeFormTab, setActiveFormTab] = useState<'aspirasi' | 'wajib_lapor'>('aspirasi');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (defaultFormTab) {
+      setActiveFormTab(defaultFormTab);
+      if (onClearDefaultFormTab) {
+        onClearDefaultFormTab();
+      }
+    }
+  }, [defaultFormTab, onClearDefaultFormTab]);
   
   // Shared Form fields
   const [name, setName] = useState('');
@@ -204,7 +217,7 @@ export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({
           </div>
 
           {/* RIGHT: DUAL FORM PORTAL (ASPIRASI & WAJIB LAPOR) */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-slate-50 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+          <div className="p-6 sm:p-8 rounded-3xl bg-slate-50 border border-slate-200 shadow-sm space-y-6 h-fit">
             <div>
               {/* Form Tab Switched */}
               <div className="flex border-b border-slate-200/80 mb-6">

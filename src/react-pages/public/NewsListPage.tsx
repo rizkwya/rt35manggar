@@ -15,6 +15,14 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
   const [selectedArticle, setSelectedArticle] = useState<NewsPost | null>(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  // Reset pagination to page 1 when search query or category filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
+
   // Read slug from URL parameters on mount and browser navigation history changes
   useEffect(() => {
     const checkSlug = () => {
@@ -56,8 +64,14 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
     return matchesSearch && matchesCategory;
   });
 
+  const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
+  const paginatedArticles = filteredArticles.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 animate-fade-in space-y-8">
+    <div className="max-w-7xl mx-auto px-4 pt-10 pb-16 sm:px-6 lg:px-8 animate-fade-in space-y-8">
       
       {selectedArticle ? (
         // DETAIL VIEW
@@ -151,47 +165,92 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
           </div>
 
           {/* Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredArticles.map((item) => (
-              <div 
-                key={item.id}
-                onClick={() => handleSelectArticle(item)}
-                className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer group"
-              >
-                <div>
-                  {/* Card Cover Image */}
-                  {item.image_url ? (
-                    <div className="h-52 w-full overflow-hidden relative border-b border-slate-100 bg-slate-50">
-                      <img 
-                        src={item.image_url} 
-                        alt={item.title} 
-                        className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-52 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
-                      <BookOpen className="w-10 h-10 text-slate-400 opacity-40 group-hover:scale-110 transition-transform duration-500" />
-                    </div>
-                  )}
+          <div className="space-y-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedArticles.map((item) => (
+                <div 
+                  key={item.id}
+                  onClick={() => handleSelectArticle(item)}
+                  className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer group"
+                >
+                  <div>
+                    {/* Card Cover Image */}
+                    {item.image_url ? (
+                      <div className="h-52 w-full overflow-hidden relative border-b border-slate-100 bg-slate-50">
+                        <img 
+                          src={item.image_url} 
+                          alt={item.title} 
+                          className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-52 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
+                        <BookOpen className="w-10 h-10 text-slate-400 opacity-40 group-hover:scale-110 transition-transform duration-500" />
+                      </div>
+                    )}
 
-                  {/* Card Body */}
-                  <div className="p-6 space-y-2">
-                    <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-slate-700 transition-colors line-clamp-2">
-                      {item.title}
-                    </h3>
-                    
-                    <p className="text-[11px] text-slate-400 font-bold">
-                      {new Date(item.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </p>
+                    {/* Card Body */}
+                    <div className="p-6 space-y-2">
+                      <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-slate-700 transition-colors line-clamp-2">
+                        {item.title}
+                      </h3>
+                      
+                      <p className="text-[11px] text-slate-400 font-bold">
+                        {new Date(item.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
+              {filteredArticles.length === 0 && (
+                <div className="col-span-full text-center py-12 text-slate-400 font-bold text-xs bg-white rounded-3xl border border-slate-200">
+                  Tidak ada berita kegiatan ditemukan.
+                </div>
+              )}
+            </div>
 
-            {filteredArticles.length === 0 && (
-              <div className="col-span-full text-center py-12 text-slate-400 font-bold text-xs bg-white rounded-3xl border border-slate-200">
-                Tidak ada berita kegiatan ditemukan.
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center space-x-2 pt-6">
+                <button
+                  onClick={() => {
+                    setCurrentPage((prev) => Math.max(prev - 1, 1));
+                    window.scrollTo({ top: 200, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === 1}
+                  className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[36px]"
+                  aria-label="Previous page"
+                >
+                  &larr;
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => {
+                      setCurrentPage(p);
+                      window.scrollTo({ top: 200, behavior: 'smooth' });
+                    }}
+                    className={`w-9 h-9 rounded-xl text-xs font-black transition-all active:scale-95 border ${
+                      currentPage === p
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => {
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                    window.scrollTo({ top: 200, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === totalPages}
+                  className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[36px]"
+                  aria-label="Next page"
+                >
+                  &rarr;
+                </button>
               </div>
             )}
           </div>

@@ -29,11 +29,28 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
   const [uploadingKegiatanImg, setUploadingKegiatanImg] = useState(false);
   const [uploadingPageBanner, setUploadingPageBanner] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+
+  // Extract kegiatan items
+  const kegiatanPage = navItems.find(item => item.target_id === 'kegiatan-warga');
+  let kegiatanItems = [] as any[];
+  if (kegiatanPage?.custom_content) {
+    try {
+      const parsed = JSON.parse(kegiatanPage.custom_content);
+      kegiatanItems = parsed.grid_items || [];
+    } catch (e) {}
+  }
+
+  // Reset page when items length changes
   useEffect(() => {
-    const kegiatan = navItems.find(item => item.target_id === 'kegiatan-warga');
-    if (kegiatan?.custom_content) {
+    setCurrentPage(1);
+  }, [kegiatanItems.length]);
+
+  useEffect(() => {
+    if (kegiatanPage?.custom_content) {
       try {
-        const parsed = JSON.parse(kegiatan.custom_content);
+        const parsed = JSON.parse(kegiatanPage.custom_content);
         setPageSubtitle(parsed.subtitle || '');
         setPageBody(parsed.body || '');
         setPageBannerUrl(parsed.banner_url || '');
@@ -77,8 +94,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
     e.preventDefault();
     if (!kegiatanTitle.trim()) return;
 
-    const kegiatanPageItem = navItems.find(item => item.target_id === 'kegiatan-warga');
-    if (!kegiatanPageItem) {
+    if (!kegiatanPage) {
       alert('Halaman Kegiatan Warga tidak ditemukan.');
       return;
     }
@@ -86,14 +102,13 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
     setLoading(true);
     try {
       let contentObj = { banner_url: '', subtitle: '', body: '', grid_items: [] as any[] };
-      if (kegiatanPageItem.custom_content) {
+      if (kegiatanPage.custom_content) {
         try {
-          contentObj = JSON.parse(kegiatanPageItem.custom_content);
+          contentObj = JSON.parse(kegiatanPage.custom_content);
         } catch (err) {
           console.warn('Failed to parse current custom content:', err);
         }
       }
-
 
       let updatedGridItems = [...(contentObj.grid_items || [])];
       
@@ -122,7 +137,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
       }
 
       const updatedPageItem = {
-        ...kegiatanPageItem,
+        ...kegiatanPage,
         custom_content: JSON.stringify({
           ...contentObj,
           grid_items: updatedGridItems
@@ -149,17 +164,16 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
   };
 
   const handleDeleteKegiatan = async (idx: number) => {
-    const kegiatanPageItem = navItems.find(item => item.target_id === 'kegiatan-warga');
-    if (!kegiatanPageItem) return;
+    if (!kegiatanPage) return;
 
     if (!window.confirm('Apakah Anda yakin ingin menghapus kegiatan warga ini?')) return;
 
     setLoading(true);
     try {
       let contentObj = { banner_url: '', subtitle: '', body: '', grid_items: [] as any[] };
-      if (kegiatanPageItem.custom_content) {
+      if (kegiatanPage.custom_content) {
         try {
-          contentObj = JSON.parse(kegiatanPageItem.custom_content);
+          contentObj = JSON.parse(kegiatanPage.custom_content);
         } catch (err) {
           console.warn('Failed to parse current custom content:', err);
         }
@@ -169,7 +183,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
       updatedGridItems.splice(idx, 1);
 
       const updatedPageItem = {
-        ...kegiatanPageItem,
+        ...kegiatanPage,
         custom_content: JSON.stringify({
           ...contentObj,
           grid_items: updatedGridItems
@@ -189,22 +203,21 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
 
   const handleSavePageMeta = async (e: React.FormEvent) => {
     e.preventDefault();
-    const kegiatanPageItem = navItems.find(item => item.target_id === 'kegiatan-warga');
-    if (!kegiatanPageItem) return;
+    if (!kegiatanPage) return;
 
     setLoading(true);
     try {
       let contentObj = { banner_url: '', subtitle: '', body: '', grid_items: [] as any[] };
-      if (kegiatanPageItem.custom_content) {
+      if (kegiatanPage.custom_content) {
         try {
-          contentObj = JSON.parse(kegiatanPageItem.custom_content);
+          contentObj = JSON.parse(kegiatanPage.custom_content);
         } catch (err) {
           console.warn(err);
         }
       }
 
       const updatedPageItem = {
-        ...kegiatanPageItem,
+        ...kegiatanPage,
         custom_content: JSON.stringify({
           ...contentObj,
           banner_url: pageBannerUrl,
@@ -224,13 +237,19 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
     }
   };
 
+  const totalPages = Math.ceil(kegiatanItems.length / itemsPerPage);
+  const paginatedItems = kegiatanItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Meta Section: Title & Subtitle */}
       <form onSubmit={handleSavePageMeta} className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-md space-y-6">
         <div className="border-b border-slate-100 pb-3">
           <h3 className="text-lg font-black text-slate-900">Deskripsi Halaman Kegiatan Warga</h3>
-          <p className="text-xs text-slate-500 font-semibold mt-1">
+          <p className="text-xs text-slate-505 font-semibold mt-1">
             Atur teks pengantar dan kutipan deskripsi yang tampil di bagian atas halaman Kegiatan Warga publik.
           </p>
         </div>
@@ -244,7 +263,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
               value={pageSubtitle}
               onChange={(e) => setPageSubtitle(e.target.value)}
               placeholder="Contoh: Dokumentasi kebersamaan dan program aksi sosial kemasyarakatan warga RT 35 Manggar."
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-semibold text-slate-808 focus:outline-none focus:border-[#85A389] focus:bg-white"
             />
           </div>
 
@@ -256,7 +275,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
               value={pageBody}
               onChange={(e) => setPageBody(e.target.value)}
               placeholder="Tulis paragraf deskripsi selamat datang di halaman kegiatan warga..."
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-medium text-slate-808 focus:outline-none focus:border-[#85A389] focus:bg-white"
             />
           </div>
 
@@ -320,7 +339,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                 placeholder="Contoh: Kerja Bakti Minggu Bersih"
                 value={kegiatanTitle}
                 onChange={(e) => setKegiatanTitle(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-[#85A389]"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-[#85A389]"
               />
             </div>
 
@@ -332,7 +351,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                 placeholder="Contoh: Sosial, Kesehatan, Gotong Royong"
                 value={kegiatanBadge}
                 onChange={(e) => setKegiatanBadge(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-[#85A389]"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-[#85A389]"
               />
             </div>
 
@@ -350,7 +369,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
               <label className="block text-xs font-black uppercase tracking-wider text-slate-500">Gambar Kegiatan</label>
               
               {kegiatanImageUrl ? (
-                <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-55 h-36 shadow-sm group">
+                <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 h-36 shadow-sm group">
                   <img src={kegiatanImageUrl} alt="Preview Kegiatan" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button
@@ -363,7 +382,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="relative border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-slate-55 text-center hover:bg-slate-100/50 transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[100px]">
+                <div className="relative border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-slate-50 text-center hover:bg-slate-100/50 transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[100px]">
                   <input
                     type="file"
                     accept="image/*"
@@ -374,7 +393,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                   {uploadingKegiatanImg ? (
                     <div className="space-y-1.5">
                       <div className="w-4 h-4 border-2 border-[#85A389] border-t-transparent rounded-full animate-spin mx-auto" />
-                      <span className="text-[9px] text-slate-500 font-bold">Mengunggah gambar...</span>
+                      <span className="text-[9px] text-slate-555 font-bold">Mengunggah gambar...</span>
                     </div>
                   ) : (
                     <div className="space-y-0.5">
@@ -421,85 +440,113 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
         </form>
 
         {/* List Kegiatan Warga Aktif */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="p-4 rounded-2xl bg-[#85A389]/10 border border-[#85A389]/30">
-            <h4 className="text-xs font-black text-[#5F8D4E] uppercase tracking-wider">Daftar Kegiatan Aktif</h4>
-            <p className="text-[11px] text-slate-550 font-bold mt-1">
-              Berikut adalah seluruh dokumentasi kegiatan warga yang sedang tampil di portal publik Anda.
-            </p>
+        <div className="lg:col-span-7 space-y-6">
+          <div className="p-4.5 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Activity className="w-4 h-4 text-slate-550" />
+              <span className="text-sm font-black text-slate-800">Daftar Kegiatan Aktif</span>
+            </div>
+            <span className="text-xs px-3 py-1 rounded-full bg-slate-100 font-black text-slate-650">
+              {kegiatanItems.length} Kegiatan
+            </span>
           </div>
 
-          {(() => {
-            const kegiatanPage = navItems.find(item => item.target_id === 'kegiatan-warga');
-            let items = [] as any[];
-            if (kegiatanPage?.custom_content) {
-              try {
-                const parsed = JSON.parse(kegiatanPage.custom_content);
-                items = parsed.grid_items || [];
-              } catch (e) {}
-            }
-
-            if (items.length === 0) {
-              return (
-                <div className="p-8 rounded-3xl bg-white border border-slate-200 text-center text-xs font-bold text-slate-400">
-                  Belum ada data kegiatan warga. Silakan tambahkan kegiatan pertama Anda!
-                </div>
-              );
-            }
-
-            return (
-              <div className="space-y-4">
-                {items.map((item, idx) => (
-                  <div key={idx} className="p-5 rounded-3xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-all">
-                    <div className="flex items-center space-x-4 min-w-0">
-                      {item.image_url ? (
-                        <img src={item.image_url} alt={item.title} className="w-16 h-16 rounded-2xl object-cover shrink-0 border border-slate-100 shadow-sm" />
-                      ) : (
-                        <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
-                          <Activity className="w-6 h-6" />
+          {kegiatanItems.length === 0 ? (
+            <div className="p-8 rounded-3xl bg-white border border-slate-200 text-center text-xs font-bold text-slate-400">
+              Belum ada data kegiatan warga. Silakan tambahkan kegiatan pertama Anda!
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-3">
+                {paginatedItems.map((item, idx) => {
+                  const globalIdx = (currentPage - 1) * itemsPerPage + idx;
+                  return (
+                    <div key={globalIdx} className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:border-[#85A389]/30 transition-all">
+                      <div className="flex items-center space-x-4 min-w-0">
+                        {item.image_url ? (
+                          <img src={item.image_url} alt={item.title} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-100 shadow-sm" />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
+                            <Activity className="w-5 h-5" />
+                          </div>
+                        )}
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex items-center space-x-2 flex-wrap">
+                            <h4 className="text-sm font-black text-slate-800 truncate leading-snug">{item.title}</h4>
+                            {item.badge && (
+                              <span className="px-2 py-0.5 text-[9px] font-extrabold bg-[#85A389]/10 text-[#5F8D4E] rounded border border-[#85A389]/20 uppercase tracking-wider shrink-0">{item.badge}</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2">{item.summary || getPreviewText(item.description)}</p>
                         </div>
-                      )}
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex items-center space-x-2 flex-wrap">
-                          <h4 className="text-sm font-black text-slate-800 truncate leading-snug">{item.title}</h4>
-                          {item.badge && (
-                            <span className="px-2 py-0.5 text-[9px] font-extrabold bg-[#85A389]/10 text-[#5F8D4E] rounded border border-[#85A389]/20 uppercase tracking-wider shrink-0">{item.badge}</span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2">{item.summary || getPreviewText(item.description)}</p>
+                      </div>
+
+                      <div className="flex items-center space-x-2 w-full sm:w-auto shrink-0 justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingKegiatanIdx(globalIdx);
+                            setKegiatanTitle(item.title || '');
+                            setKegiatanBadge(item.badge || '');
+                            setKegiatanSummary(item.summary || '');
+                            setKegiatanDesc(item.description || '');
+                            setKegiatanImageUrl(item.image_url || '');
+                          }}
+                          className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold flex items-center justify-center shadow-sm"
+                          title="Edit Kegiatan"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteKegiatan(globalIdx)}
+                          className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
+                          title="Hapus Kegiatan"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center space-x-2 w-full sm:w-auto shrink-0 justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingKegiatanIdx(idx);
-                          setKegiatanTitle(item.title || '');
-                          setKegiatanBadge(item.badge || '');
-                          setKegiatanSummary(item.summary || '');
-                          setKegiatanDesc(item.description || '');
-                          setKegiatanImageUrl(item.image_url || '');
-                        }}
-                        className="px-3.5 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold flex items-center justify-center shadow-sm"
-                        title="Edit Kegiatan"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteKegiatan(idx)}
-                        className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
-                        title="Hapus Kegiatan"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            );
-          })()}
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center space-x-1.5 pt-4">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                    aria-label="Previous page"
+                  >
+                    &larr;
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
+                        currentPage === p
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                    aria-label="Next page"
+                  >
+                    &rarr;
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
       </div>

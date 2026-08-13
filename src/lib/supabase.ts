@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { 
   NewsPost, 
-  PresensiRecord, 
   ProkerItem, 
   TeamMember, 
   UserProfile, 
@@ -11,7 +10,9 @@ import {
   RTPengurus,
   RTSettings,
   NavigationItem,
-  RTFacility
+  RTFacility,
+  FamilyCard,
+  FamilyMember
 } from '../types/database';
 import { 
   INITIAL_DEMOGRAPHICS, 
@@ -36,6 +37,9 @@ export const SUPABASE_ANON_KEY =
   'sb_publishable_SSBgwLT0rUpEm8n0qDYaFw_Qp1vIm7G';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// IN-MEMORY CACHE FOR KKN TEAM MEMBERS
+let localKknTeamStore: TeamMember[] | null = null;
 
 // DYNAMIC DATA SERVICE INTERACTION
 export const SupabaseService = {
@@ -65,7 +69,7 @@ export const SupabaseService = {
           .single();
 
         if (profile && !profileError) {
-          let role: UserRole = 'mahasiswa';
+          let role: UserRole = 'public';
           if (profile.role === 'sekretaris_rt') role = 'sekretaris_rt';
           if (profile.role === 'developer' || profile.is_developer) role = 'developer';
 
@@ -114,10 +118,11 @@ export const SupabaseService = {
       if (data && !error) {
         return { ...INITIAL_DEMOGRAPHICS, ...data } as RTDemographics;
       }
+      return INITIAL_DEMOGRAPHICS;
     } catch (e) {
       console.error('Demographics query error:', e);
+      return INITIAL_DEMOGRAPHICS;
     }
-    return INITIAL_DEMOGRAPHICS;
   },
 
   async updateDemographics(demographics: RTDemographics): Promise<RTDemographics> {
@@ -238,108 +243,247 @@ export const SupabaseService = {
     }
   },
 
-  // KKN TEAM MEMBERS CRUD
+  // KKN TEAM MEMBERS CRUD (CORRESPONDING TO PUBLIC.USERS TABLE WITH ROLE = 'mahasiswa')
   async fetchKKNTeam(): Promise<TeamMember[]> {
+    // 1. Always load cache first to make changes instantly persistent
+    if (!localKknTeamStore) {
+      try {
+        const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('rt35_kkn_team_cache') : null;
+        if (saved) {
+          localKknTeamStore = JSON.parse(saved);
+        }
+      } catch (e) {
+        console.warn('LocalStorage KKN team load error:', e);
+      }
+    }
+
+    // If cache is loaded, return it immediately so refresh doesn't flash old data
+    if (localKknTeamStore && localKknTeamStore.length > 0) {
+      // Fire-and-forget sync to Supabase database silently in the background
+      supabase
+        .from('users')
+        .select('*')
+        .eq('role', 'mahasiswa')
+        .then(({ data, error }) => {
+          if (data && data.length > 0 && !error) {
+            // Database is the source of truth
+            const mapped = data.map((d) => {
+              const cached = localKknTeamStore?.find((m) => m.nim === d.nim);
+              return {
+                id: d.id,
+                name: d.full_name || cached?.name,
+                nim: d.nim,
+                prodi: d.prodi || cached?.prodi,
+                role_kkn: d.role_kkn || cached?.role_kkn || 'Mahasiswa KKN',
+                avatar_url: d.avatar_url || cached?.avatar_url || '/kkn_member_1.png',
+                email: d.email,
+                description: d.phone || cached?.description || 'Bertanggung jawab penuh atas kelancaran program kerja pengabdian masyarakat di RT 35 Manggar, berkolaborasi aktif dengan warga sekitar untuk menciptakan solusi berbasis digital dan pemberdayaan berkelanjutan.',
+              };
+            });
+            mapped.sort((a, b) => {
+              const idxA = INITIAL_KKN_TEAM.findIndex((init) => init.nim === a.nim);
+              const idxB = INITIAL_KKN_TEAM.findIndex((init) => init.nim === b.nim);
+              if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+              return a.nim.localeCompare(b.nim);
+            });
+            localKknTeamStore = mapped;
+            try { if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore)); } catch (e) {}
+          }
+        });
+
+      return localKknTeamStore;
+    }
+
     try {
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('role', 'mahasiswa');
-      if (data && !error) {
-        return data.map((d) => ({
+      
+      if (data && data.length > 0 && !error) {
+        const mapped = data.map((d) => ({
           id: d.id,
           name: d.full_name,
           nim: d.nim,
           prodi: d.prodi,
           role_kkn: d.role_kkn || 'Mahasiswa KKN',
-          avatar_url: d.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+          avatar_url: d.avatar_url || '/kkn_member_1.png',
           email: d.email,
+          description: d.phone || 'Bertanggung jawab penuh atas kelancaran program kerja pengabdian masyarakat di RT 35 Manggar, berkolaborasi aktif dengan warga sekitar untuk menciptakan solusi berbasis digital dan pemberdayaan berkelanjutan.',
         }));
+        
+        mapped.sort((a, b) => {
+          const idxA = INITIAL_KKN_TEAM.findIndex((init) => init.nim === a.nim);
+          const idxB = INITIAL_KKN_TEAM.findIndex((init) => init.nim === b.nim);
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+          return a.nim.localeCompare(b.nim);
+        });
+
+        localKknTeamStore = mapped;
+        try { if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore)); } catch (e) {}
+        return localKknTeamStore;
       }
     } catch (e) {
       console.warn('KKN Team query error:', e);
     }
-    return [];
+
+    if (!localKknTeamStore || localKknTeamStore.length === 0) {
+      localKknTeamStore = [...INITIAL_KKN_TEAM];
+    }
+    return localKknTeamStore;
   },
 
   async updateKKNTeamMember(member: TeamMember): Promise<TeamMember[]> {
-    try {
-      const dbObj = {
-        id: member.id,
-        full_name: member.name,
-        nim: member.nim,
-        prodi: member.prodi,
-        avatar_url: member.avatar_url,
-        email: member.email || `${member.nim}@fasilkom.ac.id`,
-      };
-      await supabase.from('users').upsert([dbObj]);
-    } catch (e) {
-      console.warn('KKN Team update error:', e);
+    // Generate valid UUID if missing or mock id
+    const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(member.id);
+    const dbId = isValidUUID ? member.id : undefined;
+
+    const dbObj: any = {
+      full_name: member.name,
+      nim: member.nim || `NIM-${Date.now()}`,
+      prodi: member.prodi || 'S1 Sistem Informasi',
+      role: 'mahasiswa',
+      role_kkn: member.role_kkn || 'Mahasiswa KKN',
+      avatar_url: member.avatar_url || '/kkn_member_1.png',
+      email: member.email || `${member.nim || Date.now()}@fasilkom.ac.id`,
+      phone: member.description || '',
+    };
+
+    if (dbId) {
+      dbObj.id = dbId;
     }
-    return this.fetchKKNTeam();
+
+    if (!localKknTeamStore) {
+      localKknTeamStore = [...INITIAL_KKN_TEAM];
+    }
+    const idx = localKknTeamStore.findIndex((m) => m.id === member.id);
+    if (idx !== -1) {
+      localKknTeamStore[idx] = { ...member };
+    } else {
+      localKknTeamStore.push({ ...member });
+    }
+
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
+    } catch (e) {}
+
+    try {
+      const { data, error } = await supabase.from('users').upsert([dbObj]).select();
+      if (error) {
+        console.warn('Supabase update user error:', error);
+      } else if (data && data[0]) {
+        member.id = data[0].id;
+        const updatedIdx = localKknTeamStore.findIndex((m) => m.nim === member.nim);
+        if (updatedIdx !== -1) {
+          localKknTeamStore[updatedIdx].id = data[0].id;
+          try {
+            if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
+          } catch (e) {}
+        }
+      }
+    } catch (e) {
+      console.warn('KKN Team update exception:', e);
+    }
+
+    return [...localKknTeamStore];
   },
 
   async deleteKKNTeamMember(id: string): Promise<TeamMember[]> {
+    if (localKknTeamStore) {
+      localKknTeamStore = localKknTeamStore.filter((m) => m.id !== id);
+      try {
+        if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
+      } catch (e) {}
+    }
     try {
-      await supabase.from('users').delete().eq('id', id);
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      if (isValidUUID) {
+        await supabase.from('users').delete().eq('id', id);
+      }
     } catch (e) {
-      console.warn('KKN Team member delete error:', e);
+      console.warn('KKN Team delete error:', e);
     }
     return this.fetchKKNTeam();
   },
 
   // PROKER KKN CRUD
   async fetchProker(): Promise<ProkerItem[]> {
+    let localProkerStore: ProkerItem[] | null = null;
+    try {
+      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('rt35_proker_cache') : null;
+      if (saved) {
+        localProkerStore = JSON.parse(saved);
+      }
+    } catch (e) {}
+
     try {
       const { data, error } = await supabase.from('proker').select('*');
-      if (data && !error) {
-        return data as ProkerItem[];
+      if (data && data.length > 0 && !error) {
+        const sorted = data as ProkerItem[];
+        // Keep order consistent
+        localProkerStore = sorted;
+        try { if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_proker_cache', JSON.stringify(localProkerStore)); } catch (e) {}
+        return localProkerStore;
       }
     } catch (e) {
       console.warn('Proker query error:', e);
     }
-    return [];
+
+    if (!localProkerStore || localProkerStore.length === 0) {
+      localProkerStore = [...INITIAL_PROKER];
+    }
+    return localProkerStore;
+  },
+
+  async addProker(item: ProkerItem): Promise<ProkerItem[]> {
+    let currentStore = await this.fetchProker();
+    currentStore.push(item);
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_proker_cache', JSON.stringify(currentStore));
+    } catch (e) {}
+
+    try {
+      await supabase.from('proker').insert([item]);
+    } catch (e) {
+      console.warn('Proker insert error:', e);
+    }
+    return currentStore;
   },
 
   async updateProker(item: ProkerItem): Promise<ProkerItem[]> {
+    let currentStore = await this.fetchProker();
+    const idx = currentStore.findIndex((p) => p.id === item.id);
+    if (idx !== -1) {
+      currentStore[idx] = { ...item };
+    }
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_proker_cache', JSON.stringify(currentStore));
+    } catch (e) {}
+
     try {
       await supabase.from('proker').upsert([item]);
     } catch (e) {
       console.warn('Proker update error:', e);
     }
-    return this.fetchProker();
+    return currentStore;
   },
 
   async deleteProker(id: string): Promise<ProkerItem[]> {
+    let currentStore = await this.fetchProker();
+    currentStore = currentStore.filter((p) => p.id !== id);
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_proker_cache', JSON.stringify(currentStore));
+    } catch (e) {}
+
     try {
       await supabase.from('proker').delete().eq('id', id);
     } catch (e) {
       console.warn('Proker delete error:', e);
     }
-    return this.fetchProker();
+    return currentStore;
   },
 
-  // PRESENSI KKN CRUD
-  async fetchPresensi(): Promise<PresensiRecord[]> {
-    try {
-      const { data, error } = await supabase.from('presensi').select('*').order('created_at', { ascending: false });
-      if (data && data.length > 0 && !error) {
-        return data as PresensiRecord[];
-      }
-    } catch (e) {
-      console.warn('Presensi query error:', e);
-    }
-    return [];
-  },
 
-  async addPresensi(record: PresensiRecord): Promise<PresensiRecord[]> {
-    try {
-      await supabase.from('presensi').insert([record]);
-    } catch (e) {
-      console.warn('Presensi insert error:', e);
-    }
-    return this.fetchPresensi();
-  },
 
   // PORTAL SETTINGS CRUD
   async fetchSettings(): Promise<RTSettings> {
@@ -558,5 +702,58 @@ export const SupabaseService = {
     const { error } = await supabase.from('rt_facilities').delete().eq('id', id);
     if (error) throw error;
     return this.fetchFacilities();
+  },
+
+  // KARTU KELUARGA (FAMILY CARDS) CRUD
+  async fetchFamilyCards(): Promise<FamilyCard[]> {
+    try {
+      const { data, error } = await supabase
+        .from('family_cards')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (data && !error) return data as FamilyCard[];
+    } catch (e) {
+      console.error('Fetch family cards error:', e);
+    }
+    return [];
+  },
+
+  async addFamilyCard(card: FamilyCard): Promise<FamilyCard[]> {
+    const { error } = await supabase.from('family_cards').upsert([card]);
+    if (error) throw error;
+    return this.fetchFamilyCards();
+  },
+
+  async deleteFamilyCard(id: string): Promise<FamilyCard[]> {
+    const { error } = await supabase.from('family_cards').delete().eq('id', id);
+    if (error) throw error;
+    return this.fetchFamilyCards();
+  },
+
+  // ANGGOTA KELUARGA (FAMILY MEMBERS) CRUD
+  async fetchFamilyMembers(familyCardId: string): Promise<FamilyMember[]> {
+    try {
+      const { data, error } = await supabase
+        .from('family_members')
+        .select('*')
+        .eq('family_card_id', familyCardId)
+        .order('created_at', { ascending: true });
+      if (data && !error) return data as FamilyMember[];
+    } catch (e) {
+      console.error('Fetch family members error:', e);
+    }
+    return [];
+  },
+
+  async addFamilyMember(member: FamilyMember): Promise<FamilyMember[]> {
+    const { error } = await supabase.from('family_members').upsert([member]);
+    if (error) throw error;
+    return this.fetchFamilyMembers(member.family_card_id);
+  },
+
+  async deleteFamilyMember(id: string, familyCardId: string): Promise<FamilyMember[]> {
+    const { error } = await supabase.from('family_members').delete().eq('id', id);
+    if (error) throw error;
+    return this.fetchFamilyMembers(familyCardId);
   }
 };

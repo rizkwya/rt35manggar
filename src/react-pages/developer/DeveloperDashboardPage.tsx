@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserProfile, NewsPost, ProkerItem, PresensiRecord } from '../../types/database';
+import { UserProfile, NewsPost, ProkerItem } from '../../types/database';
 import { 
   Code2, 
   FileText, 
@@ -18,7 +18,6 @@ interface DeveloperDashboardPageProps {
   userProfile: UserProfile;
   newsList: NewsPost[];
   prokerList: ProkerItem[];
-  presensiList: PresensiRecord[];
   onAddNews: (news: NewsPost) => void;
   onDeleteNews: (id: string) => void;
   onUpdateProker: (proker: ProkerItem) => void;
@@ -30,14 +29,13 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
   userProfile,
   newsList,
   prokerList,
-  presensiList,
   onAddNews,
   onDeleteNews,
   onUpdateProker,
   onGoToLanding,
   onLogout,
 }) => {
-  const [activeTab, setActiveTab] = useState<'news' | 'proker' | 'presensi'>('news');
+  const [activeTab, setActiveTab] = useState<'news' | 'proker'>('news');
 
   // FORM NEWS STATE
   const [titleInput, setTitleInput] = useState('');
@@ -72,26 +70,6 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
     setContentInput('');
     setAlertSuccess(true);
     setTimeout(() => setAlertSuccess(false), 4000);
-  };
-
-  const exportPresensiToCSV = () => {
-    if (presensiList.length === 0) return;
-    const headers = 'ID,Nama Mahasiswa,NIM,Tanggal,Jam Masuk,Jam Pulang,Status,Logbook Kegiatan\n';
-    const rows = presensiList
-      .map(
-        (p) =>
-          `"${p.id}","${p.user_name}","${p.user_nim}","${p.date}","${p.check_in_time}","${p.check_out_time || '-'}","${p.status}","${p.logbook_text.replace(/"/g, '""')}"`
-      )
-      .join('\n');
-
-    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `rekap_presensi_kkn_rt35_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   return (
@@ -161,7 +139,6 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
             {[
               { id: 'news', label: 'CMS Berita Realtime', icon: FileText },
               { id: 'proker', label: 'Kelola Proker', icon: Sparkles },
-              { id: 'presensi', label: 'Rekap Presensi & CSV', icon: Download },
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -180,14 +157,6 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
               );
             })}
           </div>
-
-          <button
-            onClick={exportPresensiToCSV}
-            className="hidden sm:flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition-all"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export CSV Presensi</span>
-          </button>
         </div>
 
         {/* TAB 1: CMS BERITA */}
@@ -333,58 +302,6 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: REKAP PRESENSI & CSV */}
-        {activeTab === 'presensi' && (
-          <div className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-black text-slate-900">Rekapitulasi Presensi Seluruh Anggota</h3>
-                <p className="text-xs text-slate-605 font-semibold">Total {presensiList.length} rekaman presensi masukan dari anggota.</p>
-              </div>
-              <button
-                onClick={exportPresensiToCSV}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md flex items-center space-x-1.5"
-              >
-                <Download className="w-4 h-4" />
-                <span>Unduh File CSV</span>
-              </button>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-800">
-                <thead className="bg-slate-100 text-slate-900 font-black border-b border-slate-200">
-                  <tr>
-                    <th className="p-3">Nama Mahasiswa</th>
-                    <th className="p-3">NIM</th>
-                    <th className="p-3">Tanggal</th>
-                    <th className="p-3">Masuk</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3">Logbook Kegiatan</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {presensiList.map((rec) => (
-                    <tr key={rec.id} className="hover:bg-slate-50">
-                      <td className="p-3 font-extrabold text-slate-900">{rec.user_name}</td>
-                      <td className="p-3 font-mono font-bold">{rec.user_nim}</td>
-                      <td className="p-3 font-bold">{rec.date}</td>
-                      <td className="p-3 font-bold">{rec.check_in_time}</td>
-                      <td className="p-3">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                          rec.status === 'Hadir' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {rec.status}
-                        </span>
-                      </td>
-                      <td className="p-3 font-medium max-w-xs truncate">{rec.logbook_text}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
         )}

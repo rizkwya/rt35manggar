@@ -1,0 +1,569 @@
+import React from 'react';
+import { CheckCircle2, GraduationCap, Clock, Award, ArrowLeft, Anchor, Compass, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ProkerItem, TeamMember, RTSettings } from '../../types/database';
+
+interface KKNPortalPageProps {
+  prokerList: ProkerItem[];
+  kknTeam: TeamMember[];
+  settings?: RTSettings;
+  onBackToHome: () => void;
+}
+
+export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTeam, settings, onBackToHome }) => {
+  const [selectedProker, setSelectedProker] = React.useState<ProkerItem | null>(null);
+  const [activeIdx, setActiveIdx] = React.useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = React.useState(true);
+
+  // Swipe gesture touch state hooks
+  const [touchStart, setTouchStart] = React.useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = React.useState<number | null>(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe) {
+      handleNextMember();
+    }
+    if (isRightSwipe) {
+      handlePrevMember();
+    }
+  };
+
+  // Auto-slide effect for KKN Team (every 4 seconds)
+  React.useEffect(() => {
+    if (kknTeam.length === 0 || !isAutoPlaying) return;
+    const interval = setInterval(() => {
+      setActiveIdx((prev) => (prev + 1) % kknTeam.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [kknTeam, isAutoPlaying]);
+
+  const handleNextMember = () => {
+    if (kknTeam.length === 0) return;
+    setActiveIdx((prev) => (prev + 1) % kknTeam.length);
+    setIsAutoPlaying(false); // Pause autoplay on manual interaction
+  };
+
+  const handlePrevMember = () => {
+    if (kknTeam.length === 0) return;
+    setActiveIdx((prev) => (prev - 1 + kknTeam.length) % kknTeam.length);
+    setIsAutoPlaying(false); // Pause autoplay on manual interaction
+  };
+
+  // Sync proker from query param slug
+  React.useEffect(() => {
+    const checkProkerParam = () => {
+      const params = new URLSearchParams(window.location.search);
+      const prokerSlug = params.get('proker');
+      if (prokerSlug && prokerList.length > 0) {
+        const generateSlug = (text: string) => {
+          return text
+            .toLowerCase()
+            .replace(/[^\w ]+/g, '')
+            .replace(/ +/g, '-');
+        };
+        const found = prokerList.find(p => generateSlug(p.title) === prokerSlug);
+        if (found) {
+          setSelectedProker(found);
+          window.scrollTo({ top: 0, behavior: 'instant' });
+          return;
+        }
+      }
+      setSelectedProker(null);
+    };
+
+    checkProkerParam();
+    window.addEventListener('popstate', checkProkerParam);
+    return () => window.removeEventListener('popstate', checkProkerParam);
+  }, [prokerList]);
+
+  const handleSelectProker = (proker: ProkerItem | null) => {
+    const generateSlug = (text: string) => {
+      return text
+        .toLowerCase()
+        .replace(/[^\w ]+/g, '')
+        .replace(/ +/g, '-');
+    };
+
+    if (proker) {
+      window.history.pushState(null, '', `/kkn?proker=${generateSlug(proker.title)}`);
+    } else {
+      window.history.pushState(null, '', '/kkn');
+    }
+    window.dispatchEvent(new Event('popstate'));
+    setSelectedProker(proker);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  if (selectedProker) {
+    // FULL DETAIL PAGE VIEW (Clean & modern, matching the reference images)
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-800 pt-20 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-fade-in">
+          
+          {/* Back Button */}
+          <div>
+            <button 
+              onClick={() => handleSelectProker(null)}
+              className="inline-flex items-center space-x-2 text-xs font-bold text-[#0b5665] hover:text-[#08424e] transition-colors group bg-white border border-slate-200 px-5 py-3 rounded-full shadow-sm hover:scale-[1.02] active:scale-98"
+            >
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              <span>Kembali ke Portal KKN</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* LEFT: MAIN ARTICLE DETAIL (8 Columns) */}
+            <div className="lg:col-span-8 bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm space-y-6">
+              
+              {/* Category & Date */}
+              <div className="space-y-3 pb-4 border-b border-slate-100">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] uppercase font-black px-3 py-1 rounded-full bg-[#0b5665]/10 text-[#0b5665] border border-[#0b5665]/20">
+                    {selectedProker.category}
+                  </span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 leading-tight">
+                  {selectedProker.title}
+                </h1>
+                <div className="text-xs text-slate-400 font-bold flex items-center space-x-1 pt-1">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Target Selesai: {selectedProker.target_date}</span>
+                </div>
+              </div>
+
+              {/* Cover Image */}
+              {selectedProker.image_url ? (
+                <div className="w-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative bg-slate-50 flex justify-center max-h-[500px]">
+                  <img 
+                    src={selectedProker.image_url} 
+                    alt={selectedProker.title} 
+                    className="w-full object-cover rounded-2xl max-h-[500px]"
+                  />
+                </div>
+              ) : (
+                <div className="w-full h-56 sm:h-72 rounded-2xl overflow-hidden shadow-sm border border-slate-200 bg-slate-50 flex items-center justify-center">
+                  <Compass className="w-12 h-12 text-[#0b5665] opacity-25" />
+                </div>
+              )}
+
+              {/* Long Description Body */}
+              <div className="text-slate-700 text-sm sm:text-base leading-relaxed space-y-4 whitespace-pre-wrap font-medium">
+                {selectedProker.description || (
+                  <p className="italic text-slate-400">Belum ada rincian deskripsi program kerja yang ditulis.</p>
+                )}
+              </div>
+            </div>
+
+            {/* RIGHT: COMPANION SIDEBAR (4 Columns) */}
+            <div className="lg:col-span-4 space-y-6">
+              
+              {/* Capaian Progress Card */}
+              <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm space-y-4">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center space-x-1.5 border-b border-slate-100 pb-3">
+                  <CheckCircle2 className="w-4 h-4 text-[#0b5665]" />
+                  <span>Progress Capaian Kerja</span>
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-black">
+                    <span className="text-slate-500">Capaian Proker:</span>
+                    <span className="text-[#0b5665]">{selectedProker.progress_percent}%</span>
+                  </div>
+                  <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200">
+                    <div
+                      className="h-full rounded-full bg-[#0b5665] transition-all duration-500"
+                      style={{ width: `${selectedProker.progress_percent}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-2 text-xs font-bold text-slate-500 border-t border-slate-100">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] text-slate-400 font-extrabold uppercase">PJ Kegiatan</span>
+                    <p className="text-slate-800 truncate">{selectedProker.pic_name}</p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] text-slate-400 font-extrabold uppercase">Status</span>
+                    <p className={`font-black uppercase text-[10px] ${
+                      selectedProker.status === 'Completed' ? 'text-emerald-600' : 'text-amber-600'
+                    }`}>{selectedProker.status}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Other Prokers Quick Nav */}
+              <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm space-y-4">
+                <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-l-2 border-[#0b5665] pl-3">
+                  Program KKN Lainnya
+                </h3>
+                <ul className="space-y-3 text-xs font-semibold">
+                  {prokerList
+                    .filter(p => p.id !== selectedProker.id)
+                    .slice(0, 4)
+                    .map((proker) => (
+                      <li key={proker.id} className="border-b border-slate-100 pb-2.5 last:border-b-0 last:pb-0">
+                        <button 
+                          onClick={() => handleSelectProker(proker)} 
+                          className="text-left text-slate-600 hover:text-[#0b5665] transition-colors font-bold block"
+                        >
+                          <span className="text-[9px] uppercase tracking-wider block text-slate-400 mb-0.5">{proker.category}</span>
+                          <span className="line-clamp-2 leading-snug">{proker.title}</span>
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-[#0b5665] selection:text-white">
+      
+      {/* 1. HERO BANNER - CLEAN FULL GROUP PHOTO ONLY (NO CUTOUT OVERLAYS) */}
+      <section className="relative min-h-[640px] lg:min-h-[760px] flex flex-col justify-center items-center py-24 sm:py-32 overflow-hidden text-white bg-slate-50">
+        
+        {/* Absolute Background Photo - Offset by wave height at the bottom to prevent cropping */}
+        <div 
+          className="absolute inset-0 bottom-[30px] sm:bottom-[45px] z-10"
+          style={{
+            backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.42) 0%, rgba(6, 48, 57, 0.65) 100%), url("/hero_sawah.jpg")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 82%',
+            backgroundAttachment: 'scroll'
+          }}
+        />
+
+        {/* Glowing auras */}
+        <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none z-10" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none z-10" />
+
+        {/* Outer container of the banner */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full flex flex-col justify-center items-center text-center">
+          
+          {/* CENTERED TEXT & ACTION CONTROLS */}
+          <div className="max-w-3xl mx-auto text-center space-y-8">
+            
+            {/* HERO TITLE */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1] drop-shadow-sm">
+              KKN Kelompok 7 <br />
+              <span className="text-amber-400">Universitas Mulia</span>
+            </h1>
+
+            {/* SUBTITLE */}
+            <p className="text-white/85 max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed font-bold drop-shadow-sm">
+              Sistem Informasi Portal RT 35 Manggar ini dirancang, dibangun, dan dihibahkan oleh mahasiswa Kuliah Kerja Nyata (KKN) Kelompok 7 Universitas Mulia Balikpapan sebagai program kerja utama digitalisasi pelayanan administrasi kependudukan.
+            </p>
+
+            {/* BUTTONS */}
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+              <button
+                onClick={onBackToHome}
+                className="py-3 px-6 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-black transition-all border border-white/20 flex items-center space-x-2 active:scale-98"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Kembali ke Beranda</span>
+              </button>
+              <button
+                onClick={() => scrollToSection('tim-mahasiswa')}
+                className="py-3 px-6 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition-all flex items-center space-x-2 active:scale-98 shadow-md shadow-amber-500/10"
+              >
+                <span>Lihat Profil Mahasiswa</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic wave SVG transition - Placed in the offset area below the photo */}
+        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none z-20">
+          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[30px] sm:h-[45px]">
+            <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" className="fill-slate-50"></path>
+          </svg>
+        </div>
+      </section>
+
+      {/* DETAILED INFO SECTION */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
+        
+        {/* STATS HIGHLIGHT */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4">
+            <div className="p-3.5 rounded-2xl bg-[#0b5665]/10 text-[#0b5665] border border-[#0b5665]/20">
+              <Anchor className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Lokasi Posko</p>
+              <h4 className="text-sm sm:text-base font-black text-slate-800">RT 35 Kel. Manggar</h4>
+            </div>
+          </div>
+
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4">
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 text-amber-600 border border-amber-500/20">
+              <Compass className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Jumlah Proker</p>
+              <h4 className="text-sm sm:text-base font-black text-slate-800">{prokerList.length} Program Utama</h4>
+            </div>
+          </div>
+
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4">
+            <div className="p-3.5 rounded-2xl bg-[#0b5665]/10 text-[#0b5665] border border-[#0b5665]/20">
+              <GraduationCap className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Tim Pengabdi</p>
+              <h4 className="text-sm sm:text-base font-black text-slate-800">{kknTeam.length} Mahasiswa S1</h4>
+            </div>
+          </div>
+        </div>
+
+        {/* PROGRAM KERJA (PROKER) SECTION */}
+        <div id="proker-kkn" className="p-6 sm:p-8 bg-slate-100/60 border border-slate-200/80 rounded-3xl space-y-8 scroll-mt-20">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="inline-block text-[10px] font-black uppercase tracking-wider text-[#0b5665] bg-[#0b5665]/10 px-3.5 py-1.5 rounded-full border border-[#0b5665]/20">
+              Program Kerja & Progress Pengabdian
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none uppercase">
+              Program Kerja KKN Kelompok 7
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 font-bold leading-relaxed">
+              Dokumentasi kegiatan, rencana aksi digitalisasi, pendataan warga, serta edukasi masyarakat oleh mahasiswa KKN Kelompok 7.
+            </p>
+            
+            {/* Center Action Button like Image 2 */}
+            <div className="pt-2">
+              <button 
+                onClick={() => {
+                  const el = document.getElementById('proker-scroller');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="px-8 py-2.5 rounded-full bg-[#0b5665] hover:bg-[#08424e] text-white text-xs font-black tracking-wide shadow transition-all active:scale-98"
+              >
+                Lihat Selengkapnya
+              </button>
+            </div>
+          </div>
+
+          {/* Horizontally scrollable flex row (matching image 2) */}
+          <div 
+            id="proker-scroller"
+            className="flex overflow-x-auto gap-6 pb-6 pt-2 scrollbar-thin snap-x snap-mandatory scroll-smooth"
+          >
+            {prokerList.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => handleSelectProker(item)}
+                className="min-w-[280px] sm:min-w-[340px] max-w-[340px] flex-shrink-0 snap-start bg-white rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer border border-slate-200"
+              >
+                <div>
+                  {/* Photo Header (Simkopdes style height) */}
+                  {item.image_url ? (
+                    <div className="h-48 w-full overflow-hidden relative border-b border-slate-100 bg-slate-50">
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-48 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
+                      <Compass className="w-10 h-10 text-slate-400 opacity-40 group-hover:scale-110 transition-transform duration-500" />
+                    </div>
+                  )}
+
+                  {/* Card Body */}
+                  <div className="p-5 space-y-2">
+                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-[#0b5665]">
+                      <span>{item.category}</span>
+                    </div>
+                    <h3 className="text-sm sm:text-base font-black text-slate-900 leading-snug group-hover:text-[#0b5665] transition-colors line-clamp-2">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 font-bold leading-relaxed line-clamp-2">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Footer Target Date */}
+                <div className="px-5 pb-5 pt-0">
+                  <div className="text-[10px] text-amber-500 font-extrabold uppercase tracking-wider">
+                    Target: {item.target_date}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+          {/* 3D INTERACTIVE TEAM SHOWCASE SECTION */}
+          <div id="tim-mahasiswa" className="space-y-12 scroll-mt-20">
+            <div className="border-b border-slate-200 pb-4 space-y-2">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-950 flex items-center gap-2">
+                <Award className="w-6 h-6 text-amber-500" />
+                <span>Tim Mahasiswa KKN Kelompok Manggar 2 Universitas Mulia</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-bold">
+                Kolaborasi mahasiswa lintas program studi Universitas Mulia dalam program pengabdian masyarakat. Klik salah satu anggota untuk menyorot profil 3D mereka!
+              </p>
+            </div>
+
+            {/* Interactive Spotlight Layout */}
+            {kknTeam.length > 0 && (() => {
+              const activeMember = kknTeam[activeIdx] || kknTeam[0];
+              const len = kknTeam.length;
+              
+              // Calculate indices for 3-member coverflow layout
+              const leftIdx = (activeIdx - 1 + len) % len;
+              const rightIdx = (activeIdx + 1) % len;
+
+              const leftMember = kknTeam[leftIdx];
+              const rightMember = kknTeam[rightIdx];
+
+              const leftCutout = `/kkn_member_${(leftIdx % 8) + 1}.png`;
+              const activeCutout = `/kkn_member_${(activeIdx % 8) + 1}.png`;
+              const rightCutout = `/kkn_member_${(rightIdx % 8) + 1}.png`;
+
+              return (
+                <div className="w-full flex flex-col items-center py-6 space-y-8 animate-fade-in relative z-10">
+                  
+                  {/* The Coverflow Slider Track */}
+                  <div 
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                    className="relative flex items-center justify-center w-full max-w-4xl overflow-hidden py-4 px-2 cursor-grab active:cursor-grabbing"
+                  >
+                    
+                    {/* Navigation Buttons (hidden on mobile, visible from md screens) */}
+                    <button
+                      onClick={handlePrevMember}
+                      className="hidden md:flex absolute left-2 sm:left-6 z-30 p-3 rounded-full bg-white hover:bg-slate-50 border border-slate-200 shadow-md text-slate-600 hover:text-slate-900 transition-all active:scale-95 items-center justify-center"
+                      aria-label="Previous member"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={handleNextMember}
+                      className="hidden md:flex absolute right-2 sm:right-6 z-30 p-3 rounded-full bg-white hover:bg-slate-50 border border-slate-200 shadow-md text-slate-600 hover:text-slate-900 transition-all active:scale-95 items-center justify-center"
+                      aria-label="Next member"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+
+                    <div className="flex items-center justify-center gap-4 sm:gap-8 md:gap-12 w-full select-none">
+                      
+                      {/* LEFT MEMBER (Faded, Blurred, Clickable to slide left) */}
+                      {len > 1 && (
+                        <div 
+                          onClick={handlePrevMember}
+                          className="w-28 h-40 sm:w-36 sm:h-52 md:w-48 md:h-68 lg:w-56 lg:h-80 shrink-0 bg-transparent flex items-center justify-center cursor-pointer opacity-30 blur-[2px] scale-90 hover:scale-95 hover:opacity-50 transition-all duration-500 overflow-visible"
+                        >
+                          <img
+                            src={leftCutout}
+                            alt={leftMember.name}
+                            className="w-full h-full object-contain pointer-events-none"
+                          />
+                        </div>
+                      )}
+
+                      {/* ACTIVE CENTER MEMBER (Highlighted, Opaque, Sharp) */}
+                      <div 
+                        className="w-60 h-80 sm:w-64 sm:h-84 md:w-72 md:h-[400px] lg:w-84 lg:h-[450px] shrink-0 bg-transparent flex items-center justify-center scale-110 md:scale-115 transition-all duration-500 relative z-10 overflow-visible"
+                      >
+                        <img
+                          src={activeCutout}
+                          alt={activeMember.name}
+                          className="w-full h-full object-contain pointer-events-none filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.15)]"
+                        />
+                      </div>
+
+                      {/* RIGHT MEMBER (Faded, Blurred, Clickable to slide right) */}
+                      {len > 2 && (
+                        <div 
+                          onClick={handleNextMember}
+                          className="w-28 h-40 sm:w-36 sm:h-52 md:w-48 md:h-68 lg:w-56 lg:h-80 shrink-0 bg-transparent flex items-center justify-center cursor-pointer opacity-30 blur-[2px] scale-90 hover:scale-95 hover:opacity-50 transition-all duration-500 overflow-visible"
+                        >
+                          <img
+                            src={rightCutout}
+                            alt={rightMember.name}
+                            className="w-full h-full object-contain pointer-events-none"
+                          />
+                        </div>
+                      )}
+                      
+                    </div>
+                  </div>
+
+                  {/* Active Member Details Centered Below */}
+                  <div key={activeIdx} className="text-center max-w-2xl mx-auto space-y-4 px-4 pt-2 animate-fade-in">
+                    <div className="space-y-1">
+                      <span className="inline-flex px-3 py-1 rounded-full bg-[#0b5665]/10 border border-[#0b5665]/20 text-[#0b5665] text-[10px] font-black uppercase tracking-wider">
+                        {activeMember.role_kkn}
+                      </span>
+                      <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                        {activeMember.name}
+                      </h3>
+                      <p className="text-xs text-slate-500 font-bold tracking-wide uppercase">
+                        {activeMember.prodi}
+                      </p>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold max-w-lg mx-auto">
+                      {activeMember.description || 'Bertanggung jawab penuh atas kelancaran program kerja pengabdian masyarakat di RT 35 Manggar, berkolaborasi aktif dengan warga sekitar untuk menciptakan solusi berbasis digital dan pemberdayaan berkelanjutan.'}
+                    </p>
+                  </div>
+
+                  {/* Indicators (Dots) */}
+                  <div className="flex items-center justify-center space-x-2 pt-2">
+                    {kknTeam.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setActiveIdx(idx);
+                          setIsAutoPlaying(false);
+                        }}
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          idx === activeIdx ? 'bg-[#0b5665] w-5' : 'bg-slate-300 hover:bg-slate-400 w-2'
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+
+                </div>
+              );
+            })()}
+          </div>
+
+      </div>
+
+    </div>
+  );
+};
+export default KKNPortalPage;

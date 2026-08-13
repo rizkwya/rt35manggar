@@ -33,6 +33,7 @@ export const PortalSettingsTab: React.FC<PortalSettingsTabProps> = ({
   const [portalBoundarySouth, setPortalBoundarySouth] = useState('');
   const [portalBoundaryEast, setPortalBoundaryEast] = useState('');
   const [portalBoundaryWest, setPortalBoundaryWest] = useState('');
+  const [kknPoskoLocation, setKknPoskoLocation] = useState('');
 
   useEffect(() => {
     if (settings) {
@@ -47,6 +48,7 @@ export const PortalSettingsTab: React.FC<PortalSettingsTabProps> = ({
       setPortalMapsCoordinate(settings.maps_coordinate || '1°14\'11.4"S 116°56\'04.0"E');
       setPortalSyaratSurat(settings.syarat_surat || '');
       setPortalKontakDarurat(settings.kontak_darurat || '');
+      setKknPoskoLocation(settings.kkn_posko_location || 'RT 35 Kel. Manggar');
       
       // Load profile RT fields
       setPortalVision(settings.vision || '');
@@ -84,7 +86,8 @@ export const PortalSettingsTab: React.FC<PortalSettingsTabProps> = ({
         boundary_north: portalBoundaryNorth,
         boundary_south: portalBoundarySouth,
         boundary_east: portalBoundaryEast,
-        boundary_west: portalBoundaryWest
+        boundary_west: portalBoundaryWest,
+        kkn_posko_location: kknPoskoLocation
       };
       await SupabaseService.updateSettings(updated);
       onUpdateSettings(updated);
@@ -133,13 +136,25 @@ export const PortalSettingsTab: React.FC<PortalSettingsTabProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Alamat Singkat */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Nama Alamat (Singkat)</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Nama Alamat Balai RT (Singkat)</label>
             <input
               type="text"
               value={portalAddress}
               onChange={(e) => setPortalAddress(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
               required
+            />
+          </div>
+
+          {/* Lokasi Posko KKN */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#0b5665]">Lokasi Posko KKN Kelompok 7</label>
+            <input
+              type="text"
+              value={kknPoskoLocation}
+              onChange={(e) => setKknPoskoLocation(e.target.value)}
+              placeholder="Contoh: RT 35 Kel. Manggar"
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#0b5665] focus:bg-white"
             />
           </div>
 

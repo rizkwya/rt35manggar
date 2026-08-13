@@ -1,0 +1,50 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { KKNPortalPage } from '../react-pages/public/KKNPortalPage';
+import { Navbar } from '../components/Navbar';
+import { Footer } from '../components/Footer';
+import { SupabaseService } from '../lib/supabase';
+import { INITIAL_SETTINGS, INITIAL_NAV_ITEMS } from '../lib/initialData';
+
+let prokerList = [];
+let kknTeam = [];
+let settings = INITIAL_SETTINGS;
+let navItems = INITIAL_NAV_ITEMS;
+
+try {
+  const [pData, tData, sData, nvData] = await Promise.all([
+    SupabaseService.fetchProker(),
+    SupabaseService.fetchKKNTeam(),
+    SupabaseService.fetchSettings(),
+    SupabaseService.fetchNavItems()
+  ]);
+  if (pData) prokerList = pData;
+  if (tData) kknTeam = tData;
+  if (sData) settings = sData;
+  if (nvData) navItems = nvData;
+} catch (err) {
+  console.warn("KKN server fetch failed:", err);
+}
+---
+
+<Layout title="Portal KKN Kelompok Manggar 2 – Universitas Mulia">
+  <Navbar 
+    currentRole="public" 
+    userProfile={null} 
+    onOpenAuth={() => { window.location.href = '/login'; }}
+    onOpenDashboard={() => { window.location.href = '/admin/dashboard'; }}
+    onLogout={() => {}} 
+    activeSection="kkn" 
+    navItems={navItems}
+    client:load
+  />
+  <main class="flex-grow pt-[64px]">
+    <KKNPortalPage 
+      prokerList={prokerList} 
+      kknTeam={kknTeam} 
+      onBackToHome={() => { window.location.href = '/home'; }}
+      client:load
+    />
+  </main>
+  <Footer settings={settings} />
+</Layout>

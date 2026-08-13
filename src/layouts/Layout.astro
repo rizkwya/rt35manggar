@@ -1,0 +1,42 @@
+---
+import '../index.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { 
+  title = "RT 35 Manggar – Portal Resmi Warga & Informasi KKN Kelompok 7", 
+  description = "Portal resmi RT 35 Kelurahan Manggar, Balikpapan Timur. Dapatkan informasi kependudukan, pengumuman warga, kegiatan RT, rincian data demografis, serta program kerja KKN Mahasiswa Kelompok 7 secara real-time."
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="keywords" content="rt 35 manggar, rt35 manggar, rt 35 kelurahan manggar balikpapan, portal warga rt 35 manggar, kkn kelompok 7 manggar, kkn rt 35 manggar balikpapan, data warga rt 35" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.rt35manggar.my.id/" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.rt35manggar.my.id/" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content="https://www.rt35manggar.my.id/logo.png" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-[#0b5665] selection:text-white min-h-screen">
+  <slot />
+</body>
+</html>

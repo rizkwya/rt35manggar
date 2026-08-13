@@ -52,7 +52,7 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
         </div>
 
         {/* CARDS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 overflow-x-auto md:overflow-x-visible gap-6 pb-6 md:pb-0 scrollbar-thin snap-x snap-mandatory w-full">
           {activities.map((item, idx) => {
             const generateSlug = (text: string) => {
               return text
@@ -64,7 +64,7 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
               <div
                 key={idx}
                 onClick={() => navigateTo(`/page/kegiatan-warga?slug=${generateSlug(item.title)}`)}
-                className="premium-card overflow-hidden cursor-pointer group hover:border-[#0b5665]/40"
+                className="premium-card overflow-hidden cursor-pointer group hover:border-[#0b5665]/45 min-w-[280px] sm:min-w-[320px] md:min-w-0 flex-shrink-0 snap-start"
               >
                 <div>
                   {/* Image */}

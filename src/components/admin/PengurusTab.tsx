@@ -35,6 +35,15 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
   const [editPPhone, setEditPPhone] = useState('');
   const [editPFoto, setEditPFoto] = useState('');
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+  const totalPages = Math.ceil(pengurusList.length / itemsPerPage);
+
+  // Reset to page 1 when list updates
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [pengurusList]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setTarget: (val: string) => void) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -211,127 +220,164 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
               Belum ada aparatur RT terdaftar. Masukkan data di sebelah kiri untuk menambahkan.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
-              {pengurusList.map((p) => {
-                const isEditing = editingPengurusId === p.id;
-                return (
-                  <div key={p.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-5 hover:border-[#85A389]/30 transition-all duration-200">
-                    {isEditing ? (
-                      <div className="space-y-4">
-                        <span className="text-[10px] font-black text-white px-3 py-1 rounded-full bg-slate-900 uppercase tracking-wider">
-                          {p.jabatan}
-                        </span>
-                        
-                        <div className="space-y-3.5 pt-2 text-xs font-bold text-slate-700">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Nama Pengurus</label>
-                            <input
-                              type="text"
-                              value={editPName}
-                              onChange={(e) => setEditPName(e.target.value)}
-                              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
-                              required
-                            />
-                          </div>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
+                {pengurusList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((p) => {
+                  const isEditing = editingPengurusId === p.id;
+                  return (
+                    <div key={p.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-5 hover:border-[#85A389]/30 transition-all duration-200">
+                      {isEditing ? (
+                        <div className="space-y-4">
+                          <span className="text-[10px] font-black text-white px-3 py-1 rounded-full bg-slate-900 uppercase tracking-wider">
+                            {p.jabatan}
+                          </span>
+                          
+                          <div className="space-y-3.5 pt-2 text-xs font-bold text-slate-700">
+                            <div>
+                              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Nama Pengurus</label>
+                              <input
+                                type="text"
+                                value={editPName}
+                                onChange={(e) => setEditPName(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
+                                required
+                              />
+                            </div>
 
-                          <div>
-                            <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Nomor WhatsApp</label>
-                            <input
-                              type="text"
-                              value={editPPhone}
-                              onChange={(e) => setEditPPhone(e.target.value)}
-                              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
-                              required
-                            />
-                          </div>
+                            <div>
+                              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Nomor WhatsApp</label>
+                              <input
+                                type="text"
+                                value={editPPhone}
+                                onChange={(e) => setEditPPhone(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
+                                required
+                              />
+                            </div>
 
-                          <div className="space-y-2">
-                            <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider">Unggah Foto (HP / Laptop)</label>
-                            <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200">
-                              {editPFoto && (
-                                <img src={editPFoto} alt="Preview" className="w-12 h-12 rounded-xl object-cover" />
-                              )}
-                              <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer shadow-sm">
-                                <Upload className="w-4 h-4 text-slate-500" />
-                                <span>Pilih File Gambar</span>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  className="hidden"
-                                  onChange={(e) => handleImageUpload(e, setEditPFoto)}
-                                />
-                              </label>
+                            <div className="space-y-2">
+                              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider">Unggah Foto (HP / Laptop)</label>
+                              <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200">
+                                {editPFoto && (
+                                  <img src={editPFoto} alt="Preview" className="w-12 h-12 rounded-xl object-cover" />
+                                )}
+                                <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer shadow-sm">
+                                  <Upload className="w-4 h-4 text-slate-500" />
+                                  <span>Pilih File Gambar</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handleImageUpload(e, setEditPFoto)}
+                                  />
+                                </label>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center space-x-5">
-                        <img
-                          src={p.foto_url || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23CBD5E1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'}
-                          alt={p.nama}
-                          className="w-16 h-16 rounded-2xl object-cover border-2 border-[#85A389]/20 shadow shrink-0 bg-slate-100"
-                        />
-                        <div className="space-y-1.5 min-w-0">
-                          <span className="text-[9px] font-black text-[#5F8D4E] px-2.5 py-0.5 rounded-full bg-[#85A389]/10 border border-[#85A389]/25 uppercase tracking-wider">
-                            {p.jabatan}
-                          </span>
-                          <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight pt-1 truncate">{p.nama}</h4>
-                          <p className="text-xs text-slate-500 font-bold flex items-center space-x-1.5">
-                            <Smartphone className="w-4 h-4 text-[#85A389]" />
-                            <span>{p.phone}</span>
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex space-x-2 pt-4 border-t border-slate-100">
-                      {isEditing ? (
-                        <>
-                          <button
-                            type="button"
-                            disabled={loading}
-                            onClick={() => handleSavePengurus(p.id)}
-                            className="flex-grow py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-sm"
-                          >
-                            <Save className="w-4 h-4" />
-                            <span>Simpan</span>
-                          </button>
-                          <button
-                            type="button"
-                            disabled={loading}
-                            onClick={() => setEditingPengurusId(null)}
-                            className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold"
-                          >
-                            Batal
-                          </button>
-                        </>
                       ) : (
-                        <div className="flex w-full space-x-2">
-                          <button
-                            type="button"
-                            disabled={loading}
-                            onClick={() => startEditPengurus(p)}
-                            className="flex-grow py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-855 text-xs font-bold border-2 border-slate-200 flex items-center justify-center space-x-2 shadow-sm"
-                          >
-                            <Edit className="w-4 h-4 text-[#85A389]" />
-                            <span>Edit Biodata</span>
-                          </button>
-                          <button
-                            type="button"
-                            disabled={loading}
-                            onClick={() => handleDeletePengurus(p.id)}
-                            className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border-2 border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
-                            title="Hapus Pengurus"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                        <div className="flex items-center space-x-5">
+                          <img
+                            src={p.foto_url || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23CBD5E1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'}
+                            alt={p.nama}
+                            className="w-16 h-16 rounded-2xl object-cover border-2 border-[#85A389]/20 shadow shrink-0 bg-slate-100"
+                          />
+                          <div className="space-y-1.5 min-w-0">
+                            <span className="text-[9px] font-black text-[#5F8D4E] px-2.5 py-0.5 rounded-full bg-[#85A389]/10 border border-[#85A389]/25 uppercase tracking-wider">
+                              {p.jabatan}
+                            </span>
+                            <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight pt-1 truncate">{p.nama}</h4>
+                            <p className="text-xs text-slate-500 font-bold flex items-center space-x-1.5">
+                              <Smartphone className="w-4 h-4 text-[#85A389]" />
+                              <span>{p.phone}</span>
+                            </p>
+                          </div>
                         </div>
                       )}
+
+                      <div className="flex space-x-2 pt-4 border-t border-slate-100">
+                        {isEditing ? (
+                          <>
+                            <button
+                              type="button"
+                              disabled={loading}
+                              onClick={() => handleSavePengurus(p.id)}
+                              className="flex-grow py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-sm"
+                            >
+                              <Save className="w-4 h-4" />
+                              <span>Simpan</span>
+                            </button>
+                            <button
+                              type="button"
+                              disabled={loading}
+                              onClick={() => setEditingPengurusId(null)}
+                              className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold"
+                            >
+                              Batal
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex w-full space-x-2">
+                            <button
+                              type="button"
+                              disabled={loading}
+                              onClick={() => startEditPengurus(p)}
+                              className="flex-grow py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-855 text-xs font-bold border-2 border-slate-200 flex items-center justify-center space-x-2 shadow-sm"
+                            >
+                              <Edit className="w-4 h-4 text-[#85A389]" />
+                              <span>Edit Biodata</span>
+                            </button>
+                            <button
+                              type="button"
+                              disabled={loading}
+                              onClick={() => handleDeletePengurus(p.id)}
+                              className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border-2 border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
+                              title="Hapus Pengurus"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center space-x-1.5 pt-4">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                    aria-label="Previous page"
+                  >
+                    &larr;
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
+                        currentPage === p
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                    aria-label="Next page"
+                  >
+                    &rarr;
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1,0 +1,27 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { App } from '../../App';
+
+export function getStaticPaths() {
+  return [
+    { params: { slug: undefined } },
+    { params: { slug: 'dashboard' } },
+    { params: { slug: 'developer' } },
+    { params: { slug: 'demografis' } },
+    { params: { slug: 'pengumuman' } },
+    { params: { slug: 'pengurus' } },
+    { params: { slug: 'kegiatan-warga' } },
+    { params: { slug: 'kkn-team' } },
+    { params: { slug: 'kkn-proker' } },
+    { params: { slug: 'settings' } },
+    { params: { slug: 'menu-halaman' } },
+    { params: { slug: 'fasilitas' } },
+    { params: { slug: 'berita' } },
+    { params: { slug: 'aspirasi' } }
+  ];
+}
+---
+
+<Layout title="Dashboard Pelayanan Digital RT 35 Manggar">
+  <App client:only="react" />
+</Layout>

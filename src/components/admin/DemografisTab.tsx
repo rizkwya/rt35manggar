@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, AreaChart, Area, CartesianGrid, Legend } from 'recharts';
 import { RTDemographics, RTSettings, KKRecord, KKMember } from '../../types/database';
-import { SupabaseService } from '../../lib/supabase';
+import { SupabaseService, supabase } from '../../lib/supabase';
+import { INITIAL_DEMOGRAPHICS } from '../../lib/initialData';
 
 interface DemografisTabProps {
   initialDemographics: RTDemographics | null;
@@ -39,7 +40,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   onSettingsUpdate
 }) => {
   const [loading, setLoading] = useState(false);
-  const [demographics, setDemographics] = useState<RTDemographics | null>(null);
+  const [demographics, setDemographics] = useState<RTDemographics | null>(initialDemographics || INITIAL_DEMOGRAPHICS);
   
   // KK list state loaded from settings
   const [kkList, setKkList] = useState<KKRecord[]>([]);
@@ -73,6 +74,155 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [memberExitDate, setMemberExitDate] = useState('');
   const [memberExitReason, setMemberExitReason] = useState<'Pindah' | 'Meninggal' | 'Lainnya'>('Pindah');
   const [selectedTrendYear, setSelectedTrendYear] = useState<number>(new Date().getFullYear());
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const [searchKk, setSearchKk] = useState('');
+
+  // Load KK and members directly from Supabase tables
+  const loadKkData = async () => {
+    setLoading(true);
+    try {
+      const { data: cardsData, error: cardsErr } = await supabase
+        .from('family_cards')
+        .select('*');
+
+      if (cardsData && !cardsErr) {
+        // If SQL tables are empty but legacy JSON settings contain KK data, perform auto-migration
+        if (cardsData.length === 0 && settings?.kk_list && settings.kk_list.length > 0) {
+          console.log("Migrating legacy JSON KK records to Supabase SQL tables...");
+          for (const kk of settings.kk_list) {
+            const { data: savedCard, error: cardErr } = await supabase
+              .from('family_cards')
+              .insert([{
+                no_kk: kk.no_kk,
+                kepala_keluarga: kk.kepala_keluarga,
+                alamat: kk.alamat || 'RT 35 Manggar',
+                rt_rw: kk.rt_rw || '035/000',
+                income: kk.income
+              }])
+              .select()
+              .single();
+
+            if (!cardErr && savedCard) {
+              const cardId = savedCard.id;
+              if (kk.members && kk.members.length > 0) {
+                const membersPayload = kk.members.map((m) => ({
+                  family_card_id: cardId,
+                  nik: m.nik,
+                  nama: m.name,
+                  hubungan: m.relationship || 'Anak',
+                  jenis_kelamin: m.gender === 'Perempuan' ? 'Perempuan' : 'Laki-laki',
+                  tanggal_lahir: m.birthDate || null,
+                  pendidikan: m.education || 'Tidak Sekolah',
+                  pekerjaan: m.job || 'Lainnya',
+                  is_umkm: m.isUmkm || false,
+                  umkm_name: m.umkmName || '',
+                  status: m.status || 'Aktif',
+                  reg_date: m.registrationDate || '',
+                  exit_date: m.exitDate || '',
+                  exit_reason: m.exitReason || null
+                }));
+                await supabase.from('family_members').insert(membersPayload);
+              }
+            }
+          }
+          // Reload from database after migration
+          const { data: freshCards } = await supabase
+            .from('family_cards')
+            .select('*')
+            .order('created_at', { ascending: false });
+          
+          if (freshCards) {
+            const compiledList: KKRecord[] = await Promise.all(
+              freshCards.map(async (c: any) => {
+                const { data: membersData } = await supabase
+                  .from('family_members')
+                  .select('*')
+                  .eq('family_card_id', c.id)
+                  .order('created_at', { ascending: true });
+
+                const mappedMembers: KKMember[] = (membersData || []).map((m: any) => ({
+                  id: m.id,
+                  name: m.nama,
+                  nik: m.nik,
+                  gender: m.jenis_kelamin,
+                  birthDate: m.tanggal_lahir || '',
+                  education: m.pendidikan || 'Tidak Sekolah',
+                  job: m.pekerjaan || 'Lainnya',
+                  relationship: m.hubungan,
+                  isUmkm: m.is_umkm || false,
+                  umkmName: m.umkm_name || '',
+                  status: m.status || 'Aktif',
+                  registrationDate: m.reg_date || '',
+                  exitDate: m.exit_date || '',
+                  exitReason: m.exit_reason || undefined
+                }));
+
+                return {
+                  id: c.id,
+                  no_kk: c.no_kk,
+                  kepala_keluarga: c.kepala_keluarga,
+                  income: c.income || 'under_2m',
+                  rt_rw: c.rt_rw || '035/000',
+                  alamat: c.alamat || 'RT 35 Manggar',
+                  members: mappedMembers
+                };
+              })
+            );
+            setKkList(compiledList);
+          }
+          return;
+        }
+
+        const compiledList: KKRecord[] = await Promise.all(
+          cardsData.map(async (c: any) => {
+            const { data: membersData, error: membersErr } = await supabase
+              .from('family_members')
+              .select('*')
+              .eq('family_card_id', c.id)
+              .order('created_at', { ascending: true });
+
+            const mappedMembers: KKMember[] = (membersData || []).map((m: any) => ({
+              id: m.id,
+              name: m.nama,
+              nik: m.nik,
+              gender: m.jenis_kelamin,
+              birthDate: m.tanggal_lahir || '',
+              education: m.pendidikan || 'Tidak Sekolah',
+              job: m.pekerjaan || 'Lainnya',
+              relationship: m.hubungan,
+              isUmkm: m.is_umkm || false,
+              umkmName: m.umkm_name || '',
+              status: m.status || 'Aktif',
+              registrationDate: m.reg_date || '',
+              exitDate: m.exit_date || '',
+              exitReason: m.exit_reason || undefined
+            }));
+
+            return {
+              id: c.id,
+              no_kk: c.no_kk,
+              kepala_keluarga: c.kepala_keluarga,
+              income: c.income || 'under_2m',
+              rt_rw: c.rt_rw || '035/000',
+              alamat: c.alamat || 'RT 35 Manggar',
+              members: mappedMembers
+            };
+          })
+        );
+        setKkList(compiledList);
+      }
+    } catch (err) {
+      console.error('Failed loading family data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadKkData();
+  }, []);
 
   useEffect(() => {
     if (initialDemographics) {
@@ -81,15 +231,90 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   }, [initialDemographics]);
 
   useEffect(() => {
-    if (settings?.kk_list) {
-      setKkList(settings.kk_list);
-    }
-  }, [settings]);
+    setCurrentPage(1);
+  }, [searchKk, kkList]);
+
+  const filteredKkList = kkList.filter(kk => 
+    kk.no_kk.includes(searchKk) ||
+    kk.kepala_keluarga.toLowerCase().includes(searchKk.toLowerCase())
+  );
 
   // Recalculate demographic stats from the current KK list and save to Supabase
   const recalculateAndSave = async (updatedList: KKRecord[]) => {
     setLoading(true);
     try {
+      // 1. Sync local changes to Supabase tables (family_cards & family_members)
+      const currentCardIds = updatedList.map(kk => kk.id).filter(id => id.includes('-'));
+      const oldCardIds = kkList.map(kk => kk.id).filter(id => id.includes('-'));
+      const deletedCardIds = oldCardIds.filter(id => !currentCardIds.includes(id));
+
+      // Handle card deletions
+      for (const id of deletedCardIds) {
+        await supabase.from('family_cards').delete().eq('id', id);
+      }
+
+      // Upsert cards and members
+      for (const kk of updatedList) {
+        const isExistingCard = kk.id && kk.id.includes('-');
+        const cardPayload: any = {
+          no_kk: kk.no_kk,
+          kepala_keluarga: kk.kepala_keluarga,
+          alamat: kk.alamat || 'RT 35 Manggar',
+          rt_rw: kk.rt_rw || '035/000',
+          income: kk.income
+        };
+        if (isExistingCard) {
+          cardPayload.id = kk.id;
+        }
+
+        const { data: savedCard, error: cardErr } = await supabase
+          .from('family_cards')
+          .upsert([cardPayload])
+          .select()
+          .single();
+
+        if (cardErr) throw cardErr;
+        const cardId = savedCard.id;
+
+        // Sync members of this card
+        const dbMembersRes = await supabase.from('family_members').select('id').eq('family_card_id', cardId);
+        const oldMemberIds = (dbMembersRes.data || []).map(m => m.id);
+        const currentMemberIds = kk.members.map(m => m.id).filter(id => id.includes('-'));
+        const deletedMemberIds = oldMemberIds.filter(id => !currentMemberIds.includes(id));
+
+        // Handle member deletions
+        for (const id of deletedMemberIds) {
+          await supabase.from('family_members').delete().eq('id', id);
+        }
+
+        // Upsert active members
+        for (const m of kk.members) {
+          const isExistingMember = m.id && m.id.includes('-');
+          const memberPayload: any = {
+            family_card_id: cardId,
+            nik: m.nik,
+            nama: m.name,
+            hubungan: m.relationship,
+            jenis_kelamin: m.gender,
+            tanggal_lahir: m.birthDate || null,
+            pendidikan: m.education,
+            pekerjaan: m.job,
+            is_umkm: m.isUmkm || false,
+            umkm_name: m.umkmName || '',
+            status: m.status || 'Aktif',
+            reg_date: m.registrationDate || '',
+            exit_date: m.exitDate || '',
+            exit_reason: m.exitReason || null
+          };
+          if (isExistingMember) {
+            memberPayload.id = m.id;
+          }
+          const { error: memErr } = await supabase.from('family_members').upsert([memberPayload]);
+          if (memErr) throw memErr;
+        }
+      }
+
+      // 2. Perform demographic calculations
       let total_kk = updatedList.length;
       let total_pria = 0;
       let total_wanita = 0;
@@ -136,7 +361,6 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         else if (kk.income === 'above_10m') income_above_10m++;
 
         kk.members.forEach(m => {
-          // Monthly registration trends for new residents (warga baru - including moved out ones for historical correctness)
           if (m.registrationDate) {
             const regDate = new Date(m.registrationDate);
             if (!isNaN(regDate.getTime())) {
@@ -156,13 +380,10 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
             }
           }
 
-          // Active stats calculations (excludig moved out / deceased)
           if (!m.status || m.status === 'Aktif') {
-            // Gender
             if (m.gender === 'Laki-laki') total_pria++;
             else total_wanita++;
 
-            // Age calculation
             if (m.birthDate) {
               const birthYear = new Date(m.birthDate).getFullYear();
               const currentYear = new Date().getFullYear();
@@ -173,21 +394,18 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
               if (age >= 15 && age <= 60) total_usia_produktif++;
             }
 
-            // Education
             if (m.education === 'SD') edu_sd++;
             else if (m.education === 'SMP') edu_smp++;
             else if (m.education === 'SMA') edu_sma++;
             else if (m.education === 'Sarjana/Diploma') edu_pt++;
             else edu_tidak_sekolah++;
 
-            // Profession
             if (m.job === 'PNS') prof_pns++;
             else if (m.job === 'Swasta') prof_swasta++;
             else if (m.job === 'Wiraswasta') prof_wiraswasta++;
             else if (m.job === 'Nelayan') prof_nelayan++;
             else prof_lainnya++;
 
-            // UMKM check
             if (m.isUmkm) total_umkm++;
           }
         });
@@ -195,18 +413,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
 
       const total_warga = total_pria + total_wanita;
 
-      // 1. Save settings (contains the raw KK list)
-      if (settings && onSettingsUpdate) {
-        const updatedSettings = {
-          ...settings,
-          kk_list: updatedList
-        };
-        const savedSettings = await SupabaseService.updateSettings(updatedSettings);
-        onSettingsUpdate(savedSettings);
-        setKkList(updatedList);
-      }
-
-      // 2. Save demographics (calculated stats)
+      // 3. Save calculated demographics stats
       if (demographics) {
         const updatedDemo: RTDemographics = {
           ...demographics,
@@ -251,6 +458,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         onUpdateDemographics(savedDemo);
       }
       
+      // Refresh with generated UUIDs from Supabase
+      await loadKkData();
       showSuccess('Database KK & statistik otomatis berhasil disinkronisasi!');
     } catch (err: any) {
       console.error('Recalculation error:', err);
@@ -579,62 +788,110 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
           <div className="lg:col-span-8 space-y-6">
             {!selectedKkId ? (
               <div className="premium-card p-6 sm:p-8 space-y-6">
-                <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                {/* Header with Search */}
+                <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-base font-black text-slate-900">Daftar KK Terdaftar</h3>
                     <p className="text-xs text-slate-500 font-semibold mt-1">Pilih KK untuk melihat detail & menambah anggota keluarga.</p>
                   </div>
-                  <span className="text-xs font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
-                    {kkList.length} KK Terdaftar
-                  </span>
+                  
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="text"
+                      placeholder="Cari No. KK / Kepala..."
+                      value={searchKk}
+                      onChange={(e) => setSearchKk(e.target.value)}
+                      className="px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold focus:outline-none focus:border-slate-400"
+                    />
+                    <span className="text-xs font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-full shrink-0">
+                      {filteredKkList.length} KK
+                    </span>
+                  </div>
                 </div>
 
-                {kkList.length === 0 ? (
+                {filteredKkList.length === 0 ? (
                   <div className="text-center py-12 text-xs font-semibold text-slate-400">
-                    Belum ada Kartu Keluarga terdaftar. Silakan tambah data di panel kanan.
+                    Belum ada Kartu Keluarga terdaftar atau hasil pencarian kosong.
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-100">
-                    {kkList.map((kk) => {
-                      const activeWargaCount = kk.members.filter(m => !m.status || m.status === 'Aktif').length;
-                      return (
-                        <div 
-                          key={kk.id} 
-                          onClick={() => setSelectedKkId(kk.id)}
-                          className="py-4 flex items-center justify-between hover:bg-slate-50/50 px-4 rounded-xl transition-all cursor-pointer group"
+                  <div className="space-y-6">
+                    <div className="divide-y divide-slate-100">
+                      {filteredKkList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((kk) => {
+                        const activeWargaCount = kk.members.filter(m => !m.status || m.status === 'Aktif').length;
+                        return (
+                          <div 
+                            key={kk.id} 
+                            onClick={() => setSelectedKkId(kk.id)}
+                            className="py-4 flex items-center justify-between hover:bg-slate-50/50 px-4 rounded-xl transition-all cursor-pointer group"
+                          >
+                            <div className="flex items-center space-x-4">
+                              <div className="w-10 h-10 rounded-xl bg-[#1E4D6B]/5 flex items-center justify-center text-[#1E4D6B] group-hover:scale-105 transition-transform">
+                                <Users className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-black text-slate-900">KK: {kk.no_kk}</h4>
+                                <p className="text-xs text-slate-500 font-bold">Kepala: {kk.kepala_keluarga}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <span className="text-[10px] font-black text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/25 px-2.5 py-0.5 rounded-full" title="Anggota Keluarga Aktif">
+                                {activeWargaCount} Jiwa
+                              </span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleEditKkClick(kk); }}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteKk(kk.id); }}
+                                className="p-1.5 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-55 transition-colors"
+                                title="Hapus"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {Math.ceil(kkList.length / itemsPerPage) > 1 && (
+                      <div className="flex items-center justify-center space-x-1.5 pt-4">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
+                          disabled={currentPage === 1}
+                          className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                          aria-label="Previous page"
                         >
-                          <div className="flex items-center space-x-4">
-                            <div className="w-10 h-10 rounded-xl bg-[#1E4D6B]/5 flex items-center justify-center text-[#1E4D6B] group-hover:scale-105 transition-transform">
-                              <Users className="w-5 h-5" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-black text-slate-900">KK: {kk.no_kk}</h4>
-                              <p className="text-xs text-slate-500 font-bold">Kepala: {kk.kepala_keluarga}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <span className="text-[10px] font-black text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/25 px-2.5 py-0.5 rounded-full" title="Anggota Keluarga Aktif">
-                              {activeWargaCount} Jiwa
-                            </span>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleEditKkClick(kk); }}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-                              title="Edit"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleDeleteKk(kk.id); }}
-                              className="p-1.5 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-55 transition-colors"
-                              title="Hapus"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
-                          </div>
-                        </div>
-                      );
-                    })}
+                          &larr;
+                        </button>
+                        {Array.from({ length: Math.ceil(kkList.length / itemsPerPage) }, (_, i) => i + 1).map((p) => (
+                          <button
+                            key={p}
+                            onClick={(e) => { e.stopPropagation(); setCurrentPage(p); }}
+                            className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
+                              currentPage === p
+                                ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.min(prev + 1, Math.ceil(kkList.length / itemsPerPage))); }}
+                          disabled={currentPage === Math.ceil(kkList.length / itemsPerPage)}
+                          className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                          aria-label="Next page"
+                        >
+                          &rarr;
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

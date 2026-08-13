@@ -32,6 +32,13 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
   const [newContent, setNewContent] = useState('');
   const [newAuthor, setNewAuthor] = useState<string>(user.full_name || 'Sekretaris RT 35');
   const [isUrgent, setIsUrgent] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  // Reset to page 1 when announcements list changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [announcements]);
 
   const handleAddAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,6 +87,12 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
       setLoading(false);
     }
   };
+
+  const totalPages = Math.ceil(announcements.length / itemsPerPage);
+  const paginatedAnnouncements = announcements.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in">
@@ -169,68 +182,110 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
       </form>
 
       {/* List Column */}
-      <div className="lg:col-span-7 space-y-4">
+      <div className="lg:col-span-7 space-y-6">
         <div className="p-4.5 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center justify-between">
-          <span className="text-xs font-extrabold text-slate-800">Daftar Pengumuman Terbit</span>
-          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-100 font-black text-slate-650">
+          <div className="flex items-center space-x-2">
+            <Bell className="w-4 h-4 text-slate-550" />
+            <span className="text-sm font-black text-slate-800">Daftar Pengumuman Terbit</span>
+          </div>
+          <span className="text-xs px-3 py-1 rounded-full bg-slate-100 font-black text-slate-650">
             {announcements.length} Pengumuman
           </span>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {announcements.length === 0 ? (
             <div className="bg-white p-8 border border-slate-200 rounded-3xl text-center text-xs text-slate-400 font-bold">
               Belum ada pengumuman yang aktif.
             </div>
           ) : (
-            announcements.map((item) => (
-              <div
-                key={item.id}
-                className={`p-5 rounded-2xl border transition-all duration-200 bg-white border-slate-200 relative group flex justify-between items-start ${
-                  item.is_urgent ? 'ring-2 ring-rose-500/20 border-rose-200' : ''
-                }`}
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <span
-                      className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-md ${
-                        item.is_urgent
-                          ? 'bg-rose-100 text-rose-700'
-                          : 'bg-slate-100 text-slate-700'
+            <div className="space-y-4">
+              <div className="space-y-3">
+                {paginatedAnnouncements.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`p-5 rounded-2xl border transition-all duration-200 bg-white border-slate-200 relative group flex justify-between items-start ${
+                      item.is_urgent ? 'ring-2 ring-rose-500/20 border-rose-200' : ''
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-md ${
+                            item.is_urgent
+                              ? 'bg-rose-100 text-rose-700'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {item.category}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-bold flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{item.date}</span>
+                        </span>
+                      </div>
+
+                      <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                        {item.title}
+                        {item.is_urgent && (
+                          <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse inline-block" />
+                        )}
+                      </h4>
+                      <p className="text-xs text-slate-500 leading-relaxed max-w-xl">{item.content}</p>
+                      
+                      <div className="text-[10px] text-slate-400 font-bold pt-1.5">
+                        Penerbit: <strong className="text-slate-600">{item.author}</strong>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAnnouncement(item.id)}
+                      disabled={loading}
+                      className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100/50 transition-colors"
+                      title="Hapus pengumuman"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center space-x-1.5 pt-4">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                    aria-label="Previous page"
+                  >
+                    &larr;
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
+                        currentPage === p
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                       }`}
                     >
-                      {item.category}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-bold flex items-center space-x-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{item.date}</span>
-                    </span>
-                  </div>
-
-                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
-                    {item.title}
-                    {item.is_urgent && (
-                      <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse inline-block" />
-                    )}
-                  </h4>
-                  <p className="text-xs text-slate-500 leading-relaxed max-w-xl">{item.content}</p>
-                  
-                  <div className="text-[10px] text-slate-400 font-bold pt-1.5">
-                    Penerbit: <strong className="text-slate-600">{item.author}</strong>
-                  </div>
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                    aria-label="Next page"
+                  >
+                    &rarr;
+                  </button>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleDeleteAnnouncement(item.id)}
-                  disabled={loading}
-                  className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100/50 transition-colors"
-                  title="Hapus pengumuman"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))
+              )}
+            </div>
           )}
         </div>
       </div>

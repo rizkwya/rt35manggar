@@ -20,6 +20,9 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
   const [latLong, setLatLong] = useState('');
   const [uploadingImg, setUploadingImg] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+
   useEffect(() => {
     const loadFacilities = async () => {
       setLoading(true);
@@ -34,6 +37,10 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
     };
     loadFacilities();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [facilities.length]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -118,6 +125,12 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
     }
   };
 
+  const totalPages = Math.ceil(facilities.length / itemsPerPage);
+  const paginatedFacilities = facilities.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in">
       
@@ -188,7 +201,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
             <label className="block text-xs font-black uppercase tracking-wider text-slate-500">Foto Fasilitas</label>
             
             {imageUrl ? (
-              <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-55 h-36 shadow-sm group">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 h-36 shadow-sm group">
                 <img src={imageUrl} alt="Preview Fasilitas" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <button
@@ -201,7 +214,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
                 </div>
               </div>
             ) : (
-              <div className="relative border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-slate-55 text-center hover:bg-slate-100/50 transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[100px]">
+              <div className="relative border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-slate-50 text-center hover:bg-slate-100/50 transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[100px]">
                 <input
                   type="file"
                   accept="image/*"
@@ -212,7 +225,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
                 {uploadingImg ? (
                   <div className="space-y-1.5">
                     <div className="w-4 h-4 border-2 border-[#85A389] border-t-transparent rounded-full animate-spin mx-auto" />
-                    <span className="text-[9px] text-slate-500 font-bold">Mengunggah foto...</span>
+                    <span className="text-[9px] text-slate-555 font-bold">Mengunggah foto...</span>
                   </div>
                 ) : (
                   <div className="space-y-0.5">
@@ -259,12 +272,15 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
       </form>
 
       {/* List Sarana Prasarana Aktif */}
-      <div className="lg:col-span-7 space-y-4">
-        <div className="p-4 rounded-2xl bg-[#85A389]/10 border border-[#85A389]/30">
-          <h4 className="text-xs font-black text-[#5F8D4E] uppercase tracking-wider">Fasilitas Terdaftar ({facilities.length})</h4>
-          <p className="text-[11px] text-slate-550 font-bold mt-1">
-            Berikut adalah daftar fasilitas umum yang ditayangkan di halaman depan portal publik RT 35 Anda.
-          </p>
+      <div className="lg:col-span-7 space-y-6">
+        <div className="p-4.5 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Landmark className="w-4 h-4 text-slate-550" />
+            <span className="text-sm font-black text-slate-800">Daftar Fasilitas Aktif</span>
+          </div>
+          <span className="text-xs px-3 py-1 rounded-full bg-slate-100 font-black text-slate-650">
+            {facilities.length} Fasilitas
+          </span>
         </div>
 
         {facilities.length === 0 ? (
@@ -273,53 +289,90 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
           </div>
         ) : (
           <div className="space-y-4">
-            {facilities.map((item) => (
-              <div 
-                key={item.id} 
-                className="p-5 rounded-3xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-all"
-              >
-                <div className="flex items-center space-x-4 min-w-0">
-                  {item.image_url ? (
-                    <img src={item.image_url} alt={item.name} className="w-16 h-16 rounded-2xl object-cover shrink-0 border border-slate-100 shadow-sm" />
-                  ) : (
-                    <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
-                      <Landmark className="w-6 h-6" />
-                    </div>
-                  )}
-                  <div className="min-w-0 space-y-1">
-                    <div className="flex items-center space-x-2 flex-wrap">
-                      <h4 className="text-sm font-black text-slate-800 truncate leading-snug">{item.name}</h4>
-                    </div>
-                    <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2">{item.description}</p>
-                    {item.location && (
-                      <p className="text-[10px] text-[#5F8D4E] font-bold flex items-center space-x-1">
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span>{item.location}</span>
-                      </p>
+            <div className="space-y-3">
+              {paginatedFacilities.map((item) => (
+                <div 
+                  key={item.id} 
+                  className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:border-[#85A389]/30 transition-all"
+                >
+                  <div className="flex items-center space-x-4 min-w-0">
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={item.name} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-100 shadow-sm" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
+                        <Landmark className="w-5 h-5" />
+                      </div>
                     )}
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center space-x-2 flex-wrap">
+                        <h4 className="text-sm font-black text-slate-800 truncate leading-snug">{item.name}</h4>
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2">{item.description}</p>
+                      {item.location && (
+                        <p className="text-[10px] text-[#5F8D4E] font-bold flex items-center space-x-1">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span>{item.location}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 w-full sm:w-auto shrink-0 justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => handleStartEdit(item)}
+                      className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-750 border border-slate-200 text-xs font-bold flex items-center justify-center shadow-sm"
+                      title="Ubah Fasilitas"
+                    >
+                      <Edit className="w-4 h-4 text-[#85A389]" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item.id)}
+                      className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
+                      title="Hapus Fasilitas"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
+              ))}
+            </div>
 
-                <div className="flex items-center space-x-2 w-full sm:w-auto shrink-0 justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center space-x-1.5 pt-4">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                  aria-label="Previous page"
+                >
+                  &larr;
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                   <button
-                    type="button"
-                    onClick={() => handleStartEdit(item)}
-                    className="px-3.5 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-750 border border-slate-200 text-xs font-bold flex items-center justify-center shadow-sm"
-                    title="Ubah Fasilitas"
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
+                      currentPage === p
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
                   >
-                    <Edit className="w-4 h-4 text-[#85A389]" />
+                    {p}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(item.id)}
-                    className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
-                    title="Hapus Fasilitas"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                ))}
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                  aria-label="Next page"
+                >
+                  &rarr;
+                </button>
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>

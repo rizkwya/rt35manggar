@@ -1,4 +1,4 @@
-export type UserRole = 'sekretaris_rt' | 'mahasiswa' | 'developer' | 'public';
+export type UserRole = 'sekretaris_rt' | 'developer' | 'public';
 
 export interface UserProfile {
   id: string;
@@ -91,19 +91,6 @@ export interface NewsPost {
   created_at: string;
 }
 
-export interface PresensiRecord {
-  id: string;
-  user_id: string;
-  user_name: string;
-  user_nim: string;
-  date: string;
-  check_in_time: string;
-  check_out_time?: string;
-  status: 'Hadir' | 'Izin' | 'Sakit';
-  logbook_text: string;
-  photo_url?: string;
-  created_at: string;
-}
 
 export interface ProkerItem {
   id: string;
@@ -114,6 +101,7 @@ export interface ProkerItem {
   progress_percent: number;
   status: 'Planned' | 'In Progress' | 'Completed';
   pic_name: string;
+  image_url?: string;
 }
 
 export interface TeamMember {
@@ -125,6 +113,7 @@ export interface TeamMember {
   avatar_url: string;
   is_developer?: boolean;
   email?: string;
+  description?: string;
 }
 
 export interface RTSettings {
@@ -149,6 +138,8 @@ export interface RTSettings {
   boundary_south?: string;
   boundary_east?: string;
   boundary_west?: string;
+
+  kkn_posko_location?: string;
 
   kk_list?: KKRecord[];
   messages_list?: RTMessage[];
@@ -188,6 +179,7 @@ export interface KKMember {
   status?: 'Aktif' | 'Keluar' | 'Meninggal';
   exitDate?: string;
   exitReason?: 'Pindah' | 'Meninggal' | 'Lainnya';
+  relationship?: string;
 }
 
 export interface KKRecord {
@@ -196,6 +188,8 @@ export interface KKRecord {
   kepala_keluarga: string;
   income: 'under_2m' | '2m_5m' | '5m_10m' | 'above_10m';
   members: KKMember[];
+  alamat?: string;
+  rt_rw?: string;
 }
 
 export interface RTFacility {
@@ -216,6 +210,30 @@ export interface NavigationItem {
   order_index: number;
   is_visible: boolean;
   custom_content?: string;
+}
+
+export interface FamilyCard {
+  id?: string;
+  no_kk: string;
+  kepala_keluarga: string;
+  alamat: string;
+  rt_rw: string;
+  created_at?: string;
+}
+
+export interface FamilyMember {
+  id?: string;
+  family_card_id: string;
+  nik: string;
+  nama: string;
+  hubungan: string;
+  jenis_kelamin: 'Laki-laki' | 'Perempuan';
+  tempat_lahir?: string;
+  tanggal_lahir?: string;
+  agama?: string;
+  pendidikan?: string;
+  pekerjaan?: string;
+  created_at?: string;
 }
 
 
