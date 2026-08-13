@@ -9,17 +9,8 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({ settings }) => {
   const handleNavClick = (id: string) => {
     const currentPath = window.location.pathname;
-    if (currentPath !== '/home' && currentPath !== '/') {
-      window.history.pushState(null, '', '/home');
-      window.dispatchEvent(new Event('popstate'));
-      setTimeout(() => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        } else {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      }, 100);
+    if (currentPath !== '/' && currentPath !== '/index.html' && currentPath !== '/home') {
+      window.location.href = '/#' + id;
     } else {
       const element = document.getElementById(id);
       if (element) {

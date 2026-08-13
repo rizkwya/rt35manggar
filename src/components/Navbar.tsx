@@ -139,11 +139,19 @@ export const Navbar: React.FC<NavbarProps> = ({
       const isOutsideHome = currentPathName !== '/' && currentPathName !== '/home' && currentPathName !== '/index.html';
       
       if (isOutsideHome) {
-        window.location.href = '/#' + item.target_id;
+        if (item.target_id === 'beranda') {
+          window.location.href = '/';
+        } else {
+          window.location.href = '/#' + item.target_id;
+        }
       } else {
-        const element = document.getElementById(item.target_id);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
+        if (item.target_id === 'beranda') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          const element = document.getElementById(item.target_id);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
         }
       }
     } else {

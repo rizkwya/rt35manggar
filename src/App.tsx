@@ -29,9 +29,7 @@ const safeFetch = async <T,>(fetchFn: () => Promise<T>, fallback: T): Promise<T>
 export const App = () => {
   // ROUTING CONTROLLER
   const [currentPath, setCurrentPath] = useState<string>(() => {
-    const path = window.location.pathname + window.location.search;
-    if (path === '/') return '/home';
-    return path;
+    return window.location.pathname + window.location.search;
   });
 
   // ROLE & AUTH STATE
@@ -53,7 +51,7 @@ export const App = () => {
 
   // TRACK LAST PATHS FOR DASHBOARD <-> PUBLIC PORTAL PERSISTENT HISTORY
   const [lastDashboardPath, setLastDashboardPath] = useState<string>('/admin/dashboard');
-  const [lastPublicPath, setLastPublicPath] = useState<string>('/home');
+  const [lastPublicPath, setLastPublicPath] = useState<string>('/');
 
   useEffect(() => {
     if (currentPath.startsWith('/admin')) {
@@ -274,7 +272,7 @@ export const App = () => {
 
   // SCROLLSPY TO UPDATE NAVBAR ACTIVE TAB
   useEffect(() => {
-    if (currentPath !== '/home') return;
+    if (currentPath !== '/') return;
 
     const sections = ['beranda', 'statistik-warga', 'pengumuman-rt', 'pengurus-rt', 'kkn-rt35', 'kontak-layanan'];
     
@@ -319,7 +317,7 @@ export const App = () => {
     } else if (role === 'developer') {
       navigateTo('/admin/developer');
     } else {
-      navigateTo('/home');
+      navigateTo('/');
     }
   };
 
@@ -435,7 +433,7 @@ export const App = () => {
             {/* Back Button */}
             <div>
               <button 
-                onClick={() => navigateTo('/home')}
+                onClick={() => navigateTo('/')}
                 className="inline-flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors group bg-white border border-slate-200 px-4.5 py-2.5 rounded-xl shadow-sm hover:scale-[1.02]"
               >
                 <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -697,7 +695,7 @@ export const App = () => {
         );
 
 
-      case '/home':
+      case '/':
       default:
         return (
           <LandingPage
