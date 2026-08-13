@@ -69,6 +69,22 @@ export const App = () => {
     setCurrentPath(path);
   };
 
+  // Restore user session from localStorage on initialization (critical for Astro refresh persistence)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedRole = localStorage.getItem('userRole') as UserRole;
+      const storedProfile = localStorage.getItem('userProfile');
+      if (storedRole && storedProfile) {
+        try {
+          setCurrentRole(storedRole);
+          setUserProfile(JSON.parse(storedProfile));
+        } catch (e) {
+          console.warn("Failed to parse stored user profile session:", e);
+        }
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const handlePopState = () => {
       setCurrentPath(window.location.pathname + window.location.search);
@@ -310,7 +326,11 @@ export const App = () => {
   const handleLogout = () => {
     setCurrentRole('public');
     setUserProfile(null);
-    navigateTo('/home');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userProfile');
+      window.location.href = '/';
+    }
   };
 
   // ROUTER CONTROLLER MAP
