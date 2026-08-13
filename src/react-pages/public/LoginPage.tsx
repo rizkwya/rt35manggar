@@ -40,8 +40,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
 
       const role: UserRole = profile.role;
       const target = 'dashboard';
-      onLoginSuccess(role, profile, target);
+      
+      if (onLoginSuccess) {
+        onLoginSuccess(role, profile, target);
+      } else {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userRole', role);
+          localStorage.setItem('userProfile', JSON.stringify(profile));
+          if (role === 'developer') {
+            window.location.href = '/admin/developer';
+          } else {
+            window.location.href = '/admin/dashboard';
+          }
+        }
+      }
     } catch (err) {
+      console.error('Login action crash:', err);
       setErrorMsg('Terjadi kesalahan koneksi ke database Supabase Cloud.');
     } finally {
       setIsLoading(false);
