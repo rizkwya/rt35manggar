@@ -71,7 +71,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 pt-10 pb-16 sm:px-6 lg:px-8 animate-fade-in space-y-8">
+    <div className="max-w-7xl mx-auto px-4 pt-10 pb-2 sm:px-6 lg:px-8 animate-fade-in space-y-8">
       
       {selectedArticle ? (
         // DETAIL VIEW
