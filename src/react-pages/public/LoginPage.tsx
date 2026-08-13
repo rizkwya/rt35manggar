@@ -140,17 +140,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHo
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1.5">
+              <div className="mb-1.5">
                 <label className="text-xs font-bold text-slate-700">
                   Kata Sandi <span className="text-rose-500">*</span>
                 </label>
-                <button
-                  type="button"
-                  onClick={() => alert('Silakan hubungi administrator IT/developer untuk melakukan reset password.')}
-                  className="text-xs text-[#0b5665] hover:underline font-bold"
-                >
-                  Lupa Kata Sandi?
-                </button>
               </div>
               <div className="relative">
                 <input
