@@ -93,7 +93,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
     if (item.type === 'anchor') {
       setActiveSection(item.target_id);
-      if (currentPath !== '/home' && currentPath !== '/') {
+      const currentPathName = typeof window !== 'undefined' ? window.location.pathname : '/';
+      const isOutsideHome = currentPathName !== '/' && currentPathName !== '/home' && currentPathName !== '/index.html';
+      
+      if (isOutsideHome) {
         window.location.href = '/#' + item.target_id;
       } else {
         const element = document.getElementById(item.target_id);
