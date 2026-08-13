@@ -492,12 +492,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
         <div className="pt-6 border-t border-slate-800 mt-8 space-y-3">
           <button
             onClick={() => {
-              if (onChangeTab) {
-                onChangeTab(lastPublicPath || '/home');
-              } else {
-                window.history.pushState(null, '', '/home');
-                window.dispatchEvent(new Event('popstate'));
-              }
+              window.location.href = '/';
             }}
             className="w-full flex items-center justify-center space-x-2 py-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold border border-slate-355 shadow-sm transition-all"
           >

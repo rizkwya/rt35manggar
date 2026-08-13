@@ -569,7 +569,7 @@ export const App = () => {
               />
             );
           }
-          if (currentRole === 'developer') return <DeveloperDashboardPage userProfile={userProfile} newsList={newsList} prokerList={prokerList} onAddNews={async () => []} onDeleteNews={async () => []} onUpdateProker={handleUpdateProker} onGoToLanding={() => navigateTo(lastPublicPath)} onLogout={handleLogout} />;
+          if (currentRole === 'developer') return <DeveloperDashboardPage userProfile={userProfile} newsList={newsList} prokerList={prokerList} onAddNews={async () => []} onDeleteNews={async () => []} onUpdateProker={handleUpdateProker} onGoToLanding={() => { window.location.href = '/'; }} onLogout={handleLogout} />;
           return <SekretarisRTDashboardPage 
             user={userProfile} 
             onLogout={handleLogout} 
