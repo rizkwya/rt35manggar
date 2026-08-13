@@ -18,7 +18,9 @@ import {
   Smartphone,
   MapPin,
   Newspaper,
-  MessageSquare
+  MessageSquare,
+  Menu,
+  X
 } from 'lucide-react';
 import { RTDemographics, RTAnnouncement, UserProfile, RTPengurus, TeamMember, ProkerItem, RTSettings, NavigationItem, NewsPost } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
@@ -84,7 +86,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   navItems
 }) => {
   const [activeTab, setActiveTab] = useState<'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi'>('demografis');
-  
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const [loading, setLoading] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -290,6 +292,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
 
   const handleTabClick = (tabId: 'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi') => {
     setActiveTab(tabId);
+    setSidebarOpen(false);
     
     const pathMap = {
       demografis: '/admin/demografis',
@@ -318,8 +321,38 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   return (
     <div className="h-screen w-screen bg-slate-50 flex flex-col lg:flex-row overflow-hidden">
       
+      {/* Mobile Top Header */}
+      <header className="lg:hidden bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800 shrink-0 relative z-30">
+        <div className="flex items-center space-x-3">
+          <img src="/logo.png" alt="Logo RT 35" className="w-8 h-8 object-contain" />
+          <div>
+            <h1 className="text-xs font-black text-white leading-none">{user.full_name || 'Sekretaris RT 35'}</h1>
+            <p className="text-[8px] text-[#85A389] font-black mt-1.5 uppercase tracking-wider">Dashboard Admin</p>
+          </div>
+        </div>
+        <button 
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition-colors"
+          aria-label="Toggle Menu"
+        >
+          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </header>
+
+      {/* Sidebar Mobile Overlay Background */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden transition-opacity duration-300"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* 1. SIDEBAR CONTROLLER */}
-      <aside className="w-full lg:w-72 h-fit lg:h-full bg-slate-900 text-white p-6 flex flex-col justify-between shrink-0 border-r border-slate-800 lg:overflow-y-auto">
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-white p-6 flex flex-col justify-between shrink-0 border-r border-slate-800 overflow-y-auto transition-transform duration-300
+        lg:static lg:translate-x-0 lg:flex
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
         
         <div className="space-y-8">
           {/* Logo & Info Header */}
