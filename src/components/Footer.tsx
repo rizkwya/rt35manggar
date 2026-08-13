@@ -7,28 +7,6 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ settings }) => {
-  const handleNavClick = (id: string) => {
-    const currentPath = window.location.pathname;
-    if (currentPath !== '/' && currentPath !== '/index.html' && currentPath !== '/home') {
-      if (id === 'beranda') {
-        window.location.href = '/';
-      } else {
-        window.location.href = '/#' + id;
-      }
-    } else {
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }
-  };
-
-  const handleKKNClick = () => {
-    window.location.href = '/kkn';
-  };
-
   return (
     <footer className="bg-[#FAF9F5] border-t border-slate-250 text-slate-600 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -53,35 +31,35 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
               {settings?.portal_description || 'Platform digitalisasi pelayanan publik resmi RT 35 Kelurahan Manggar, Kecamatan Balikpapan Timur, Kota Balikpapan. Menghadirkan informasi transparansi data warga pesisir yang terintegrasi bersama Tim KKN Kelompok 7 Universitas Mulawarman.'}
             </p>
           </div>
-
+ 
           {/* COL 2: NAVIGATION LINKS (3 Cols) */}
           <div className="lg:col-span-3 space-y-4">
             <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-l-2 border-[#5F8D4E] pl-3">Navigasi Portal</h4>
             <ul className="space-y-3 text-xs font-semibold">
               <li>
-                <button onClick={() => handleNavClick('beranda')} className="text-slate-600 hover:text-[#5F8D4E] transition-colors text-left">
+                <a href="/" className="text-slate-600 hover:text-[#5F8D4E] transition-colors text-left block">
                   Beranda Utama
-                </button>
+                </a>
               </li>
               <li>
-                <button onClick={() => handleNavClick('statistik-warga')} className="text-slate-600 hover:text-[#5F8D4E] transition-colors text-left">
+                <a href="/#statistik-warga" className="text-slate-600 hover:text-[#5F8D4E] transition-colors text-left block">
                   Statistik & Data Demografi KK
-                </button>
+                </a>
               </li>
               <li>
-                <button onClick={() => handleNavClick('pengumuman-rt')} className="text-slate-600 hover:text-[#5F8D4E] transition-colors text-left">
+                <a href="/#pengumuman-rt" className="text-slate-600 hover:text-[#5F8D4E] transition-colors text-left block">
                   Papan Pengumuman RT 35
-                </button>
+                </a>
               </li>
               <li>
-                <button onClick={() => handleNavClick('pengurus-rt')} className="text-slate-600 hover:text-[#5F8D4E] transition-colors text-left">
+                <a href="/#pengurus-rt" className="text-slate-600 hover:text-[#5F8D4E] transition-colors text-left block">
                   Struktur Pengurus & Layanan
-                </button>
+                </a>
               </li>
               <li>
-                <button onClick={handleKKNClick} className="text-[#5F8D4E] font-bold hover:opacity-85 transition-opacity text-left">
+                <a href="/kkn" className="text-[#5F8D4E] font-bold hover:opacity-85 transition-opacity text-left block">
                   Sub-Portal Pengabdian KKN
-                </button>
+                </a>
               </li>
             </ul>
           </div>
