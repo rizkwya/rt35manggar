@@ -35,6 +35,16 @@ const {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script is:inline>
+    // Suppress console logs in production to secure sensitive data exposure
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      window.console.log = function() {};
+      window.console.debug = function() {};
+      window.console.info = function() {};
+      window.console.warn = function() {};
+    }
+  </script>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-[#0b5665] selection:text-white min-h-screen">
   <slot />
