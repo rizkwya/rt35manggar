@@ -705,6 +705,12 @@ export const App = () => {
             navItems={navItems}
             pengurusList={pengurusList}
             onSettingsUpdate={setSettings}
+            defaultFormTab={new URLSearchParams(window.location.search).get('tab') === 'wajib_lapor' ? 'wajib_lapor' : undefined}
+            onClearDefaultFormTab={() => {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('tab');
+              window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+            }}
           />
         );
     }

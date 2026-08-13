@@ -247,14 +247,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Lapor Tamu Pill (Simkopdes style) */}
           <button
             onClick={() => {
-              const [basePath] = currentPath.split('?');
-              const isNotHome = basePath !== '/' && basePath !== '/home';
-              if (isNotHome) {
-                window.location.href = '/#kontak-layanan';
-              } else {
-                const el = document.getElementById('kontak-layanan');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }
+              window.location.href = '/?tab=wajib_lapor#kontak-layanan';
             }}
             className={`px-4.5 py-2.5 rounded-full font-black text-xs transition-all shadow-sm flex items-center space-x-1.5 active:scale-98 ${
               scrolled
@@ -352,14 +345,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                const [basePath] = currentPath.split('?');
-                const isNotHome = basePath !== '/' && basePath !== '/home';
-                if (isNotHome) {
-                  window.location.href = '/#kontak-layanan';
-                } else {
-                  const el = document.getElementById('kontak-layanan');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }
+                window.location.href = '/?tab=wajib_lapor#kontak-layanan';
               }}
               className={`w-full py-3 rounded-full font-black text-xs transition-all shadow-sm text-center flex items-center justify-center space-x-1.5 ${
                 scrolled
