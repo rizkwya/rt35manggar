@@ -96,11 +96,24 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileName, setEditProfileName] = useState(user.full_name || '');
   const [editProfileAvatar, setEditProfileAvatar] = useState(user.avatar_url || '');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
 
   const handleSaveProfile = async () => {
     if (!editProfileName.trim()) return;
     setLoading(true);
     try {
+      if (showPasswordFields && newPassword.trim()) {
+        if (newPassword !== confirmPassword) {
+          alert('Kata sandi baru dan konfirmasi kata sandi tidak cocok!');
+          setLoading(false);
+          return;
+        }
+        const { error } = await SupabaseService.updateUserPassword(newPassword.trim());
+        if (error) throw error;
+      }
+
       const updated = {
         ...user,
         full_name: editProfileName,
@@ -111,9 +124,12 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
         onUserProfileUpdate(res);
       }
       setIsEditingProfile(false);
-      showSuccess('Profil petugas berhasil disimpan!');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowPasswordFields(false);
+      showSuccess('Profil petugas & kata sandi berhasil diperbarui!');
     } catch (err: any) {
-      alert('Gagal memperbarui profil: ' + err.message);
+      alert('Gagal memperbarui profil/kata sandi: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -360,6 +376,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
             onClick={() => {
               setEditProfileName(user.full_name || '');
               setEditProfileAvatar(user.avatar_url || '');
+              setNewPassword('');
+              setConfirmPassword('');
+              setShowPasswordFields(false);
               setIsEditingProfile(true);
             }}
             className="flex items-center space-x-3.5 pb-6 border-b border-slate-800 cursor-pointer group hover:bg-slate-800/40 p-2 -m-2 rounded-2xl transition-all"
@@ -578,6 +597,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
             onClick={() => {
               setEditProfileName(user.full_name || '');
               setEditProfileAvatar(user.avatar_url || '');
+              setNewPassword('');
+              setConfirmPassword('');
+              setShowPasswordFields(false);
               setIsEditingProfile(true);
             }}
             className="hidden sm:flex items-center space-x-3 bg-[#85A389]/10 border border-[#85A389]/20 px-4 py-2 rounded-2xl cursor-pointer hover:bg-[#85A389]/20 transition-all"
@@ -642,6 +664,49 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-800 focus:outline-none"
                     required
                   />
+                </div>
+
+                {/* Ganti Kata Sandi Toggle */}
+                <div className="pt-3 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Keamanan Akun</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPasswordFields(!showPasswordFields);
+                        setNewPassword('');
+                        setConfirmPassword('');
+                      }}
+                      className="text-[10px] text-[#0b5665] font-black hover:underline"
+                    >
+                      {showPasswordFields ? 'Batal Ganti Sandi' : 'Ganti Kata Sandi?'}
+                    </button>
+                  </div>
+
+                  {showPasswordFields && (
+                    <div className="space-y-3 pt-1">
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] text-slate-500">Kata Sandi Baru</label>
+                        <input
+                          type="password"
+                          placeholder="Minimal 6 karakter"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-850 focus:outline-none focus:border-[#0b5665]"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] text-slate-500">Konfirmasi Kata Sandi Baru</label>
+                        <input
+                          type="password"
+                          placeholder="Ulangi kata sandi baru"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-850 focus:outline-none focus:border-[#0b5665]"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

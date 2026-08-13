@@ -113,6 +113,11 @@ export const SupabaseService = {
     return profile;
   },
 
+  async updateUserPassword(newPassword: string): Promise<{ error: any }> {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return { error };
+  },
+
   // DEMOGRAPHICS DATA CRUD
   async fetchDemographics(): Promise<RTDemographics> {
     try {
