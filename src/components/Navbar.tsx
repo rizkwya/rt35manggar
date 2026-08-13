@@ -77,6 +77,34 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'nav-5', label: 'Tim KKN', type: 'custom_page', target_id: 'kkn', order_index: 5, is_visible: true }
   ];
 
+  const handleOpenAuth = () => {
+    if (onOpenAuth) {
+      onOpenAuth();
+    } else {
+      window.location.href = '/login';
+    }
+  };
+
+  const handleOpenDashboard = () => {
+    if (onOpenDashboard) {
+      onOpenDashboard();
+    } else {
+      window.location.href = '/admin/dashboard';
+    }
+  };
+
+  const handleLogoutClick = () => {
+    if (onLogout) {
+      onLogout();
+    } else {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userProfile');
+        window.location.href = '/';
+      }
+    }
+  };
+
   const handleNavItemClick = (item: NavigationItem) => {
     setMobileMenuOpen(false);
     if (item.target_id === 'kkn') {
@@ -221,7 +249,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {currentRole === 'public' ? (
             /* Masuk Button (Simkopdes outline style, bright & readable) */
             <button
-              onClick={onOpenAuth}
+              onClick={handleOpenAuth}
               className={`border px-5 py-2.5 rounded-full font-black text-xs transition-all flex items-center space-x-1.5 active:scale-98 ${
                 scrolled
                   ? 'border-[#0b5665] text-[#0b5665] hover:bg-[#0b5665]/5'
@@ -256,7 +284,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
 
               <button
-                onClick={onOpenDashboard}
+                onClick={handleOpenDashboard}
                 className={`px-4.5 py-2.5 rounded-full font-black text-xs transition-all border ${
                   scrolled
                     ? 'bg-[#0b5665] hover:bg-[#08424e] text-white border-transparent'
@@ -267,7 +295,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               <button
-                onClick={onLogout}
+                onClick={handleLogoutClick}
                 className={`p-2.5 rounded-full transition-colors ${
                   scrolled 
                     ? 'text-rose-600 hover:bg-rose-50' 
@@ -345,7 +373,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {currentRole === 'public' ? (
               <button
-                onClick={() => { setMobileMenuOpen(false); onOpenAuth(); }}
+                onClick={() => { setMobileMenuOpen(false); handleOpenAuth(); }}
                 className={`w-full py-3 rounded-full font-black text-xs transition-all text-center flex items-center justify-center space-x-1.5 border ${
                   scrolled
                     ? 'border-[#0b5665] text-[#0b5665] hover:bg-[#0b5665]/5'
@@ -360,7 +388,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    onOpenDashboard();
+                    handleOpenDashboard();
                   }}
                   className={`w-full py-3 rounded-full font-black text-xs text-center border ${
                     scrolled
@@ -371,7 +399,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   Dashboard
                 </button>
                 <button
-                  onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+                  onClick={() => { setMobileMenuOpen(false); handleLogoutClick(); }}
                   className="w-full py-3 rounded-full bg-rose-600/10 text-rose-500 font-extrabold text-xs text-center border border-rose-500/25"
                 >
                   Logout
