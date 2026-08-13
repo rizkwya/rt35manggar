@@ -154,7 +154,7 @@ export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, s
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center space-x-2 pt-6 pb-14 md:pb-20">
+              <div className="flex items-center justify-center space-x-2 pt-6 pb-2 md:pb-4">
                 <button
                   onClick={() => {
                     setCurrentPage((prev) => Math.max(prev - 1, 1));

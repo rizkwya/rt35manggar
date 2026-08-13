@@ -38,11 +38,20 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem, sl
     }
   }
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   const sortedGridItems = [...gridItems].sort((a, b) => {
     const dateA = new Date(a.created_at || 0).getTime();
     const dateB = new Date(b.created_at || 0).getTime();
     return dateB - dateA;
   });
+
+  const totalPages = Math.ceil(sortedGridItems.length / itemsPerPage);
+  const paginatedGridItems = sortedGridItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const generateSlug = (text: string) => {
     return text
@@ -55,12 +64,17 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem, sl
     ? gridItems.find(item => generateSlug(item.title) === selectedSlug)
     : null;
 
-  const navigateToSlug = (itemSlug: string | null) => {
-    const newUrl = itemSlug 
-      ? `${window.location.pathname}?slug=${itemSlug}`
-      : window.location.pathname;
-    window.history.pushState(null, '', newUrl);
-    setSelectedSlug(itemSlug);
+  const navigateToSlug = (slugStr: string | null) => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (slugStr) {
+        url.searchParams.set('slug', slugStr);
+      } else {
+        url.searchParams.delete('slug');
+      }
+      window.history.pushState(null, '', url.pathname + url.search);
+      setSelectedSlug(slugStr);
+    }
   };
 
   if (selectedGridItem) {
@@ -179,7 +193,7 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem, sl
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedGridItems.map((item, idx) => (
+            {paginatedGridItems.map((item, idx) => (
               <div 
                 key={idx} 
                 onClick={() => navigateToSlug(generateSlug(item.title))}
@@ -212,6 +226,50 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem, sl
               </div>
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center space-x-2 pt-6 pb-2">
+              <button
+                onClick={() => {
+                  setCurrentPage((prev) => Math.max(prev - 1, 1));
+                  window.scrollTo({ top: 300, behavior: 'smooth' });
+                }}
+                disabled={currentPage === 1}
+                className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[36px]"
+                aria-label="Previous page"
+              >
+                &larr;
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => {
+                    setCurrentPage(p);
+                    window.scrollTo({ top: 300, behavior: 'smooth' });
+                  }}
+                  className={`w-9 h-9 rounded-xl text-xs font-black transition-all active:scale-95 border ${
+                    currentPage === p
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                onClick={() => {
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                  window.scrollTo({ top: 300, behavior: 'smooth' });
+                }}
+                disabled={currentPage === totalPages}
+                className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[36px]"
+                aria-label="Next page"
+              >
+                &rarr;
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
