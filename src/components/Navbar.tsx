@@ -217,9 +217,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         <nav className="hidden md:flex items-center justify-center gap-1 xl:gap-2 flex-1">
           {visibleItems.map((item) => {
             const [basePath] = currentPath.split('?');
+            const normalizedPath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
             const isActive = item.type === 'anchor' 
               ? isHomeActive(item.target_id) 
-              : (basePath === `/page/${item.target_id}` || (item.target_id === 'fasilitas' && basePath === '/fasilitas') || (item.target_id === 'berita' && basePath === '/berita') || (item.target_id === 'kkn' && basePath === '/kkn'));
+              : (normalizedPath === `/page/${item.target_id}` || (item.target_id === 'fasilitas' && normalizedPath === '/fasilitas') || (item.target_id === 'berita' && normalizedPath === '/berita') || (item.target_id === 'kkn' && normalizedPath === '/kkn'));
 
             return (
               <button
@@ -326,17 +327,31 @@ export const Navbar: React.FC<NavbarProps> = ({
             : 'bg-[#08424e] border-white/10'
         }`}>
           <nav className="flex flex-col space-y-3">
-            {visibleItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavItemClick(item)}
-                className={`w-full text-left py-2.5 font-bold text-xs ${
-                  scrolled ? 'text-slate-800 hover:text-[#0b5665]' : 'text-white/95 hover:text-white'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+            {visibleItems.map((item) => {
+              const [basePath] = currentPath.split('?');
+              const normalizedPath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+              const isActive = item.type === 'anchor' 
+                ? isHomeActive(item.target_id) 
+                : (normalizedPath === `/page/${item.target_id}` || (item.target_id === 'fasilitas' && normalizedPath === '/fasilitas') || (item.target_id === 'berita' && normalizedPath === '/berita') || (item.target_id === 'kkn' && normalizedPath === '/kkn'));
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavItemClick(item)}
+                  className={`w-full text-left py-2.5 px-4 rounded-xl font-black text-xs transition-all ${
+                    scrolled 
+                      ? isActive 
+                        ? 'text-[#0b5665] bg-[#0b5665]/10' 
+                        : 'text-slate-700 hover:text-[#0b5665] hover:bg-slate-50'
+                      : isActive
+                        ? 'text-white bg-white/20'
+                        : 'text-white/95 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </nav>
 
           <div className={`pt-4 border-t flex flex-col space-y-3 ${

@@ -26,6 +26,15 @@ export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({
       if (onClearDefaultFormTab) {
         onClearDefaultFormTab();
       }
+    } else if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam === 'wajib_lapor') {
+        setActiveFormTab('wajib_lapor');
+        const url = new URL(window.location.href);
+        url.searchParams.delete('tab');
+        window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+      }
     }
   }, [defaultFormTab, onClearDefaultFormTab]);
   
