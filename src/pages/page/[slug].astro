@@ -1,0 +1,31 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { App } from '../../App';
+import { SupabaseService } from '../../lib/supabase';
+import { INITIAL_NAV_ITEMS } from '../../lib/initialData';
+
+export async function getStaticPaths() {
+  let navItems = INITIAL_NAV_ITEMS;
+  try {
+    const data = await SupabaseService.fetchNavItems();
+    if (data) navItems = data;
+  } catch (e) {
+    console.warn("Failed fetching nav items for static paths:", e);
+  }
+
+  const customPages = navItems.filter(item => item.type === 'custom_page');
+  return customPages.map(page => ({
+    params: { slug: page.target_id }
+  }));
+}
+---
+
+<Layout title="Portal RT 35 Manggar – Layanan Informasi">
+  <App client:only="react">
+    <!-- Static Skeleton Loader while client JS loads -->
+    <div class="flex flex-col items-center justify-center min-h-screen bg-slate-50 space-y-4">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0b5665]"></div>
+      <p class="text-xs font-bold text-slate-400 animate-pulse">Memuat halaman kependudukan...</p>
+    </div>
+  </App>
+</Layout>

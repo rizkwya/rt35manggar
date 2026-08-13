@@ -23,5 +23,11 @@ export function getStaticPaths() {
 ---
 
 <Layout title="Dashboard Pelayanan Digital RT 35 Manggar">
-  <App client:only="react" />
+  <App client:only="react">
+    <!-- Static Skeleton Loader for Dashboard -->
+    <div class="flex flex-col items-center justify-center min-h-screen bg-slate-50 space-y-4">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0b5665]"></div>
+      <p class="text-xs font-bold text-slate-400 animate-pulse">Menghubungkan ke sistem pelayanan RT 35...</p>
+    </div>
+  </App>
 </Layout>
