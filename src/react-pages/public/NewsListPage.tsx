@@ -212,7 +212,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center space-x-2 pt-6">
+              <div className="flex items-center justify-center space-x-2 pt-6 pb-14 md:pb-20">
                 <button
                   onClick={() => {
                     setCurrentPage((prev) => Math.max(prev - 1, 1));
