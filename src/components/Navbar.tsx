@@ -80,29 +80,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   const handleNavItemClick = (item: NavigationItem) => {
     setMobileMenuOpen(false);
     if (item.target_id === 'kkn') {
-      window.history.pushState(null, '', '/kkn');
-      window.dispatchEvent(new Event('popstate'));
+      window.location.href = '/kkn';
       return;
     }
     if (item.target_id === 'fasilitas') {
-      window.history.pushState(null, '', '/fasilitas');
-      window.dispatchEvent(new Event('popstate'));
+      window.location.href = '/fasilitas';
       return;
     }
     if (item.target_id === 'berita') {
-      window.history.pushState(null, '', '/berita');
-      window.dispatchEvent(new Event('popstate'));
+      window.location.href = '/berita';
       return;
     }
     if (item.type === 'anchor') {
       setActiveSection(item.target_id);
       if (currentPath !== '/home' && currentPath !== '/') {
-        window.history.pushState(null, '', '/home');
-        window.dispatchEvent(new Event('popstate'));
-        setTimeout(() => {
-          const element = document.getElementById(item.target_id);
-          if (element) element.scrollIntoView({ behavior: 'smooth' });
-        }, 150);
+        window.location.href = '/#' + item.target_id;
       } else {
         const element = document.getElementById(item.target_id);
         if (element) {
@@ -110,8 +102,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         }
       }
     } else {
-      window.history.pushState(null, '', `/page/${item.target_id}`);
-      window.dispatchEvent(new Event('popstate'));
+      window.location.href = `/page/${item.target_id}`;
     }
   };
 
@@ -127,12 +118,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div 
           className="flex items-center space-x-3.5 cursor-pointer group shrink-0" 
           onClick={() => {
-            window.history.pushState(null, '', '/home');
-            window.dispatchEvent(new Event('popstate'));
-            setTimeout(() => {
-              const el = document.getElementById('beranda');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
+            window.location.href = '/';
           }}
         >
           {/* Logo RT 35 KKN */}
@@ -211,19 +197,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               const [basePath] = currentPath.split('?');
               const isNotHome = basePath !== '/' && basePath !== '/home';
               if (isNotHome) {
-                window.history.pushState(null, '', '/home');
-                window.dispatchEvent(new Event('popstate'));
-                setTimeout(() => {
-                  if (onLaporTamu) {
-                    onLaporTamu();
-                  }
-                  const el = document.getElementById('kontak-layanan');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }, 150);
+                window.location.href = '/#kontak-layanan';
               } else {
-                if (onLaporTamu) {
-                  onLaporTamu();
-                }
                 const el = document.getElementById('kontak-layanan');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }
@@ -347,19 +322,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 const [basePath] = currentPath.split('?');
                 const isNotHome = basePath !== '/' && basePath !== '/home';
                 if (isNotHome) {
-                  window.history.pushState(null, '', '/home');
-                  window.dispatchEvent(new Event('popstate'));
-                  setTimeout(() => {
-                    if (onLaporTamu) {
-                      onLaporTamu();
-                    }
-                    const el = document.getElementById('kontak-layanan');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }, 150);
+                  window.location.href = '/#kontak-layanan';
                 } else {
-                  if (onLaporTamu) {
-                    onLaporTamu();
-                  }
                   const el = document.getElementById('kontak-layanan');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }

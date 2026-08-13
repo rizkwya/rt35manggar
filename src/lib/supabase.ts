@@ -28,13 +28,15 @@ import {
 // Re-export initial data constants so all component imports remain intact
 export * from './initialData';
 
-// PRODUCTION SUPABASE ENVIRONMENT CONFIGURATION
 export const SUPABASE_URL = 
-  (import.meta as any).env?.VITE_SUPABASE_URL || 'https://atmqjbhrillqeehblizb.supabase.co';
+  (import.meta as any).env?.VITE_SUPABASE_URL || 
+  (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_URL : null) ||
+  'https://atmqjbhrillqeehblizb.supabase.co';
 
 export const SUPABASE_ANON_KEY = 
   (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 
-  'sb_publishable_SSBgwLT0rUpEm8n0qDYaFw_Qp1vIm7G';
+  (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_ANON_KEY : null) ||
+  'sb_publishable_IryU9qLP-a_NDi1ItVlZ9A_hqCs6uqf';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
