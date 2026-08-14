@@ -121,22 +121,12 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       };
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem('rt35_local_profile_override', JSON.stringify({
-          full_name: editProfileName,
-          avatar_url: editProfileAvatar
-        }));
         localStorage.setItem('userProfile', JSON.stringify(updated));
       }
 
-      if (user.role === 'sekretaris_rt') {
-        if (onUserProfileUpdate) {
-          onUserProfileUpdate(updated);
-        }
-      } else {
-        const res = await SupabaseService.updateUserProfile(updated);
-        if (onUserProfileUpdate) {
-          onUserProfileUpdate(res);
-        }
+      const res = await SupabaseService.updateUserProfile(updated);
+      if (onUserProfileUpdate) {
+        onUserProfileUpdate(res);
       }
 
       setIsEditingProfile(false);
