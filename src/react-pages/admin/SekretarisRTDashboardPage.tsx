@@ -87,6 +87,17 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
 }) => {
   const [activeTab, setActiveTab] = useState<'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi'>('demografis');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [sidebarOpen]);
   
   const [loading, setLoading] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -415,6 +426,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
               setNewPassword('');
               setConfirmPassword('');
               setShowPasswordFields(false);
+              setSidebarOpen(false);
               setIsEditingProfile(true);
             }}
             className="flex items-center space-x-3.5 pb-6 border-b border-slate-800 cursor-pointer group hover:bg-slate-800/40 p-2 -m-2 rounded-2xl transition-all"
@@ -655,7 +667,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
 
         {/* PROFILE EDIT MODAL DIALOG */}
         {isEditingProfile && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-6 animate-scale-up">
               <div className="border-b border-slate-100 pb-3">
                 <h3 className="text-lg font-black text-slate-900">Ubah Profil Petugas</h3>

@@ -971,36 +971,38 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                           <div 
                             key={kk.id} 
                             onClick={() => setSelectedKkId(kk.id)}
-                            className="py-4 flex items-center justify-between hover:bg-slate-50/50 px-4 rounded-xl transition-all cursor-pointer group"
+                            className="py-4 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-slate-50/50 px-4 rounded-xl transition-all cursor-pointer group gap-3"
                           >
                             <div className="flex items-center space-x-4">
-                              <div className="w-10 h-10 rounded-xl bg-[#1E4D6B]/5 flex items-center justify-center text-[#1E4D6B] group-hover:scale-105 transition-transform">
+                              <div className="w-10 h-10 rounded-xl bg-[#1E4D6B]/5 flex items-center justify-center text-[#1E4D6B] group-hover:scale-105 transition-transform shrink-0">
                                 <Users className="w-5 h-5" />
                               </div>
-                              <div>
-                                <h4 className="text-sm font-black text-slate-900">KK: {kk.no_kk}</h4>
-                                <p className="text-xs text-slate-500 font-bold">Kepala: {kk.kepala_keluarga}</p>
+                              <div className="min-w-0">
+                                <h4 className="text-sm font-black text-slate-900 truncate">KK: {kk.no_kk}</h4>
+                                <p className="text-xs text-slate-500 font-bold truncate">Kepala: {kk.kepala_keluarga}</p>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center justify-between sm:justify-end space-x-3 w-full sm:w-auto border-t border-slate-100/70 pt-2.5 sm:border-t-0 sm:pt-0">
                               <span className="text-[10px] font-black text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/25 px-2.5 py-0.5 rounded-full" title="Anggota Keluarga Aktif">
                                 {activeWargaCount} Jiwa
                               </span>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleEditKkClick(kk); }}
-                                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-                                title="Edit"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteKk(kk.id); }}
-                                className="p-1.5 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-55 transition-colors"
-                                title="Hapus"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                              <div className="flex items-center space-x-1.5">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleEditKkClick(kk); }}
+                                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                                  title="Edit"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteKk(kk.id); }}
+                                  className="p-1.5 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-55 transition-colors"
+                                  title="Hapus"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform hidden sm:block" />
+                              </div>
                             </div>
                           </div>
                         );
@@ -1051,28 +1053,36 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                           >
                             &larr;
                           </button>
-                          {getPageNumbers().map((p, index) => {
-                            if (p === '...') {
+                          
+                          <div className="hidden sm:flex items-center space-x-1.5">
+                            {getPageNumbers().map((p, index) => {
+                              if (p === '...') {
+                                return (
+                                  <span key={`ellipsis-${index}`} className="px-2 text-slate-400 font-black text-xs select-none">
+                                    ...
+                                  </span>
+                                );
+                              }
                               return (
-                                <span key={`ellipsis-${index}`} className="px-2 text-slate-400 font-black text-xs select-none">
-                                  ...
-                                </span>
+                                <button
+                                  key={`page-${p}`}
+                                  onClick={(e) => { e.stopPropagation(); setCurrentPage(p as number); }}
+                                  className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border shadow-sm ${
+                                    currentPage === p
+                                      ? 'bg-slate-900 text-white border-slate-900'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                  }`}
+                                >
+                                  {p}
+                                </button>
                               );
-                            }
-                            return (
-                              <button
-                                key={`page-${p}`}
-                                onClick={(e) => { e.stopPropagation(); setCurrentPage(p as number); }}
-                                className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border shadow-sm ${
-                                  currentPage === p
-                                    ? 'bg-slate-900 text-white border-slate-900'
-                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                                }`}
-                              >
-                                {p}
-                              </button>
-                            );
-                          })}
+                            })}
+                          </div>
+
+                          <span className="block sm:hidden text-xs font-black text-slate-600 px-3 select-none">
+                            Hal {currentPage} / {totalPages}
+                          </span>
+
                           <button
                             onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
                             disabled={currentPage === totalPages}
