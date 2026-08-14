@@ -239,80 +239,86 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     kk.kepala_keluarga.toLowerCase().includes(searchKk.toLowerCase())
   );
 
+  // Helper to sync a single KK card and its members to Supabase database tables
+  const syncCardToDatabase = async (kk: KKRecord) => {
+    const isExistingCard = kk.id && kk.id.includes('-');
+    const cardPayload: any = {
+      no_kk: kk.no_kk,
+      kepala_keluarga: kk.kepala_keluarga,
+      alamat: kk.alamat || 'RT 35 Manggar',
+      rt_rw: kk.rt_rw || '035/000',
+      income: kk.income
+    };
+    if (isExistingCard) {
+      cardPayload.id = kk.id;
+    }
+
+    const { data: savedCard, error: cardErr } = await supabase
+      .from('family_cards')
+      .upsert([cardPayload])
+      .select()
+      .single();
+
+    if (cardErr) throw cardErr;
+    const cardId = savedCard.id;
+    kk.id = cardId; // update the in-memory record id with the UUID from database
+
+    // Sync members of this card
+    const dbMembersRes = await supabase.from('family_members').select('id').eq('family_card_id', cardId);
+    const oldMemberIds = (dbMembersRes.data || []).map(m => m.id);
+    const currentMemberIds = kk.members.map(m => m.id).filter(id => id.includes('-'));
+    const deletedMemberIds = oldMemberIds.filter(id => !currentMemberIds.includes(id));
+
+    // Handle member deletions
+    for (const id of deletedMemberIds) {
+      await supabase.from('family_members').delete().eq('id', id);
+    }
+
+    // Upsert active members
+    for (const m of kk.members) {
+      const isExistingMember = m.id && m.id.includes('-');
+      const memberPayload: any = {
+        family_card_id: cardId,
+        nik: m.nik,
+        nama: m.name,
+        hubungan: m.relationship,
+        jenis_kelamin: m.gender,
+        tanggal_lahir: m.birthDate || null,
+        pendidikan: m.education,
+        pekerjaan: m.job,
+        is_umkm: m.isUmkm || false,
+        umkm_name: m.umkmName || '',
+        status: m.status || 'Aktif',
+        reg_date: m.registrationDate || '',
+        exit_date: m.exitDate || '',
+        exit_reason: m.exitReason || null
+      };
+      if (isExistingMember) {
+        memberPayload.id = m.id;
+      }
+      const { data: savedMember, error: memErr } = await supabase
+        .from('family_members')
+        .upsert([memberPayload])
+        .select()
+        .single();
+      if (memErr) throw memErr;
+      m.id = savedMember.id; // update the in-memory member id with the UUID
+    }
+  };
+
+  const deleteCardFromDatabase = async (id: string) => {
+    if (id.includes('-')) {
+      const { error } = await supabase.from('family_cards').delete().eq('id', id);
+      if (error) throw error;
+    }
+  };
+
   // Recalculate demographic stats from the current KK list and save to Supabase
   const recalculateAndSave = async (updatedList: KKRecord[]) => {
     setLoading(true);
     try {
-      // 1. Sync local changes to Supabase tables (family_cards & family_members)
-      const currentCardIds = updatedList.map(kk => kk.id).filter(id => id.includes('-'));
-      const oldCardIds = kkList.map(kk => kk.id).filter(id => id.includes('-'));
-      const deletedCardIds = oldCardIds.filter(id => !currentCardIds.includes(id));
-
-      // Handle card deletions
-      for (const id of deletedCardIds) {
-        await supabase.from('family_cards').delete().eq('id', id);
-      }
-
-      // Upsert cards and members
-      for (const kk of updatedList) {
-        const isExistingCard = kk.id && kk.id.includes('-');
-        const cardPayload: any = {
-          no_kk: kk.no_kk,
-          kepala_keluarga: kk.kepala_keluarga,
-          alamat: kk.alamat || 'RT 35 Manggar',
-          rt_rw: kk.rt_rw || '035/000',
-          income: kk.income
-        };
-        if (isExistingCard) {
-          cardPayload.id = kk.id;
-        }
-
-        const { data: savedCard, error: cardErr } = await supabase
-          .from('family_cards')
-          .upsert([cardPayload])
-          .select()
-          .single();
-
-        if (cardErr) throw cardErr;
-        const cardId = savedCard.id;
-
-        // Sync members of this card
-        const dbMembersRes = await supabase.from('family_members').select('id').eq('family_card_id', cardId);
-        const oldMemberIds = (dbMembersRes.data || []).map(m => m.id);
-        const currentMemberIds = kk.members.map(m => m.id).filter(id => id.includes('-'));
-        const deletedMemberIds = oldMemberIds.filter(id => !currentMemberIds.includes(id));
-
-        // Handle member deletions
-        for (const id of deletedMemberIds) {
-          await supabase.from('family_members').delete().eq('id', id);
-        }
-
-        // Upsert active members
-        for (const m of kk.members) {
-          const isExistingMember = m.id && m.id.includes('-');
-          const memberPayload: any = {
-            family_card_id: cardId,
-            nik: m.nik,
-            nama: m.name,
-            hubungan: m.relationship,
-            jenis_kelamin: m.gender,
-            tanggal_lahir: m.birthDate || null,
-            pendidikan: m.education,
-            pekerjaan: m.job,
-            is_umkm: m.isUmkm || false,
-            umkm_name: m.umkmName || '',
-            status: m.status || 'Aktif',
-            reg_date: m.registrationDate || '',
-            exit_date: m.exitDate || '',
-            exit_reason: m.exitReason || null
-          };
-          if (isExistingMember) {
-            memberPayload.id = m.id;
-          }
-          const { error: memErr } = await supabase.from('family_members').upsert([memberPayload]);
-          if (memErr) throw memErr;
-        }
-      }
+      // 1. Update local list state
+      setKkList(updatedList);
 
       // 2. Perform demographic calculations
       let total_kk = updatedList.length;
@@ -457,9 +463,6 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         setDemographics(savedDemo);
         onUpdateDemographics(savedDemo);
       }
-      
-      // Refresh with generated UUIDs from Supabase
-      await loadKkData();
       showSuccess('Database KK & statistik otomatis berhasil disinkronisasi!');
     } catch (err: any) {
       console.error('Recalculation error:', err);
@@ -482,38 +485,42 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       return;
     }
 
+    let dirtyKk: KKRecord;
     let updated: KKRecord[];
     if (editingKkId) {
-      updated = kkList.map(kk => {
-        if (kk.id === editingKkId) {
-          return {
-            ...kk,
-            no_kk: newNoKk.trim(),
-            kepala_keluarga: newKepala.trim(),
-            income: newIncome
-          };
-        }
-        return kk;
-      });
+      const existing = kkList.find(kk => kk.id === editingKkId);
+      if (!existing) return;
+      dirtyKk = {
+        ...existing,
+        no_kk: newNoKk.trim(),
+        kepala_keluarga: newKepala.trim(),
+        income: newIncome
+      };
+      updated = kkList.map(kk => kk.id === editingKkId ? dirtyKk : kk);
       setEditingKkId(null);
     } else {
-      const newKk: KKRecord = {
+      dirtyKk = {
         id: Math.random().toString(36).substring(2, 9),
         no_kk: newNoKk.trim(),
         kepala_keluarga: newKepala.trim(),
         income: newIncome,
         members: []
       };
-      updated = [...kkList, newKk];
+      updated = [...kkList, dirtyKk];
     }
 
     try {
+      setLoading(true);
+      await syncCardToDatabase(dirtyKk);
       await recalculateAndSave(updated);
       setNewNoKk('');
       setNewKepala('');
       setNewIncome('under_2m');
     } catch (err: any) {
       console.error("Gagal menambahkan KK:", err);
+      alert("Gagal menambahkan KK: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -524,13 +531,22 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     setNewIncome(kk.income);
   };
 
-  const handleDeleteKk = (id: string) => {
+  const handleDeleteKk = async (id: string) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus Kartu Keluarga ini? Semua anggota di dalamnya akan terhapus.')) return;
-    const updated = kkList.filter(kk => kk.id !== id);
-    if (selectedKkId === id) {
-      setSelectedKkId(null);
+    try {
+      setLoading(true);
+      await deleteCardFromDatabase(id);
+      const updated = kkList.filter(kk => kk.id !== id);
+      if (selectedKkId === id) {
+        setSelectedKkId(null);
+      }
+      await recalculateAndSave(updated);
+    } catch (err: any) {
+      console.error("Gagal menghapus KK:", err);
+      alert("Gagal menghapus KK: " + err.message);
+    } finally {
+      setLoading(false);
     }
-    recalculateAndSave(updated);
   };
 
   // Member Actions
@@ -596,14 +612,17 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       updatedMembers = [...targetKk.members, newMember];
     }
 
+    const dirtyKk = { ...targetKk, members: updatedMembers };
     const updatedKkList = kkList.map(kk => {
       if (kk.id === selectedKkId) {
-        return { ...kk, members: updatedMembers };
+        return dirtyKk;
       }
       return kk;
     });
 
     try {
+      setLoading(true);
+      await syncCardToDatabase(dirtyKk);
       await recalculateAndSave(updatedKkList);
       setMemberName('');
       setMemberNik('');
@@ -620,6 +639,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       setShowAddMember(false);
     } catch (err: any) {
       console.error("Gagal menambahkan anggota:", err);
+      alert("Gagal menambahkan anggota: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -640,18 +662,33 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     setShowAddMember(true);
   };
 
-  const handleDeleteMember = (memberId: string) => {
+  const handleDeleteMember = async (memberId: string) => {
     if (!window.confirm('Hapus anggota keluarga ini secara permanen dari database?')) return;
+    const targetKk = kkList.find(kk => kk.id === selectedKkId);
+    if (!targetKk) return;
+
+    const dirtyKk = {
+      ...targetKk,
+      members: targetKk.members.filter(m => m.id !== memberId)
+    };
+
     const updatedKkList = kkList.map(kk => {
       if (kk.id === selectedKkId) {
-        return {
-          ...kk,
-          members: kk.members.filter(m => m.id !== memberId)
-        };
+        return dirtyKk;
       }
       return kk;
     });
-    recalculateAndSave(updatedKkList);
+
+    try {
+      setLoading(true);
+      await syncCardToDatabase(dirtyKk);
+      await recalculateAndSave(updatedKkList);
+    } catch (err: any) {
+      console.error("Gagal menghapus anggota:", err);
+      alert("Gagal menghapus anggota: " + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!demographics) {
