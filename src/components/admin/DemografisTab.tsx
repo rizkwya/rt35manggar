@@ -539,13 +539,20 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   // KK Actions
   const handleAddOrEditKk = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newNoKk.trim() || !newKepala.trim()) return;
+    const cleanedNoKk = newNoKk.trim();
+    if (!cleanedNoKk || !newKepala.trim()) return;
     if (loading) return;
 
+    // Length validation
+    if (cleanedNoKk.length !== 16) {
+      alert("Nomor Kartu Keluarga (KK) harus tepat berukuran 16 digit angka!");
+      return;
+    }
+
     // Duplication Check (No. KK)
-    const kkExists = kkList.some(kk => kk.no_kk === newNoKk.trim() && kk.id !== editingKkId);
+    const kkExists = kkList.some(kk => kk.no_kk === cleanedNoKk && kk.id !== editingKkId);
     if (kkExists) {
-      alert(`Nomor Kartu Keluarga (KK) "${newNoKk.trim()}" sudah terdaftar dalam sistem! Periksa kembali.`);
+      alert(`Nomor Kartu Keluarga (KK) "${cleanedNoKk}" sudah terdaftar dalam sistem! Periksa kembali.`);
       return;
     }
 
@@ -616,15 +623,22 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   // Member Actions
   const handleAddOrEditMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!memberName.trim() || !memberNik.trim() || !memberBirthDate) return;
+    const cleanedNik = memberNik.trim();
+    if (!memberName.trim() || !cleanedNik || !memberBirthDate) return;
     if (loading) return;
+
+    // Length validation
+    if (cleanedNik.length !== 16) {
+      alert("Nomor Induk Kependudukan (NIK) harus tepat berukuran 16 digit angka!");
+      return;
+    }
 
     // Duplication Check (NIK)
     const nikExists = kkList.some(kk => 
-      kk.members.some(m => m.nik === memberNik.trim() && m.id !== editingMemberId)
+      kk.members.some(m => m.nik === cleanedNik && m.id !== editingMemberId)
     );
     if (nikExists) {
-      alert(`NIK "${memberNik.trim()}" sudah terdaftar di sistem! Periksa kembali.`);
+      alert(`NIK "${cleanedNik}" sudah terdaftar di sistem! Periksa kembali.`);
       return;
     }
 
@@ -1143,8 +1157,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                         <input
                           type="text"
                           value={memberNik}
-                          onChange={(e) => setMemberNik(e.target.value)}
+                          onChange={(e) => setMemberNik(e.target.value.replace(/\D/g, ''))}
                           placeholder="NIK 16 Digit"
+                          maxLength={16}
                           className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
                           required
                         />
