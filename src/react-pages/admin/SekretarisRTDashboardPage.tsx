@@ -781,8 +781,14 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
 
         {/* Global Action Toast successMsg Alerts */}
         {savedSuccess && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-6 py-3 rounded-2xl bg-emerald-600 text-white font-black text-xs shadow-2xl border border-emerald-500/25 flex items-center space-x-2 animate-scale-up whitespace-nowrap">
-            <span>🎉 {successMsg}</span>
+          <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 left-6 sm:left-auto z-[9999] max-w-sm bg-slate-900/95 backdrop-blur-md text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-800 flex items-center space-x-3 animate-scale-up">
+            <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center shrink-0">
+              <span className="text-[10px] text-emerald-400 font-black">✓</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-black text-white leading-tight">Berhasil</p>
+              <p className="text-[10px] text-slate-400 font-bold mt-0.5 leading-snug">{successMsg}</p>
+            </div>
           </div>
         )}
 
