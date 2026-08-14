@@ -34,6 +34,12 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
     { name: 'Wanita', value: demographics.total_wanita || 0, color: '#cbd5e1' }, // Slate 300
   ];
 
+  const ageChartData = [
+    { name: 'Balita (<5 thn)', value: demographics.total_balita || 0, color: '#f59e0b' }, // Amber 500
+    { name: 'Usia Kerja (15-60)', value: demographics.total_usia_produktif || 0, color: '#1e293b' }, // Slate 800
+    { name: 'Lansia (>60 thn)', value: demographics.total_lansia || 0, color: '#94a3b8' }, // Slate 400
+  ];
+
 
 
   const ageData = [
@@ -54,8 +60,8 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
     { name: 'PNS/TNI/Polri', jumlah: demographics.prof_pns || 0, color: '#475569' }, // Solid Slate 600
     { name: 'Karyawan Swasta', jumlah: demographics.prof_swasta || 0, color: '#475569' },
     { name: 'Wiraswasta/Dagang', jumlah: demographics.prof_wiraswasta || 0, color: '#475569' },
-    { name: 'Nelayan/Petani', jumlah: demographics.prof_nelayan || 0, color: '#475569' },
-    { name: 'Lainnya/Tdk Bekerja', jumlah: demographics.prof_lainnya || 0, color: '#475569' },
+    { name: 'Nelayan/Petani/Buruh', jumlah: demographics.prof_nelayan || 0, color: '#475569' },
+    { name: 'IRT/Pelajar/Lainnya', jumlah: demographics.prof_lainnya || 0, color: '#475569' },
   ];
 
   // Get unique list of years from registration/exit dates in database, plus a standard 2020-future range
@@ -320,12 +326,41 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
                 <p className="text-xs text-slate-500 mt-1">Pembagian demografi warga berdasarkan rentang usia di RT 35</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 my-auto">
+              <div className="h-48 w-full relative flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={ageChartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {ageChartData.map((entry, index) => (
+                        <Cell key={`cell-age-${index}`} fill={entry.color} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#334155' }}
+                      formatter={(value: any) => [`${value} Jiwa`, 'Jumlah']}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Centered Total */}
+                <div className="absolute flex flex-col items-center justify-center">
+                  <span className="text-2xl font-black text-slate-900">{demographics.total_warga}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Total Jiwa</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2.5 pt-4 border-t border-slate-100">
                 {ageData.map((item, idx) => (
-                  <div key={idx} className={`p-5 rounded-2xl border ${item.color} text-center space-y-2.5 shadow-sm flex flex-col items-center justify-center`}>
-                    <span className="text-2xl">{item.icon}</span>
-                    <p className="text-xs font-black tracking-tight uppercase opacity-90">{item.group}</p>
-                    <p className="text-xl font-black">{item.total} <span className="text-xs font-normal opacity-70">Jiwa</span></p>
+                  <div key={idx} className={`p-2.5 rounded-2xl border ${item.color} text-center space-y-1 shadow-sm flex flex-col items-center justify-center`}>
+                    <span className="text-base">{item.icon}</span>
+                    <p className="text-[8px] font-black tracking-tight uppercase opacity-90 leading-none">{item.group.split(' ')[0]}</p>
+                    <p className="text-sm font-black mt-0.5">{item.total} <span className="text-[9px] font-normal opacity-70">Jiwa</span></p>
                   </div>
                 ))}
               </div>

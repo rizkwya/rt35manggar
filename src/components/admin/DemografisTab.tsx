@@ -520,7 +520,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
             if (m.job === 'PNS') prof_pns++;
             else if (m.job === 'Swasta') prof_swasta++;
             else if (m.job === 'Wiraswasta') prof_wiraswasta++;
-            else if (m.job === 'Nelayan') prof_nelayan++;
+            else if (m.job === 'Nelayan' || m.job === 'Buruh') prof_nelayan++;
             else prof_lainnya++;
 
             if (m.isUmkm) total_umkm++;
@@ -934,11 +934,11 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   ];
 
   const professionData = [
-    { name: 'PNS', jumlah: demographics.prof_pns || 0 },
-    { name: 'Swasta', jumlah: demographics.prof_swasta || 0 },
-    { name: 'Wira', jumlah: demographics.prof_wiraswasta || 0 },
-    { name: 'Nelayan', jumlah: demographics.prof_nelayan || 0 },
-    { name: 'Lainnya', jumlah: demographics.prof_lainnya || 0 },
+    { name: 'PNS/TNI/Polri', jumlah: demographics.prof_pns || 0 },
+    { name: 'Karyawan Swasta', jumlah: demographics.prof_swasta || 0 },
+    { name: 'Wiraswasta/Dagang', jumlah: demographics.prof_wiraswasta || 0 },
+    { name: 'Nelayan/Buruh', jumlah: demographics.prof_nelayan || 0 },
+    { name: 'IRT/Pelajar/Lainnya', jumlah: demographics.prof_lainnya || 0 },
   ];
 
   const activeKk = kkList.find(kk => kk.id === selectedKkId);
