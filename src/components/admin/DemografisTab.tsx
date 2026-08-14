@@ -74,7 +74,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   // KK Form states
   const [newNoKk, setNewNoKk] = useState('');
   const [newKepala, setNewKepala] = useState('');
-  const [newIncome, setNewIncome] = useState<'under_2m' | '2m_5m' | '5m_10m' | 'above_10m'>('under_2m');
+  const [newAlamat, setNewAlamat] = useState('RT 35 Manggar');
   const [editingKkId, setEditingKkId] = useState<string | null>(null);
 
   // Member Form states
@@ -355,8 +355,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       no_kk: kk.no_kk,
       kepala_keluarga: kk.kepala_keluarga,
       alamat: kk.alamat || 'RT 35 Manggar',
-      rt_rw: kk.rt_rw || '035/000',
-      income: kk.income
+      rt_rw: kk.rt_rw || '035/000'
     };
     if (isExistingCard) {
       cardPayload.id = kk.id;
@@ -613,7 +612,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         ...existing,
         no_kk: newNoKk.trim(),
         kepala_keluarga: newKepala.trim(),
-        income: newIncome
+        alamat: newAlamat.trim(),
+        income: 'under_2m'
       };
       updated = kkList.map(kk => kk.id === editingKkId ? dirtyKk : kk);
       setEditingKkId(null);
@@ -622,7 +622,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         id: Math.random().toString(36).substring(2, 9),
         no_kk: newNoKk.trim(),
         kepala_keluarga: newKepala.trim(),
-        income: newIncome,
+        alamat: newAlamat.trim(),
+        income: 'under_2m',
         members: []
       };
       updated = [...kkList, dirtyKk];
@@ -634,7 +635,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       await recalculateAndSave(updated);
       setNewNoKk('');
       setNewKepala('');
-      setNewIncome('under_2m');
+      setNewAlamat('RT 35 Manggar');
     } catch (err: any) {
       console.error("Gagal menambahkan KK:", err);
       showCustomAlert("Gagal menambahkan KK: " + err.message);
@@ -647,7 +648,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     setEditingKkId(kk.id);
     setNewNoKk(kk.no_kk);
     setNewKepala(kk.kepala_keluarga);
-    setNewIncome(kk.income);
+    setNewAlamat(kk.alamat || 'RT 35 Manggar');
   };
 
   const handleDeleteKk = async (id: string) => {
@@ -922,12 +923,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     { name: 'Wanita', value: demographics.total_wanita || 0, color: '#85A389' },
   ];
 
-  const incomeData = [
-    { range: 'Under 2M', KK: demographics.income_under_2m || 0 },
-    { range: '2 - 5 Jt', KK: demographics.income_2m_to_5m || 0 },
-    { range: '5 - 10 Jt', KK: demographics.income_5m_to_10m || 0 },
-    { range: '> 10 Jt', KK: demographics.income_above_10m || 0 },
-  ];
+
 
   const educationData = [
     { name: 'SD', value: demographics.edu_sd || 0 },
@@ -1176,8 +1172,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                     <p className="text-xs text-slate-500 font-bold">Kepala Keluarga: <span className="text-slate-800">{activeKk?.kepala_keluarga}</span></p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs font-black text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
-                      Pendapatan: {activeKk?.income === 'under_2m' ? '< 2 Juta' : activeKk?.income === '2m_5m' ? '2 - 5 Juta' : activeKk?.income === '5m_10m' ? '5 - 10 Jt' : '> 10 Juta'}
+                    <span className="text-xs font-black text-slate-650 bg-slate-100/70 border border-slate-200 px-3.5 py-1 rounded-full">
+                      Alamat: {activeKk?.alamat || 'RT 35 Manggar'}
                     </span>
                     <button
                       onClick={() => {
@@ -1516,17 +1512,15 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Estimasi Pendapatan Keluarga</label>
-                  <select
-                    value={newIncome}
-                    onChange={(e) => setNewIncome(e.target.value as any)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-850"
-                  >
-                    <option value="under_2m">&lt; Rp 2 Juta (Sederhana)</option>
-                    <option value="2m_5m">Rp 2 - 5 Juta (Menengah)</option>
-                    <option value="5m_10m">Rp 5 - 10 Juta (Mapan)</option>
-                    <option value="above_10m">&gt; Rp 10 Juta (Sejahtera)</option>
-                  </select>
+                  <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Alamat Keluarga</label>
+                  <input
+                    type="text"
+                    value={newAlamat}
+                    onChange={(e) => setNewAlamat(e.target.value)}
+                    placeholder="Contoh: RT 35 Manggar, Jl. Giri..."
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
+                    required
+                  />
                 </div>
               </div>
 
@@ -1538,7 +1532,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                       setEditingKkId(null);
                       setNewNoKk('');
                       setNewKepala('');
-                      setNewIncome('under_2m');
+                      setNewAlamat('RT 35 Manggar');
                     }}
                     className="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all font-extrabold text-xs"
                   >
@@ -1695,22 +1689,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
               </div>
             </div>
 
-            {/* INCOME ESTIMATES */}
-            <div className="premium-card p-6">
-              <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 pb-3 border-b border-slate-100 text-center mb-4">
-                Estimasi Pendapatan (KK)
-              </h4>
-              <div className="w-full h-44">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={incomeData}>
-                    <XAxis dataKey="range" tick={{ fontSize: 9, fontWeight: 700 }} />
-                    <YAxis tick={{ fontSize: 9 }} />
-                    <Tooltip />
-                    <Bar dataKey="KK" fill="#1E4D6B" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+
 
             {/* EDUCATION */}
             <div className="premium-card p-6">

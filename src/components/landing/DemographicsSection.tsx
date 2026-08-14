@@ -34,12 +34,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
     { name: 'Wanita', value: demographics.total_wanita || 0, color: '#cbd5e1' }, // Slate 300
   ];
 
-  const incomeData = [
-    { range: '< Rp 2 Juta', jumlah: demographics.income_under_2m || 0, color: '#475569' }, // Solid Slate 600
-    { range: 'Rp 2 - 5 Juta', jumlah: demographics.income_2m_to_5m || 0, color: '#475569' },
-    { range: 'Rp 5 - 10 Juta', jumlah: demographics.income_5m_to_10m || 0, color: '#475569' },
-    { range: '> Rp 10 Juta', jumlah: demographics.income_above_10m || 0, color: '#475569' },
-  ];
+
 
   const ageData = [
     { group: 'Balita (<5 thn)', total: demographics.total_balita || 0, icon: '👶', color: 'bg-slate-50 text-slate-800 border-slate-200' },
@@ -315,41 +310,22 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
               </div>
             </div>
 
-            {/* BAR CHART: DISTRIBUSI PENDAPATAN */}
+            {/* KELOMPOK USIA WARGA */}
             <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
                   <TrendingUp className="w-5 h-5 text-slate-700" />
-                  <span>Estimasi Pendapatan per KK</span>
+                  <span>Statistik Kelompok Usia</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">Distribusi perkiraan tingkat pendapatan bulanan per Kartu Keluarga (KK)</p>
+                <p className="text-xs text-slate-500 mt-1">Pembagian demografi warga berdasarkan rentang usia di RT 35</p>
               </div>
 
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={incomeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="range" tick={{ fill: '#475569', fontSize: 11 }} />
-                    <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#334155' }}
-                      formatter={(value: any) => [`${value} KK`, 'Jumlah']}
-                    />
-                    <Bar dataKey="jumlah" radius={[8, 8, 0, 0]}>
-                      {incomeData.map((entry, index) => (
-                        <Cell key={`bar-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* AGE GROUP INFO */}
-              <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-105">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 my-auto">
                 {ageData.map((item, idx) => (
-                  <div key={idx} className={`p-3 rounded-2xl border ${item.color} text-center space-y-1 shadow-sm`}>
-                    <span className="text-base">{item.icon}</span>
-                    <p className="text-[10px] font-bold tracking-tight uppercase opacity-90">{item.group}</p>
-                    <p className="text-base font-black">{item.total} <span className="text-[9px] font-normal opacity-70">Jiwa</span></p>
+                  <div key={idx} className={`p-5 rounded-2xl border ${item.color} text-center space-y-2.5 shadow-sm flex flex-col items-center justify-center`}>
+                    <span className="text-2xl">{item.icon}</span>
+                    <p className="text-xs font-black tracking-tight uppercase opacity-90">{item.group}</p>
+                    <p className="text-xl font-black">{item.total} <span className="text-xs font-normal opacity-70">Jiwa</span></p>
                   </div>
                 ))}
               </div>
