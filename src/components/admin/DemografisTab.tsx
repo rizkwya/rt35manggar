@@ -316,7 +316,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         family_card_id: cardId,
         nik: m.nik,
         nama: m.name,
-        hubungan: m.relationship,
+        hubungan: m.relationship || 'Anak',
         jenis_kelamin: m.gender,
         tanggal_lahir: m.birthDate || null,
         pendidikan: m.education,
@@ -642,7 +642,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         umkmName: memberIsUmkm ? memberUmkmName.trim() : '',
         status: memberStatus,
         exitDate: memberStatus !== 'Aktif' ? outDateStr : '',
-        exitReason: memberStatus !== 'Aktif' ? memberExitReason : undefined
+        exitReason: memberStatus !== 'Aktif' ? memberExitReason : undefined,
+        relationship: 'Anak'
       };
       updatedMembers = [...targetKk.members, newMember];
     }
