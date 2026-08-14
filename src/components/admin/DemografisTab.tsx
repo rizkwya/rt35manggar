@@ -24,6 +24,8 @@ import { RTDemographics, RTSettings, KKRecord, KKMember } from '../../types/data
 import { SupabaseService, supabase } from '../../lib/supabase';
 import { INITIAL_DEMOGRAPHICS } from '../../lib/initialData';
 
+let localKkListCache: KKRecord[] = [];
+
 interface DemografisTabProps {
   initialDemographics: RTDemographics | null;
   onUpdateDemographics: (data: RTDemographics) => void;
@@ -42,8 +44,23 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [loading, setLoading] = useState(false);
   const [demographics, setDemographics] = useState<RTDemographics | null>(initialDemographics || INITIAL_DEMOGRAPHICS);
   
-  // KK list state loaded from settings
-  const [kkList, setKkList] = useState<KKRecord[]>([]);
+  // KK list state loaded from cache/settings
+  const [kkList, setKkList] = useState<KKRecord[]>(() => {
+    if (localKkListCache && localKkListCache.length > 0) {
+      return localKkListCache;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('rt35_kk_list_cache');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          localKkListCache = parsed;
+          return parsed;
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
   const [activeSubTab, setActiveSubTab] = useState<'database' | 'visualisasi'>('database');
   
   // Filter for displaying inactive/moved citizens
@@ -174,6 +191,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
               })
             );
             setKkList(compiledList);
+            localKkListCache = compiledList;
+            try { localStorage.setItem('rt35_kk_list_cache', JSON.stringify(compiledList)); } catch (e) {}
           }
           return;
         }
@@ -216,6 +235,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
           })
         );
         setKkList(compiledList);
+        localKkListCache = compiledList;
+        try { localStorage.setItem('rt35_kk_list_cache', JSON.stringify(compiledList)); } catch (e) {}
       }
     } catch (err) {
       console.error('Failed loading family data:', err);
@@ -225,7 +246,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   };
 
   useEffect(() => {
-    loadKkData();
+    const showSpinner = localKkListCache.length === 0;
+    loadKkData(showSpinner);
 
     // Supabase Realtime Subscription
     const channel = supabase
@@ -359,6 +381,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     try {
       // 1. Update local list state
       setKkList(updatedList);
+      localKkListCache = updatedList;
+      try { localStorage.setItem('rt35_kk_list_cache', JSON.stringify(updatedList)); } catch (e) {}
 
       // 2. Perform demographic calculations
       let total_kk = updatedList.length;
