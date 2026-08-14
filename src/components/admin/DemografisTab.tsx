@@ -80,8 +80,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [searchKk, setSearchKk] = useState('');
 
   // Load KK and members directly from Supabase tables
-  const loadKkData = async () => {
-    setLoading(true);
+  const loadKkData = async (showLoadingSpinner = true) => {
+    if (showLoadingSpinner) setLoading(true);
     try {
       const { data: cardsData, error: cardsErr } = await supabase
         .from('family_cards')
@@ -216,12 +216,47 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     } catch (err) {
       console.error('Failed loading family data:', err);
     } finally {
-      setLoading(false);
+      if (showLoadingSpinner) setLoading(false);
     }
   };
 
   useEffect(() => {
     loadKkData();
+
+    // Supabase Realtime Subscription
+    const channel = supabase
+      .channel('demografis-realtime-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'family_cards' },
+        () => {
+          loadKkData(false); // Fetch silently in the background
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'family_members' },
+        () => {
+          loadKkData(false); // Fetch silently in the background
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_demographics' },
+        async () => {
+          // Fetch updated demographics silently
+          const { data } = await supabase.from('rt_demographics').select('*').single();
+          if (data) {
+            setDemographics(data);
+            onUpdateDemographics(data);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
