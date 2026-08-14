@@ -45,7 +45,17 @@ export const App = () => {
       const stored = localStorage.getItem('userProfile');
       if (stored) {
         try {
-          return JSON.parse(stored);
+          const profile = JSON.parse(stored);
+          const override = localStorage.getItem('rt35_local_profile_override');
+          if (override) {
+            const parsedOverride = JSON.parse(override);
+            return {
+              ...profile,
+              full_name: parsedOverride.full_name || profile.full_name,
+              avatar_url: parsedOverride.avatar_url || profile.avatar_url
+            };
+          }
+          return profile;
         } catch (e) {
           console.warn("Failed to parse stored user profile session on init:", e);
           return null;
@@ -313,8 +323,22 @@ export const App = () => {
     profile: UserProfile, 
     _redirectTo?: 'dashboard'
   ) => {
+    let finalProfile = { ...profile };
+    if (typeof window !== 'undefined') {
+      const override = localStorage.getItem('rt35_local_profile_override');
+      if (override) {
+        try {
+          const parsedOverride = JSON.parse(override);
+          finalProfile.full_name = parsedOverride.full_name || profile.full_name;
+          finalProfile.avatar_url = parsedOverride.avatar_url || profile.avatar_url;
+        } catch (e) {}
+      }
+      localStorage.setItem('userRole', role);
+      localStorage.setItem('userProfile', JSON.stringify(finalProfile));
+    }
+
     setCurrentRole(role);
-    setUserProfile(profile);
+    setUserProfile(finalProfile);
 
     if (role === 'sekretaris_rt') {
       navigateTo('/admin/dashboard');
