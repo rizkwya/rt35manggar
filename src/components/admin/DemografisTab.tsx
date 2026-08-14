@@ -470,9 +470,17 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   };
 
   // KK Actions
-  const handleAddOrEditKk = (e: React.FormEvent) => {
+  const handleAddOrEditKk = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newNoKk.trim() || !newKepala.trim()) return;
+    if (loading) return;
+
+    // Duplication Check (No. KK)
+    const kkExists = kkList.some(kk => kk.no_kk === newNoKk.trim() && kk.id !== editingKkId);
+    if (kkExists) {
+      alert(`Nomor Kartu Keluarga (KK) "${newNoKk.trim()}" sudah terdaftar dalam sistem! Periksa kembali.`);
+      return;
+    }
 
     let updated: KKRecord[];
     if (editingKkId) {
@@ -499,10 +507,14 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       updated = [...kkList, newKk];
     }
 
-    setNewNoKk('');
-    setNewKepala('');
-    setNewIncome('under_2m');
-    recalculateAndSave(updated);
+    try {
+      await recalculateAndSave(updated);
+      setNewNoKk('');
+      setNewKepala('');
+      setNewIncome('under_2m');
+    } catch (err: any) {
+      console.error("Gagal menambahkan KK:", err);
+    }
   };
 
   const handleEditKkClick = (kk: KKRecord) => {
@@ -522,9 +534,19 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   };
 
   // Member Actions
-  const handleAddOrEditMember = (e: React.FormEvent) => {
+  const handleAddOrEditMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!memberName.trim() || !memberNik.trim() || !memberBirthDate) return;
+    if (loading) return;
+
+    // Duplication Check (NIK)
+    const nikExists = kkList.some(kk => 
+      kk.members.some(m => m.nik === memberNik.trim() && m.id !== editingMemberId)
+    );
+    if (nikExists) {
+      alert(`NIK "${memberNik.trim()}" sudah terdaftar di sistem! Periksa kembali.`);
+      return;
+    }
 
     const targetKk = kkList.find(kk => kk.id === selectedKkId);
     if (!targetKk) return;
@@ -581,20 +603,24 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       return kk;
     });
 
-    setMemberName('');
-    setMemberNik('');
-    setMemberGender('Laki-laki');
-    setMemberBirthDate('');
-    setMemberEducation('Tidak Sekolah');
-    setMemberJob('Lainnya');
-    setMemberRegDate('');
-    setMemberIsUmkm(false);
-    setMemberUmkmName('');
-    setMemberStatus('Aktif');
-    setMemberExitDate('');
-    setMemberExitReason('Pindah');
-    setShowAddMember(false);
-    recalculateAndSave(updatedKkList);
+    try {
+      await recalculateAndSave(updatedKkList);
+      setMemberName('');
+      setMemberNik('');
+      setMemberGender('Laki-laki');
+      setMemberBirthDate('');
+      setMemberEducation('Tidak Sekolah');
+      setMemberJob('Lainnya');
+      setMemberRegDate('');
+      setMemberIsUmkm(false);
+      setMemberUmkmName('');
+      setMemberStatus('Aktif');
+      setMemberExitDate('');
+      setMemberExitReason('Pindah');
+      setShowAddMember(false);
+    } catch (err: any) {
+      console.error("Gagal menambahkan anggota:", err);
+    }
   };
 
   const handleEditMemberClick = (m: KKMember) => {
@@ -1105,9 +1131,10 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                       </div>
                       <button
                         type="submit"
-                        className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-white font-extrabold text-xs shadow-sm transition-all"
+                        disabled={loading}
+                        className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-white font-extrabold text-xs shadow-sm transition-all disabled:opacity-60"
                       >
-                        {editingMemberId ? 'Simpan Perubahan' : 'Simpan Anggota'}
+                        {loading ? 'Menyimpan...' : (editingMemberId ? 'Simpan Perubahan' : 'Simpan Anggota')}
                       </button>
                     </div>
                   </form>
@@ -1263,10 +1290,10 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-2 w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-850 text-white transition-all font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow"
+                  className="flex-2 w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-850 text-white transition-all font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow disabled:opacity-60"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{editingKkId ? 'Simpan Perubahan' : 'Tambah KK'}</span>
+                  <span>{loading ? 'Menyimpan...' : (editingKkId ? 'Simpan Perubahan' : 'Tambah KK')}</span>
                 </button>
               </div>
             </form>
