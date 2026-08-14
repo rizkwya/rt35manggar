@@ -248,12 +248,15 @@ export const App = () => {
       .channel('realtime-users')
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'users' },
+        { event: '*', schema: 'public', table: 'users' },
         (payload) => {
           if (payload.new) {
             const updatedUser = payload.new as any;
             setUserProfile(currentUser => {
-              if (currentUser && currentUser.email === updatedUser.email) {
+              if (currentUser && (
+                currentUser.id === updatedUser.id || 
+                currentUser.email.toLowerCase() === updatedUser.email.toLowerCase()
+              )) {
                 const finalProfile = {
                   ...currentUser,
                   full_name: updatedUser.full_name,
