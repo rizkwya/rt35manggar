@@ -62,6 +62,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [showAddMember, setShowAddMember] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [memberName, setMemberName] = useState('');
+  const [memberRelationship, setMemberRelationship] = useState<string>('Anak');
   const [memberNik, setMemberNik] = useState('');
   const [memberGender, setMemberGender] = useState<'Laki-laki' | 'Perempuan'>('Laki-laki');
   const [memberBirthDate, setMemberBirthDate] = useState('');
@@ -622,7 +623,8 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
             umkmName: memberIsUmkm ? memberUmkmName.trim() : '',
             status: memberStatus,
             exitDate: memberStatus !== 'Aktif' ? outDateStr : '',
-            exitReason: memberStatus !== 'Aktif' ? memberExitReason : undefined
+            exitReason: memberStatus !== 'Aktif' ? memberExitReason : undefined,
+            relationship: memberRelationship
           };
         }
         return m;
@@ -643,7 +645,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         status: memberStatus,
         exitDate: memberStatus !== 'Aktif' ? outDateStr : '',
         exitReason: memberStatus !== 'Aktif' ? memberExitReason : undefined,
-        relationship: 'Anak'
+        relationship: memberRelationship
       };
       updatedMembers = [...targetKk.members, newMember];
     }
@@ -672,6 +674,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       setMemberStatus('Aktif');
       setMemberExitDate('');
       setMemberExitReason('Pindah');
+      setMemberRelationship('Anak');
       setShowAddMember(false);
     } catch (err: any) {
       console.error("Gagal menambahkan anggota:", err);
@@ -695,6 +698,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     setMemberStatus(m.status || 'Aktif');
     setMemberExitDate(m.exitDate || '');
     setMemberExitReason(m.exitReason || 'Pindah');
+    setMemberRelationship(m.relationship || 'Anak');
     setShowAddMember(true);
   };
 
@@ -1047,7 +1051,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                 {showAddMember && (
                   <form onSubmit={handleAddOrEditMember} className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-4 text-xs font-bold text-slate-700">
                     <h4 className="text-sm font-black text-slate-900">{editingMemberId ? 'Edit Anggota Keluarga' : 'Tambah Anggota Keluarga Baru'}</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Nama Lengkap</label>
                         <input
@@ -1069,6 +1073,22 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                           className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
                           required
                         />
+                      </div>
+                      <div>
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Hubungan Keluarga</label>
+                        <select
+                          value={memberRelationship}
+                          onChange={(e) => setMemberRelationship(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-850"
+                        >
+                          <option value="Suami">Suami</option>
+                          <option value="Istri">Istri</option>
+                          <option value="Anak">Anak</option>
+                          <option value="Orang Tua">Orang Tua</option>
+                          <option value="Mertua">Mertua</option>
+                          <option value="Famili Lain">Famili Lain</option>
+                          <option value="Lainnya">Lainnya</option>
+                        </select>
                       </div>
                     </div>
 
