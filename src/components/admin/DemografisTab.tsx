@@ -970,39 +970,82 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                     </div>
 
                     {/* Pagination Controls */}
-                    {Math.ceil(kkList.length / itemsPerPage) > 1 && (
-                      <div className="flex items-center justify-center space-x-1.5 pt-4">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
-                          disabled={currentPage === 1}
-                          className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
-                          aria-label="Previous page"
-                        >
-                          &larr;
-                        </button>
-                        {Array.from({ length: Math.ceil(kkList.length / itemsPerPage) }, (_, i) => i + 1).map((p) => (
+                    {(() => {
+                      const totalPages = Math.ceil(filteredKkList.length / itemsPerPage);
+                      if (totalPages <= 1) return null;
+
+                      // Generate smart page list
+                      const getPageNumbers = () => {
+                        const pages = [];
+                        if (totalPages <= 7) {
+                          for (let i = 1; i <= totalPages; i++) {
+                            pages.push(i);
+                          }
+                        } else {
+                          pages.push(1);
+                          const start = Math.max(2, currentPage - 1);
+                          const end = Math.min(totalPages - 1, currentPage + 1);
+
+                          if (start > 2) {
+                            pages.push('...');
+                          }
+
+                          for (let i = start; i <= end; i++) {
+                            pages.push(i);
+                          }
+
+                          if (end < totalPages - 1) {
+                            pages.push('...');
+                          }
+
+                          pages.push(totalPages);
+                        }
+                        return pages;
+                      };
+
+                      return (
+                        <div className="flex items-center justify-center space-x-1.5 pt-4 flex-wrap gap-y-2">
                           <button
-                            key={p}
-                            onClick={(e) => { e.stopPropagation(); setCurrentPage(p); }}
-                            className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
-                              currentPage === p
-                                ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                            }`}
+                            onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
+                            disabled={currentPage === 1}
+                            className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8 shadow-sm"
+                            aria-label="Previous page"
                           >
-                            {p}
+                            &larr;
                           </button>
-                        ))}
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.min(prev + 1, Math.ceil(kkList.length / itemsPerPage))); }}
-                          disabled={currentPage === Math.ceil(kkList.length / itemsPerPage)}
-                          className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
-                          aria-label="Next page"
-                        >
-                          &rarr;
-                        </button>
-                      </div>
-                    )}
+                          {getPageNumbers().map((p, index) => {
+                            if (p === '...') {
+                              return (
+                                <span key={`ellipsis-${index}`} className="px-2 text-slate-400 font-black text-xs select-none">
+                                  ...
+                                </span>
+                              );
+                            }
+                            return (
+                              <button
+                                key={`page-${p}`}
+                                onClick={(e) => { e.stopPropagation(); setCurrentPage(p as number); }}
+                                className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border shadow-sm ${
+                                  currentPage === p
+                                    ? 'bg-slate-900 text-white border-slate-900'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                }`}
+                              >
+                                {p}
+                              </button>
+                            );
+                          })}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
+                            disabled={currentPage === totalPages}
+                            className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8 shadow-sm"
+                            aria-label="Next page"
+                          >
+                            &rarr;
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
