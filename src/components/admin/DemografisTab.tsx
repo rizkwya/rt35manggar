@@ -17,7 +17,9 @@ import {
   User,
   Heart,
   LogOut,
-  Sparkles
+  Sparkles,
+  AlertTriangle,
+  HelpCircle
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, AreaChart, Area, CartesianGrid, Legend } from 'recharts';
 import { RTDemographics, RTSettings, KKRecord, KKMember } from '../../types/database';
@@ -97,6 +99,52 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const itemsPerPage = 10;
 
   const [searchKk, setSearchKk] = useState('');
+
+  // Custom dialog popup state
+  const [dialogConfig, setDialogConfig] = useState<{
+    isOpen: boolean;
+    type: 'alert' | 'confirm';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+    onCancel?: () => void;
+  } | null>(null);
+
+  const showCustomAlert = (message: string, title = 'Perhatian') => {
+    setDialogConfig({
+      isOpen: true,
+      type: 'alert',
+      title,
+      message
+    });
+  };
+
+  const showCustomConfirm = (message: string, onConfirm: () => void, title = 'Konfirmasi') => {
+    setDialogConfig({
+      isOpen: true,
+      type: 'confirm',
+      title,
+      message,
+      onConfirm: () => {
+        setDialogConfig(null);
+        onConfirm();
+      },
+      onCancel: () => {
+        setDialogConfig(null);
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (dialogConfig?.isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [dialogConfig?.isOpen]);
 
   // Load KK and members directly from Supabase tables
   const loadKkData = async (showLoadingSpinner = true) => {
@@ -530,7 +578,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       showSuccess('Database KK & statistik otomatis berhasil disinkronisasi!');
     } catch (err: any) {
       console.error('Recalculation error:', err);
-      alert('Gagal mensinkronisasikan data: ' + err.message);
+      showCustomAlert('Gagal mensinkronisasikan data: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -545,14 +593,14 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
 
     // Length validation
     if (cleanedNoKk.length !== 16) {
-      alert("Nomor Kartu Keluarga (KK) harus tepat berukuran 16 digit angka!");
+      showCustomAlert("Nomor Kartu Keluarga (KK) harus tepat berukuran 16 digit angka!");
       return;
     }
 
     // Duplication Check (No. KK)
     const kkExists = kkList.some(kk => kk.no_kk === cleanedNoKk && kk.id !== editingKkId);
     if (kkExists) {
-      alert(`Nomor Kartu Keluarga (KK) "${cleanedNoKk}" sudah terdaftar dalam sistem! Periksa kembali.`);
+      showCustomAlert(`Nomor Kartu Keluarga (KK) "${cleanedNoKk}" sudah terdaftar dalam sistem! Periksa kembali.`);
       return;
     }
 
@@ -589,7 +637,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       setNewIncome('under_2m');
     } catch (err: any) {
       console.error("Gagal menambahkan KK:", err);
-      alert("Gagal menambahkan KK: " + err.message);
+      showCustomAlert("Gagal menambahkan KK: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -603,21 +651,22 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   };
 
   const handleDeleteKk = async (id: string) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus Kartu Keluarga ini? Semua anggota di dalamnya akan terhapus.')) return;
-    try {
-      setLoading(true);
-      await deleteCardFromDatabase(id);
-      const updated = kkList.filter(kk => kk.id !== id);
-      if (selectedKkId === id) {
-        setSelectedKkId(null);
+    showCustomConfirm('Apakah Anda yakin ingin menghapus Kartu Keluarga ini? Semua anggota di dalamnya akan terhapus.', async () => {
+      try {
+        setLoading(true);
+        await deleteCardFromDatabase(id);
+        const updated = kkList.filter(kk => kk.id !== id);
+        if (selectedKkId === id) {
+          setSelectedKkId(null);
+        }
+        await recalculateAndSave(updated);
+      } catch (err: any) {
+        console.error("Gagal menghapus KK:", err);
+        showCustomAlert("Gagal menghapus KK: " + err.message);
+      } finally {
+        setLoading(false);
       }
-      await recalculateAndSave(updated);
-    } catch (err: any) {
-      console.error("Gagal menghapus KK:", err);
-      alert("Gagal menghapus KK: " + err.message);
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   // Member Actions
@@ -629,7 +678,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
 
     // Length validation
     if (cleanedNik.length !== 16) {
-      alert("Nomor Induk Kependudukan (NIK) harus tepat berukuran 16 digit angka!");
+      showCustomAlert("Nomor Induk Kependudukan (NIK) harus tepat berukuran 16 digit angka!");
       return;
     }
 
@@ -638,7 +687,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       kk.members.some(m => m.nik === cleanedNik && m.id !== editingMemberId)
     );
     if (nikExists) {
-      alert(`NIK "${cleanedNik}" sudah terdaftar di sistem! Periksa kembali.`);
+      showCustomAlert(`NIK "${cleanedNik}" sudah terdaftar di sistem! Periksa kembali.`);
       return;
     }
 
@@ -723,7 +772,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       setShowAddMember(false);
     } catch (err: any) {
       console.error("Gagal menambahkan anggota:", err);
-      alert("Gagal menambahkan anggota: " + err.message);
+      showCustomAlert("Gagal menambahkan anggota: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -749,32 +798,33 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   };
 
   const handleDeleteMember = async (memberId: string) => {
-    if (!window.confirm('Hapus anggota keluarga ini secara permanen dari database?')) return;
-    const targetKk = kkList.find(kk => kk.id === selectedKkId);
-    if (!targetKk) return;
+    showCustomConfirm('Hapus anggota keluarga ini secara permanen dari database?', async () => {
+      const targetKk = kkList.find(kk => kk.id === selectedKkId);
+      if (!targetKk) return;
 
-    const dirtyKk = {
-      ...targetKk,
-      members: targetKk.members.filter(m => m.id !== memberId)
-    };
+      const dirtyKk = {
+        ...targetKk,
+        members: targetKk.members.filter(m => m.id !== memberId)
+      };
 
-    const updatedKkList = kkList.map(kk => {
-      if (kk.id === selectedKkId) {
-        return dirtyKk;
+      const updatedKkList = kkList.map(kk => {
+        if (kk.id === selectedKkId) {
+          return dirtyKk;
+        }
+        return kk;
+      });
+
+      try {
+        setLoading(true);
+        await syncCardToDatabase(dirtyKk);
+        await recalculateAndSave(updatedKkList);
+      } catch (err: any) {
+        console.error("Gagal menghapus anggota:", err);
+        showCustomAlert("Gagal menghapus anggota: " + err.message);
+      } finally {
+        setLoading(false);
       }
-      return kk;
     });
-
-    try {
-      setLoading(true);
-      await syncCardToDatabase(dirtyKk);
-      await recalculateAndSave(updatedKkList);
-    } catch (err: any) {
-      console.error("Gagal menghapus anggota:", err);
-      alert("Gagal menghapus anggota: " + err.message);
-    } finally {
-      setLoading(false);
-    }
   };
 
   if (!demographics) {
@@ -1684,7 +1734,54 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
           
         </div>
       )}
-      
+      {/* CUSTOM DIALOG POPUP MODAL */}
+      {dialogConfig?.isOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 border border-slate-200 shadow-2xl space-y-5 animate-scale-up text-center">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
+              {dialogConfig.type === 'confirm' ? (
+                <HelpCircle className="w-6 h-6 text-slate-600" />
+              ) : (
+                <AlertTriangle className="w-6 h-6 text-amber-500" />
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-base font-black text-slate-900">{dialogConfig.title}</h3>
+              <p className="text-xs text-slate-500 font-semibold leading-relaxed">{dialogConfig.message}</p>
+            </div>
+
+            <div className="flex items-center justify-center gap-3 pt-2">
+              {dialogConfig.type === 'confirm' ? (
+                <>
+                  <button
+                    onClick={() => setDialogConfig(null)}
+                    className="flex-1 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-black text-xs transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (dialogConfig.onConfirm) dialogConfig.onConfirm();
+                      setDialogConfig(null);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-colors shadow-md"
+                  >
+                    Ya, Hapus
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setDialogConfig(null)}
+                  className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-colors shadow-md"
+                >
+                  Dimengerti
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

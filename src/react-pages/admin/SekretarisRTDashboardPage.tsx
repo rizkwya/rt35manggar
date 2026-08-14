@@ -781,7 +781,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
 
         {/* Global Action Toast successMsg Alerts */}
         {savedSuccess && (
-          <div className="p-4 rounded-2xl bg-emerald-500 text-white font-extrabold text-xs shadow-md border border-emerald-600 animate-slide-up flex items-center justify-center">
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-6 py-3 rounded-2xl bg-emerald-600 text-white font-black text-xs shadow-2xl border border-emerald-500/25 flex items-center space-x-2 animate-scale-up whitespace-nowrap">
             <span>🎉 {successMsg}</span>
           </div>
         )}
