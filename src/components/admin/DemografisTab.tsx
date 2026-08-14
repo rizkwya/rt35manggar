@@ -66,8 +66,9 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [memberNik, setMemberNik] = useState('');
   const [memberGender, setMemberGender] = useState<'Laki-laki' | 'Perempuan'>('Laki-laki');
   const [memberBirthDate, setMemberBirthDate] = useState('');
+  const [memberBirthPlace, setMemberBirthPlace] = useState('');
   const [memberEducation, setMemberEducation] = useState<'SD' | 'SMP' | 'SMA' | 'Sarjana/Diploma' | 'Tidak Sekolah'>('Tidak Sekolah');
-  const [memberJob, setMemberJob] = useState<'PNS' | 'Swasta' | 'Wiraswasta' | 'Nelayan' | 'Lainnya'>('Lainnya');
+  const [memberJob, setMemberJob] = useState<'PNS' | 'Swasta' | 'Wiraswasta' | 'Nelayan' | 'Ibu Rumah Tangga' | 'Buruh' | 'Pelajar/Mahasiswa' | 'Pensiunan' | 'Lainnya'>('Lainnya');
   const [memberRegDate, setMemberRegDate] = useState('');
   const [memberIsUmkm, setMemberIsUmkm] = useState(false);
   const [memberUmkmName, setMemberUmkmName] = useState('');
@@ -149,6 +150,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                   nik: m.nik,
                   gender: m.jenis_kelamin,
                   birthDate: m.tanggal_lahir || '',
+                  birthPlace: m.tempat_lahir || '',
                   education: m.pendidikan || 'Tidak Sekolah',
                   job: m.pekerjaan || 'Lainnya',
                   relationship: m.hubungan,
@@ -190,6 +192,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
               nik: m.nik,
               gender: m.jenis_kelamin,
               birthDate: m.tanggal_lahir || '',
+              birthPlace: m.tempat_lahir || '',
               education: m.pendidikan || 'Tidak Sekolah',
               job: m.pekerjaan || 'Lainnya',
               relationship: m.hubungan,
@@ -319,6 +322,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         nama: m.name,
         hubungan: m.relationship || 'Anak',
         jenis_kelamin: m.gender,
+        tempat_lahir: m.birthPlace || '',
         tanggal_lahir: m.birthDate || null,
         pendidikan: m.education,
         pekerjaan: m.job,
@@ -616,6 +620,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
             nik: memberNik.trim(),
             gender: memberGender,
             birthDate: memberBirthDate,
+            birthPlace: memberBirthPlace.trim(),
             education: memberEducation,
             job: memberJob,
             registrationDate: regDateStr,
@@ -637,6 +642,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
         nik: memberNik.trim(),
         gender: memberGender,
         birthDate: memberBirthDate,
+        birthPlace: memberBirthPlace.trim(),
         education: memberEducation,
         job: memberJob,
         registrationDate: regDateStr,
@@ -666,6 +672,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       setMemberNik('');
       setMemberGender('Laki-laki');
       setMemberBirthDate('');
+      setMemberBirthPlace('');
       setMemberEducation('Tidak Sekolah');
       setMemberJob('Lainnya');
       setMemberRegDate('');
@@ -690,6 +697,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     setMemberNik(m.nik);
     setMemberGender(m.gender);
     setMemberBirthDate(m.birthDate);
+    setMemberBirthPlace(m.birthPlace || '');
     setMemberEducation(m.education);
     setMemberJob(m.job);
     setMemberRegDate(m.registrationDate || '');
@@ -1092,7 +1100,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                       <div>
                         <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Jenis Kelamin</label>
                         <select
@@ -1103,6 +1111,17 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                           <option value="Laki-laki">Laki-laki</option>
                           <option value="Perempuan">Perempuan</option>
                         </select>
+                      </div>
+                      <div>
+                        <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Tempat Lahir</label>
+                        <input
+                          type="text"
+                          value={memberBirthPlace}
+                          onChange={(e) => setMemberBirthPlace(e.target.value)}
+                          placeholder="Kota Lahir"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389]"
+                          required
+                        />
                       </div>
                       <div>
                         <label className="block text-slate-505 uppercase tracking-wider mb-1.5">Tanggal Lahir</label>
@@ -1219,6 +1238,10 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                           <option value="Swasta">Karyawan Swasta</option>
                           <option value="Wiraswasta">Wiraswasta / UMKM</option>
                           <option value="Nelayan">Nelayan / Sektor Maritim</option>
+                          <option value="Ibu Rumah Tangga">Ibu Rumah Tangga (IRT)</option>
+                          <option value="Buruh">Buruh Harian Lepas</option>
+                          <option value="Pelajar/Mahasiswa">Pelajar / Mahasiswa</option>
+                          <option value="Pensiunan">Pensiunan</option>
                           <option value="Lainnya">Lainnya / Belum Bekerja</option>
                         </select>
                       </div>

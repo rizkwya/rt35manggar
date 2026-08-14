@@ -172,7 +172,7 @@ export interface KKMember {
   gender: 'Laki-laki' | 'Perempuan';
   birthDate: string; // YYYY-MM-DD
   education: 'SD' | 'SMP' | 'SMA' | 'Sarjana/Diploma' | 'Tidak Sekolah';
-  job: 'PNS' | 'Swasta' | 'Wiraswasta' | 'Nelayan' | 'Lainnya';
+  job: 'PNS' | 'Swasta' | 'Wiraswasta' | 'Nelayan' | 'Ibu Rumah Tangga' | 'Buruh' | 'Pelajar/Mahasiswa' | 'Pensiunan' | 'Lainnya';
   registrationDate?: string; // YYYY-MM-DD for Dukcapil tracking
   isUmkm?: boolean;
   umkmName?: string;
@@ -180,6 +180,7 @@ export interface KKMember {
   exitDate?: string;
   exitReason?: 'Pindah' | 'Meninggal' | 'Lainnya';
   relationship?: string;
+  birthPlace?: string;
 }
 
 export interface KKRecord {
