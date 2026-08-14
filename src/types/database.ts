@@ -21,10 +21,10 @@ export interface RTDemographics {
   total_lansia: number;
   total_usia_produktif: number;
   total_umkm: number;
-  income_under_2m: number;   // < Rp 2 Juta
-  income_2m_to_5m: number;   // Rp 2 - 5 Juta
-  income_5m_to_10m: number;  // Rp 5 - 10 Juta
-  income_above_10m: number;  // > Rp 10 Juta
+  income_under_2m?: number;   // < Rp 2 Juta
+  income_2m_to_5m?: number;   // Rp 2 - 5 Juta
+  income_5m_to_10m?: number;  // Rp 5 - 10 Juta
+  income_above_10m?: number;  // > Rp 10 Juta
   
   // 11. Tingkat Pendidikan
   edu_sd: number;
@@ -187,7 +187,7 @@ export interface KKRecord {
   id: string;
   no_kk: string;
   kepala_keluarga: string;
-  income: 'under_2m' | '2m_5m' | '5m_10m' | 'above_10m';
+  income?: 'under_2m' | '2m_5m' | '5m_10m' | 'above_10m';
   members: KKMember[];
   alamat?: string;
   rt_rw?: string;

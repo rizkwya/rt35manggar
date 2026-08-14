@@ -19,11 +19,7 @@ export const INITIAL_DEMOGRAPHICS: RTDemographics = {
   total_lansia: 0,
   total_usia_produktif: 0,
   total_umkm: 0,
-  income_under_2m: 0,
-  income_2m_to_5m: 0,
-  income_5m_to_10m: 0,
-  income_above_10m: 0,
-  
+
   // 11. Tingkat Pendidikan
   edu_sd: 0,
   edu_smp: 0,

@@ -440,10 +440,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       let total_usia_produktif = 0;
       let total_umkm = 0;
       
-      let income_under_2m = 0;
-      let income_2m_to_5m = 0;
-      let income_5m_to_10m = 0;
-      let income_above_10m = 0;
+
 
       let edu_sd = 0;
       let edu_smp = 0;
@@ -471,11 +468,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
       let warga_baru_des = 0;
 
       updatedList.forEach(kk => {
-        // Count incomes per KK
-        if (kk.income === 'under_2m') income_under_2m++;
-        else if (kk.income === '2m_5m') income_2m_to_5m++;
-        else if (kk.income === '5m_10m') income_5m_to_10m++;
-        else if (kk.income === 'above_10m') income_above_10m++;
+
 
         kk.members.forEach(m => {
           if (m.registrationDate) {
@@ -542,10 +535,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
           total_lansia,
           total_usia_produktif,
           total_umkm,
-          income_under_2m,
-          income_2m_to_5m,
-          income_5m_to_10m,
-          income_above_10m,
+
           edu_sd,
           edu_smp,
           edu_sma,
