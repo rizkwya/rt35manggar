@@ -511,7 +511,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
             </div>
 
             <div 
-              className="flex md:flex-col overflow-x-auto md:overflow-y-auto md:overflow-x-hidden gap-4 pb-4 md:pb-2 md:max-h-[520px] snap-x snap-mandatory w-full"
+              className="flex md:flex-col items-start md:items-stretch overflow-x-auto md:overflow-y-auto md:overflow-x-hidden gap-4 pb-4 md:pb-2 md:max-h-[520px] snap-x snap-mandatory w-full"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {announcements.length === 0 ? (
