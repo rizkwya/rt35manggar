@@ -157,9 +157,9 @@ export const SupabaseService = {
 
   async addAnnouncement(item: RTAnnouncement): Promise<RTAnnouncement[]> {
     try {
-      await supabase.from('rt_announcements').insert([item]);
+      await supabase.from('rt_announcements').upsert([item]);
     } catch (e) {
-      console.warn('Announcement insert error:', e);
+      console.warn('Announcement upsert error:', e);
     }
     return this.fetchAnnouncements();
   },

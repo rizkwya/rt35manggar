@@ -510,14 +510,17 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
               </span>
             </div>
 
-            <div className="flex md:flex-col overflow-x-auto md:overflow-y-auto md:overflow-x-hidden gap-4 pb-4 md:pb-2 md:max-h-[520px] scrollbar-thin snap-x snap-mandatory w-full">
+            <div 
+              className="flex md:flex-col overflow-x-auto md:overflow-y-auto md:overflow-x-hidden gap-4 pb-4 md:pb-2 md:max-h-[520px] snap-x snap-mandatory w-full"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {announcements.length === 0 ? (
                 <p className="text-slate-400 text-xs text-center py-8 w-full">Belum ada pengumuman baru dari pengurus RT.</p>
               ) : (
                 announcements.map((item) => (
                   <div
                     key={item.id}
-                    className={`min-w-[280px] sm:min-w-[340px] md:min-w-0 flex-shrink-0 snap-start p-5 rounded-2xl border transition-all duration-200 ${
+                    className={`min-w-[85%] sm:min-w-[450px] md:min-w-0 flex-shrink-0 snap-start p-5 rounded-2xl border transition-all duration-200 ${
                       item.is_urgent
                         ? 'bg-rose-50 border-rose-200 text-rose-800'
                         : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-400'
@@ -539,8 +542,8 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
                         <ShieldAlert className="w-4.5 h-4.5 text-rose-600 shrink-0" />
                       )}
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-600 mt-2.5 leading-relaxed">{item.content}</p>
-                    <div className="mt-3.5 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
+                    <p className="text-xs sm:text-sm text-slate-650 mt-3 leading-relaxed whitespace-pre-line break-words">{item.content}</p>
+                    <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
                       <span>Penerbit: <strong className="text-slate-700">{item.author}</strong></span>
                     </div>
                   </div>

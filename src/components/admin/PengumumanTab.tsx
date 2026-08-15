@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Clock, Trash2, ShieldAlert, Bell } from 'lucide-react';
+import { Plus, Clock, Trash2, ShieldAlert, Bell, Edit } from 'lucide-react';
 import { RTAnnouncement, UserProfile } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 
@@ -32,6 +32,7 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
   const [newContent, setNewContent] = useState('');
   const [newAuthor, setNewAuthor] = useState<string>(user.full_name || 'Sekretaris RT 35');
   const [isUrgent, setIsUrgent] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -45,7 +46,7 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
     if (!newTitle.trim() || !newContent.trim() || !newAuthor.trim()) return;
 
     const newItem: RTAnnouncement = {
-      id: generateUUID(),
+      id: editingId || generateUUID(),
       title: newTitle,
       category: newCategory,
       content: newContent,
@@ -64,13 +65,26 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
       setNewCategory('Informasi RT & Lainnya');
       setNewContent('');
       setIsUrgent(false);
-      showSuccess('Pengumuman baru resmi diterbitkan!');
+      setEditingId(null);
+      showSuccess(editingId ? 'Pengumuman berhasil diperbarui!' : 'Pengumuman baru resmi diterbitkan!');
     } catch (err: any) {
-      console.error('Error adding announcement:', err);
-      alert('Gagal menambahkan pengumuman: ' + err.message);
+      console.error('Error adding/updating announcement:', err);
+      alert('Gagal memproses pengumuman: ' + err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditAnnouncement = (item: RTAnnouncement) => {
+    setNewTitle(item.title);
+    setNewCategory(item.category);
+    setNewContent(item.content);
+    setNewAuthor(item.author);
+    setIsUrgent(item.is_urgent || false);
+    setEditingId(item.id);
+    
+    // Scroll smoothly to form on mobile devices
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteAnnouncement = async (id: string) => {
@@ -79,6 +93,13 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
     try {
       const updated = await SupabaseService.deleteAnnouncement(id);
       onUpdateAnnouncements(updated);
+      if (editingId === id) {
+        setNewTitle('');
+        setNewCategory('Informasi RT & Lainnya');
+        setNewContent('');
+        setIsUrgent(false);
+        setEditingId(null);
+      }
       showSuccess('Pengumuman berhasil dihapus.');
     } catch (err: any) {
       console.error('Error deleting announcement:', err);
@@ -100,8 +121,10 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
       {/* Form Column */}
       <form onSubmit={handleAddAnnouncement} className="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 space-y-6 shadow-sm">
         <div className="border-b border-slate-100 pb-2.5">
-          <h3 className="text-lg font-black text-slate-900">Buat Pengumuman Baru</h3>
-          <p className="text-xs text-slate-500 font-semibold mt-1">Siarkan berita resmi ke warga RT 35</p>
+          <h3 className="text-lg font-black text-slate-900">{editingId ? 'Ubah Pengumuman' : 'Buat Pengumuman Baru'}</h3>
+          <p className="text-xs text-slate-500 font-semibold mt-1">
+            {editingId ? 'Sesuaikan detail informasi warta RT 35' : 'Siarkan berita resmi ke warga RT 35'}
+          </p>
         </div>
 
         <div className="space-y-4 text-sm font-bold text-slate-700">
@@ -171,14 +194,31 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3.5 bg-slate-900 hover:bg-slate-850 disabled:bg-slate-300 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>{loading ? 'Menerbitkan...' : 'Terbitkan Pengumuman'}</span>
-        </button>
+        <div className="flex space-x-3">
+          {editingId && (
+            <button
+              type="button"
+              onClick={() => {
+                setNewTitle('');
+                setNewCategory('Informasi RT & Lainnya');
+                setNewContent('');
+                setIsUrgent(false);
+                setEditingId(null);
+              }}
+              className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl shadow-sm transition-all"
+            >
+              Batal
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-2 w-full py-3.5 bg-slate-900 hover:bg-slate-850 disabled:bg-slate-300 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{loading ? 'Menyimpan...' : (editingId ? 'Simpan Perubahan' : 'Terbitkan Pengumuman')}</span>
+          </button>
+        </div>
       </form>
 
       {/* List Column */}
@@ -238,15 +278,26 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteAnnouncement(item.id)}
-                      disabled={loading}
-                      className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100/50 transition-colors"
-                      title="Hapus pengumuman"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex space-x-1.5 shrink-0 self-start">
+                      <button
+                        type="button"
+                        onClick={() => handleEditAnnouncement(item)}
+                        disabled={loading}
+                        className="p-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-250 transition-all active:scale-95"
+                        title="Ubah warta"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAnnouncement(item.id)}
+                        disabled={loading}
+                        className="p-1.5 rounded-lg bg-rose-50 text-rose-650 hover:bg-rose-100 border border-rose-100/50 transition-all active:scale-95"
+                        title="Hapus pengumuman"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
