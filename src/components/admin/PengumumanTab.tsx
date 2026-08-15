@@ -271,7 +271,7 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
                           <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse inline-block" />
                         )}
                       </h4>
-                      <p className="text-xs text-slate-500 leading-relaxed max-w-xl">{item.content}</p>
+                      <p className="text-xs text-slate-500 leading-relaxed max-w-xl whitespace-pre-line break-all break-words">{item.content}</p>
                       
                       <div className="text-[10px] text-slate-400 font-bold pt-1.5">
                         Penerbit: <strong className="text-slate-600">{item.author}</strong>

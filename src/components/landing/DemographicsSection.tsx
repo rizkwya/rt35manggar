@@ -542,7 +542,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
                         <ShieldAlert className="w-4.5 h-4.5 text-rose-600 shrink-0" />
                       )}
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-650 mt-3 leading-relaxed whitespace-pre-line break-words">{item.content}</p>
+                    <p className="text-xs sm:text-sm text-slate-650 mt-3 leading-relaxed whitespace-pre-line break-all break-words">{item.content}</p>
                     <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
                       <span>Penerbit: <strong className="text-slate-700">{item.author}</strong></span>
                     </div>
