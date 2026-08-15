@@ -98,6 +98,13 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [currentMemberPage, setCurrentMemberPage] = useState(1);
+  const membersPerPage = 5;
+
+  useEffect(() => {
+    setCurrentMemberPage(1);
+  }, [selectedKkId]);
+
   const [searchKk, setSearchKk] = useState('');
 
   // Custom dialog popup state
@@ -1405,7 +1412,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {displayedMembers.map((m) => {
+                        {displayedMembers.slice((currentMemberPage - 1) * membersPerPage, currentMemberPage * membersPerPage).map((m) => {
                           const birthYear = m.birthDate ? new Date(m.birthDate).getFullYear() : 0;
                           const currentYear = new Date().getFullYear();
                           const age = birthYear ? currentYear - birthYear : '-';
@@ -1457,6 +1464,95 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                         })}
                       </tbody>
                     </table>
+
+                    {/* Member Pagination Controls */}
+                    {(() => {
+                      const totalMemberPages = Math.ceil(displayedMembers.length / membersPerPage);
+                      if (totalMemberPages <= 1) return null;
+
+                      // Generate smart page list for members
+                      const getMemberPageNumbers = () => {
+                        const pages = [];
+                        if (totalMemberPages <= 7) {
+                          for (let i = 1; i <= totalMemberPages; i++) {
+                            pages.push(i);
+                          }
+                        } else {
+                          pages.push(1);
+                          const start = Math.max(2, currentMemberPage - 1);
+                          const end = Math.min(totalMemberPages - 1, currentMemberPage + 1);
+
+                          if (start > 2) {
+                            pages.push('...');
+                          }
+
+                          for (let i = start; i <= end; i++) {
+                            pages.push(i);
+                          }
+
+                          if (end < totalMemberPages - 1) {
+                            pages.push('...');
+                          }
+
+                          pages.push(totalMemberPages);
+                        }
+                        return pages;
+                      };
+
+                      return (
+                        <div className="flex items-center justify-center space-x-1.5 pt-4 flex-wrap gap-y-2 border-t border-slate-100 mt-2">
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setCurrentMemberPage(prev => Math.max(prev - 1, 1)); }}
+                            disabled={currentMemberPage === 1}
+                            className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-[10px] transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[28px] h-7 shadow-sm"
+                            aria-label="Previous page"
+                          >
+                            &larr;
+                          </button>
+                          
+                          <div className="hidden sm:flex items-center space-x-1.5">
+                            {getMemberPageNumbers().map((p, index) => {
+                              if (p === '...') {
+                                return (
+                                  <span key={`ellipsis-member-${index}`} className="px-1.5 text-slate-400 font-black text-[10px] select-none">
+                                    ...
+                                  </span>
+                                );
+                              }
+                              return (
+                                <button
+                                  type="button"
+                                  key={`page-member-${p}`}
+                                  onClick={(e) => { e.stopPropagation(); setCurrentMemberPage(p as number); }}
+                                  className={`w-7 h-7 rounded-lg text-[10px] font-black transition-all active:scale-95 border shadow-sm ${
+                                    currentMemberPage === p
+                                      ? 'bg-slate-900 text-white border-slate-900'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                  }`}
+                                >
+                                  {p}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <span className="block sm:hidden text-[10px] font-black text-slate-600 px-2.5 select-none">
+                            Hal {currentMemberPage} / {totalMemberPages}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setCurrentMemberPage(prev => Math.min(prev + 1, totalMemberPages)); }}
+                            disabled={currentMemberPage === totalMemberPages}
+                            className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-[10px] transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[28px] h-7 shadow-sm"
+                            aria-label="Next page"
+                          >
+                            &rarr;
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
