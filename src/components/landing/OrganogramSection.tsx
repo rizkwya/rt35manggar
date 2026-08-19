@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { UserCheck, HeartHandshake, PhoneCall, ShieldCheck } from 'lucide-react';
 import { RTPengurus } from '../../types/database';
-import { SupabaseService } from '../../lib/supabase';
+import { SupabaseService, supabase } from '../../lib/supabase';
 
 interface OrganogramSectionProps {
   pengurusList: RTPengurus[];
@@ -23,6 +23,25 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
       }
     };
     loadLivePengurus();
+
+    // Subscribe to realtime database changes for dynamic updates without refreshing!
+    const channel = supabase
+      .channel('realtime-pengurus-public')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_pengurus' },
+        async () => {
+          const updatedData = await SupabaseService.fetchPengurus();
+          if (updatedData) {
+            setPengurusList(updatedData);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (pengurusList.length === 0) return null;
