@@ -224,10 +224,10 @@ export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, s
       {/* DETAIL & BOOKING MODAL (Responsive side-by-side layout) */}
       {selectedFacility && (
         <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh] md:max-h-[80vh]">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full overflow-y-auto md:overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh] md:max-h-[80vh]">
             
             {/* Left Column: Image & Live Google Map */}
-            <div className="w-full md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-slate-150 max-h-[45vh] md:max-h-full overflow-y-auto scrollbar-thin">
+            <div className="w-full md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-slate-150 md:max-h-full md:overflow-y-auto scrollbar-thin">
               {/* Facility Cover Photo */}
               <div className="relative h-48 sm:h-60 md:h-64 w-full shrink-0 bg-slate-100">
                 {selectedFacility.image_url ? (
@@ -264,7 +264,7 @@ export const FacilitiesPage: React.FC<FacilitiesPageProps> = ({ onGoToLanding, s
             </div>
 
             {/* Right Column: Title, Description, and Details Form */}
-            <div className="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto max-h-[45vh] md:max-h-full scrollbar-thin">
+            <div className="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-between md:max-h-full md:overflow-y-auto scrollbar-thin">
               <div className="space-y-5">
                 <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                   <div className="space-y-1.5">
