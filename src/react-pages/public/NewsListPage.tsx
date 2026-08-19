@@ -14,7 +14,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
 }) => {
   const [localNewsList, setLocalNewsList] = useState<NewsPost[]>(newsList);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Semua']);
   const [selectedArticle, setSelectedArticle] = useState<NewsPost | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,7 +23,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
   // Reset pagination to page 1 when search query or category filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategories]);
 
   // Read slug from URL parameters on mount and browser navigation history changes
   useEffect(() => {
@@ -78,12 +78,30 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
 
   const categories = ['Semua', 'Kegiatan Utama', 'Penghargaan', 'Pemberdayaan', 'Pembangunan', 'Lainnya'];
 
+  const handleToggleCategory = (cat: string) => {
+    if (cat === 'Semua') {
+      setSelectedCategories(['Semua']);
+    } else {
+      let next = [...selectedCategories];
+      next = next.filter(c => c !== 'Semua');
+      if (next.includes(cat)) {
+        next = next.filter(c => c !== cat);
+      } else {
+        next.push(cat);
+      }
+      if (next.length === 0) {
+        next = ['Semua'];
+      }
+      setSelectedCategories(next);
+    }
+  };
+
   // Filter & Search Logic
   const filteredArticles = localNewsList.filter((item) => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.summary.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'Semua' || item.category === selectedCategory;
+    const matchesCategory = selectedCategories.includes('Semua') || selectedCategories.includes(item.category);
     return matchesSearch && matchesCategory;
   });
 
@@ -97,7 +115,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
     <div className="max-w-7xl mx-auto px-4 pt-10 pb-2 sm:px-6 lg:px-8 animate-fade-in space-y-8">
       
       {selectedArticle ? (
-        // DETAIL VIEW
+        // DETAIL VIEW (Premium International Standard layout)
         <div className="max-w-4xl mx-auto space-y-6">
           <button 
             onClick={() => handleSelectArticle(null)}
@@ -108,13 +126,34 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
           </button>
 
           <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-md space-y-6">
-            <div className="space-y-2">
-              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 leading-tight">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-[9px] uppercase font-black px-2.5 py-1 rounded bg-slate-900 text-white shadow-sm">
+                  {selectedArticle.category}
+                </span>
+                <span className="text-[10px] text-slate-400 font-bold flex items-center space-x-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>
+                    {Math.max(1, Math.round((selectedArticle.content || '').split(' ').length / 200))} Menit Baca
+                  </span>
+                </span>
+              </div>
+
+              <h1 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">
                 {selectedArticle.title}
               </h1>
 
-              <div className="text-xs text-slate-400 font-bold">
-                Published on {new Date(selectedArticle.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              {/* Author profile card */}
+              <div className="flex items-center space-x-3 pt-2">
+                <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black">
+                  {selectedArticle.author_name ? selectedArticle.author_name.substring(0, 2).toUpperCase() : 'RT'}
+                </div>
+                <div className="text-xs font-bold text-slate-705">
+                  <p className="text-slate-900 font-black">{selectedArticle.author_name || 'Pengurus RT 35'}</p>
+                  <p className="text-[10px] text-slate-405 mt-0.5">
+                    Diterbitkan pada {new Date(selectedArticle.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
               </div>
               <hr className="border-slate-150 my-4" />
             </div>
@@ -135,7 +174,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
             )}
 
             <div 
-              className="text-slate-750 text-sm sm:text-base leading-relaxed font-semibold pt-2 tiptap-content"
+              className="text-slate-750 text-sm sm:text-base leading-relaxed font-semibold pt-4 tiptap-content prose max-w-none"
               dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
             />
           </div>
@@ -165,7 +204,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
                 placeholder="Cari berita atau pengumuman..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#85A389] transition-all"
+                className="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-slate-800 transition-all"
               />
             </div>
 
@@ -174,9 +213,9 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
               {categories.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => handleToggleCategory(cat)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 border ${
-                    selectedCategory === cat
+                    selectedCategories.includes(cat)
                       ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
                       : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
