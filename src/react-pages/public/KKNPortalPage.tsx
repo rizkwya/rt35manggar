@@ -10,8 +10,10 @@ interface KKNPortalPageProps {
   onBackToHome: () => void;
 }
 
-export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTeam, settings, onBackToHome }) => {
-  const [localKknTeam, setLocalKknTeam] = React.useState<TeamMember[]>(kknTeam);
+export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initialProker, kknTeam: initialTeam, settings, onBackToHome }) => {
+  const [localKknTeam, setLocalKknTeam] = React.useState<TeamMember[]>([]);
+  const [localProkerList, setLocalProkerList] = React.useState<ProkerItem[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [selectedProker, setSelectedProker] = React.useState<ProkerItem | null>(null);
   const [activeIdx, setActiveIdx] = React.useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = React.useState(true);
@@ -22,19 +24,24 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
   const minSwipeDistance = 50;
 
   React.useEffect(() => {
-    const fetchFreshTeam = async () => {
+    const fetchFreshData = async () => {
+      setIsLoading(true);
       try {
-        const fresh = await SupabaseService.fetchKKNTeam(true);
-        if (fresh && fresh.length > 0) {
-          setLocalKknTeam(fresh);
-        }
+        const [freshTeam, freshProker] = await Promise.all([
+          SupabaseService.fetchKKNTeam(true),
+          SupabaseService.fetchProker(),
+        ]);
+        if (freshTeam) setLocalKknTeam(freshTeam);
+        if (freshProker) setLocalProkerList(freshProker);
       } catch (err) {
-        console.warn('Failed to fetch fresh team on mount:', err);
+        console.warn('Failed to fetch fresh data on mount:', err);
+      } finally {
+        setIsLoading(false);
       }
     };
-    fetchFreshTeam();
+    fetchFreshData();
 
-    const channel = supabase
+    const teamChannel = supabase
       .channel('realtime-kkn-public-sync')
       .on(
         'postgres_changes',
@@ -46,10 +53,23 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
       )
       .subscribe();
 
+    const prokerChannel = supabase
+      .channel('realtime-proker-public-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_proker_kkn' },
+        async () => {
+          const updated = await SupabaseService.fetchProker();
+          setLocalProkerList(updated);
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(teamChannel);
+      supabase.removeChannel(prokerChannel);
     };
-  }, [kknTeam]);
+  }, []);
 
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
@@ -100,14 +120,14 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
     const checkProkerParam = () => {
       const params = new URLSearchParams(window.location.search);
       const prokerSlug = params.get('proker');
-      if (prokerSlug && prokerList.length > 0) {
+      if (prokerSlug && localProkerList.length > 0) {
         const generateSlug = (text: string) => {
           return text
             .toLowerCase()
             .replace(/[^\w ]+/g, '')
             .replace(/ +/g, '-');
         };
-        const found = prokerList.find(p => generateSlug(p.title) === prokerSlug);
+        const found = localProkerList.find(p => generateSlug(p.title) === prokerSlug);
         if (found) {
           setSelectedProker(found);
           window.scrollTo({ top: 0, behavior: 'instant' });
@@ -120,7 +140,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
     checkProkerParam();
     window.addEventListener('popstate', checkProkerParam);
     return () => window.removeEventListener('popstate', checkProkerParam);
-  }, [prokerList]);
+  }, [localProkerList]);
 
   const handleSelectProker = (proker: ProkerItem | null) => {
     const generateSlug = (text: string) => {
@@ -144,6 +164,15 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center space-y-4 pt-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0b5665]"></div>
+        <p className="text-xs font-bold text-slate-450 animate-pulse">Menghubungkan ke pusat data KKN RT 35...</p>
+      </div>
+    );
+  }
 
   if (selectedProker) {
     // FULL DETAIL PAGE VIEW (Clean & modern, matching the reference images)
@@ -247,10 +276,10 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
                   Program KKN Lainnya
                 </h3>
                 <ul className="space-y-3 text-xs font-semibold">
-                  {prokerList
-                    .filter(p => p.id !== selectedProker.id)
+                  {localProkerList
+                    .filter((p: any) => p.id !== selectedProker.id)
                     .slice(0, 4)
-                    .map((proker) => (
+                    .map((proker: any) => (
                       <li key={proker.id} className="border-b border-slate-100 pb-2.5 last:border-b-0 last:pb-0">
                         <button 
                           onClick={() => handleSelectProker(proker)} 
@@ -359,7 +388,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
             </div>
             <div>
               <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Jumlah Proker</p>
-              <h4 className="text-sm sm:text-base font-black text-slate-800">{prokerList.length} Program Utama</h4>
+              <h4 className="text-sm sm:text-base font-black text-slate-800">{localProkerList.length} Program Utama</h4>
             </div>
           </div>
 
@@ -406,7 +435,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
             id="proker-scroller"
             className="flex overflow-x-auto gap-6 pb-6 pt-2 scrollbar-thin snap-x snap-mandatory scroll-smooth"
           >
-            {prokerList.map((item) => (
+            {localProkerList.map((item: any) => (
               <div
                 key={item.id}
                 onClick={() => handleSelectProker(item)}
