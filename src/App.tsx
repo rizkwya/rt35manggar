@@ -600,6 +600,8 @@ export const App = () => {
                 prokerList={prokerList}
                 onUpdateProkerList={setProkerList}
                 navItems={navItems}
+                facilitiesList={facilitiesList}
+                onUpdateFacilitiesList={setFacilitiesList}
               />
             );
           }
@@ -627,6 +629,8 @@ export const App = () => {
             prokerList={prokerList}
             onUpdateProkerList={setProkerList}
             navItems={navItems}
+            facilitiesList={facilitiesList}
+            onUpdateFacilitiesList={setFacilitiesList}
           />;
         }
         return <LoginPage onLoginSuccess={handleLoginSuccess} onBackToHome={() => navigateTo(lastPublicPath)} />;
@@ -685,6 +689,8 @@ export const App = () => {
             prokerList={prokerList}
             onUpdateProkerList={setProkerList}
             navItems={navItems}
+            facilitiesList={facilitiesList}
+            onUpdateFacilitiesList={setFacilitiesList}
           />
         );
 

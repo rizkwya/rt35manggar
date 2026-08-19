@@ -4,11 +4,17 @@ import { RTFacility } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 
 interface FasilitasTabProps {
+  facilitiesList: RTFacility[];
+  onUpdateFacilitiesList: (list: RTFacility[]) => void;
   showSuccess: (msg: string) => void;
 }
 
-export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
-  const [facilities, setFacilities] = useState<RTFacility[]>([]);
+export const FasilitasTab: React.FC<FasilitasTabProps> = ({ 
+  facilitiesList, 
+  onUpdateFacilitiesList, 
+  showSuccess 
+}) => {
+  const [facilities, setFacilities] = useState<RTFacility[]>(facilitiesList);
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -25,20 +31,10 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
+  // Sync state with parent props to avoid reload
   useEffect(() => {
-    const loadFacilities = async () => {
-      setLoading(true);
-      try {
-        const data = await SupabaseService.fetchFacilities();
-        setFacilities(data);
-      } catch (err) {
-        console.error('Failed to load facilities:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadFacilities();
-  }, []);
+    setFacilities(facilitiesList);
+  }, [facilitiesList]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -82,7 +78,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
       }
 
       const updatedList = await SupabaseService.updateFacility(facilityObj);
-      setFacilities(updatedList);
+      onUpdateFacilitiesList(updatedList);
       
       // Reset Form
       setName('');
@@ -122,7 +118,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
     setDeletingId(id);
     try {
       const updatedList = await SupabaseService.deleteFacility(id);
-      setFacilities(updatedList);
+      onUpdateFacilitiesList(updatedList);
       showSuccess('Fasilitas umum berhasil dihapus!');
     } catch (err: any) {
       console.error(err);

@@ -22,7 +22,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import { RTDemographics, RTAnnouncement, UserProfile, RTPengurus, TeamMember, ProkerItem, RTSettings, NavigationItem, NewsPost } from '../../types/database';
+import { RTDemographics, RTAnnouncement, UserProfile, RTPengurus, TeamMember, ProkerItem, RTSettings, NavigationItem, NewsPost, RTFacility } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 import { KegiatanWargaTab } from '../../components/admin/KegiatanWargaTab';
 import { DemografisTab } from '../../components/admin/DemografisTab';
@@ -58,6 +58,8 @@ interface SekretarisRTDashboardProps {
   prokerList: ProkerItem[];
   onUpdateProkerList: (list: ProkerItem[]) => void;
   navItems: NavigationItem[];
+  facilitiesList: RTFacility[];
+  onUpdateFacilitiesList: (list: RTFacility[]) => void;
 }
 
 export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = ({ 
@@ -83,7 +85,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   onUpdateKknTeam,
   prokerList,
   onUpdateProkerList,
-  navItems
+  navItems,
+  facilitiesList,
+  onUpdateFacilitiesList
 }) => {
   const [activeTab, setActiveTab] = useState<'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi'>('demografis');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -836,6 +840,8 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
         {/* FASILITAS TAB */}
         {activeTab === 'fasilitas' && (
           <FasilitasTab
+            facilitiesList={facilitiesList}
+            onUpdateFacilitiesList={onUpdateFacilitiesList}
             showSuccess={showSuccess}
           />
         )}
