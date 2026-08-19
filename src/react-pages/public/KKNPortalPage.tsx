@@ -22,7 +22,17 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
   const minSwipeDistance = 50;
 
   React.useEffect(() => {
-    setLocalKknTeam(kknTeam);
+    const fetchFreshTeam = async () => {
+      try {
+        const fresh = await SupabaseService.fetchKKNTeam(true);
+        if (fresh && fresh.length > 0) {
+          setLocalKknTeam(fresh);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch fresh team on mount:', err);
+      }
+    };
+    fetchFreshTeam();
 
     const channel = supabase
       .channel('realtime-kkn-public-sync')
