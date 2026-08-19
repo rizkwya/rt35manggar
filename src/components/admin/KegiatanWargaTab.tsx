@@ -17,6 +17,9 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
   showSuccess,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [deletingIdx, setDeletingIdx] = useState<number | null>(null);
+  const [isSavingMeta, setIsSavingMeta] = useState(false);
   const [pageSubtitle, setPageSubtitle] = useState('');
   const [pageBody, setPageBody] = useState('');
   const [editingKegiatanIdx, setEditingKegiatanIdx] = useState<number | null>(null);
@@ -100,6 +103,9 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
     }
 
     setLoading(true);
+    if (editingKegiatanIdx === null) {
+      setIsAdding(true);
+    }
     try {
       let contentObj = { banner_url: '', subtitle: '', body: '', grid_items: [] as any[] };
       if (kegiatanPage.custom_content) {
@@ -160,6 +166,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
       alert('Gagal menyimpan kegiatan warga: ' + err.message);
     } finally {
       setLoading(false);
+      setIsAdding(false);
     }
   };
 
@@ -169,6 +176,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
     if (!window.confirm('Apakah Anda yakin ingin menghapus kegiatan warga ini?')) return;
 
     setLoading(true);
+    setDeletingIdx(idx);
     try {
       let contentObj = { banner_url: '', subtitle: '', body: '', grid_items: [] as any[] };
       if (kegiatanPage.custom_content) {
@@ -198,6 +206,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
       alert('Gagal menghapus kegiatan warga: ' + err.message);
     } finally {
       setLoading(false);
+      setDeletingIdx(null);
     }
   };
 
@@ -206,6 +215,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
     if (!kegiatanPage) return;
 
     setLoading(true);
+    setIsSavingMeta(true);
     try {
       let contentObj = { banner_url: '', subtitle: '', body: '', grid_items: [] as any[] };
       if (kegiatanPage.custom_content) {
@@ -234,6 +244,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
       alert('Gagal menyimpan informasi halaman: ' + err.message);
     } finally {
       setLoading(false);
+      setIsSavingMeta(false);
     }
   };
 
@@ -308,10 +319,19 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#1E4D6B] to-[#85A389] hover:opacity-95 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
+            className="px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-850 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
           >
-            <Save className="w-4.5 h-4.5 text-white" />
-            <span>Simpan Informasi Halaman</span>
+            {isSavingMeta ? (
+              <span className="flex items-center space-x-1.5">
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Menyimpan...</span>
+              </span>
+            ) : (
+              <>
+                <Save className="w-4.5 h-4.5 text-white" />
+                <span>Simpan Informasi Halaman</span>
+              </>
+            )}
           </button>
         </div>
       </form>
@@ -339,7 +359,8 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                 placeholder="Contoh: Kerja Bakti Minggu Bersih"
                 value={kegiatanTitle}
                 onChange={(e) => setKegiatanTitle(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-[#85A389]"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-slate-800 disabled:opacity-60"
+                disabled={loading}
               />
             </div>
 
@@ -351,17 +372,20 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                 placeholder="Contoh: Sosial, Kesehatan, Gotong Royong"
                 value={kegiatanBadge}
                 onChange={(e) => setKegiatanBadge(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-[#85A389]"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-slate-800 disabled:opacity-60"
+                disabled={loading}
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="block text-xs font-black uppercase tracking-wider text-slate-500">Deskripsi Kegiatan (Mendukung Rich Text)</label>
-              <TiptapEditor
-                content={kegiatanDesc}
-                onChange={setKegiatanDesc}
-                placeholder="Tulis rincian lengkap mengenai pelaksanaan kegiatan ini..."
-              />
+              <div className={loading ? 'opacity-60 pointer-events-none' : ''}>
+                <TiptapEditor
+                  content={kegiatanDesc}
+                  onChange={setKegiatanDesc}
+                  placeholder="Tulis rincian lengkap mengenai pelaksanaan kegiatan ini..."
+                />
+              </div>
             </div>
 
             {/* Gambar Kegiatan */}
@@ -376,28 +400,29 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                       type="button"
                       onClick={() => setKegiatanImageUrl('')}
                       className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow"
+                      disabled={loading}
                     >
                       Hapus Gambar
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="relative border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-slate-50 text-center hover:bg-slate-100/50 transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[100px]">
+                <div className={`relative border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-slate-50 text-center hover:bg-slate-100/50 transition-colors flex flex-col items-center justify-center min-h-[100px] ${loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleKegiatanImageUpload}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                    disabled={uploadingKegiatanImg}
+                    disabled={uploadingKegiatanImg || loading}
                   />
                   {uploadingKegiatanImg ? (
                     <div className="space-y-1.5">
-                      <div className="w-4 h-4 border-2 border-[#85A389] border-t-transparent rounded-full animate-spin mx-auto" />
+                      <div className="w-4 h-4 border-2 border-slate-800 border-t-transparent rounded-full animate-spin mx-auto" />
                       <span className="text-[9px] text-slate-555 font-bold">Mengunggah gambar...</span>
                     </div>
                   ) : (
                     <div className="space-y-0.5">
-                      <span className="text-xs font-extrabold text-[#5F8D4E] hover:underline block">
+                      <span className="text-xs font-extrabold text-slate-800 hover:underline block">
                         Upload Foto Kegiatan
                       </span>
                       <span className="text-[9px] text-slate-400 font-bold block">
@@ -414,10 +439,19 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="flex-grow py-3 rounded-2xl bg-[#85A389] hover:bg-[#729276] text-white font-extrabold text-xs shadow transition-all flex items-center justify-center space-x-1.5"
+              className="flex-grow py-3 rounded-2xl bg-slate-900 hover:bg-slate-850 text-white font-extrabold text-xs shadow transition-all flex items-center justify-center space-x-1.5 disabled:opacity-60"
             >
-              <Plus className="w-4 h-4 text-white" />
-              <span>{editingKegiatanIdx !== null ? 'Simpan Perubahan' : 'Tambah Kegiatan'}</span>
+              {loading && editingKegiatanIdx === null ? (
+                <span className="flex items-center space-x-1.5">
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Menyimpan...</span>
+                </span>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 text-white" />
+                  <span>{editingKegiatanIdx !== null ? 'Simpan Perubahan' : 'Tambah Kegiatan'}</span>
+                </>
+              )}
             </button>
 
             {editingKegiatanIdx !== null && (
@@ -458,10 +492,36 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
           ) : (
             <div className="space-y-4">
               <div className="space-y-3">
+                {/* Skeleton Loader at top only when adding a new activity */}
+                {isAdding && (
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4 animate-pulse min-h-[80px]">
+                    <div className="w-14 h-14 rounded-xl bg-slate-200 shrink-0" />
+                    <div className="space-y-2 flex-grow">
+                      <div className="h-3.5 bg-slate-200 rounded w-1/4" />
+                      <div className="h-4.5 bg-slate-200 rounded w-2/3" />
+                    </div>
+                  </div>
+                )}
+
                 {paginatedItems.map((item, idx) => {
                   const globalIdx = (currentPage - 1) * itemsPerPage + idx;
+                  const isSavingThis = editingKegiatanIdx === globalIdx && loading;
+                  const isDeletingThis = deletingIdx === globalIdx && loading;
+
+                  if (isSavingThis || isDeletingThis) {
+                    return (
+                      <div key={globalIdx} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4 animate-pulse min-h-[80px]">
+                        <div className="w-14 h-14 rounded-xl bg-slate-200 shrink-0" />
+                        <div className="space-y-2 flex-grow">
+                          <div className="h-3.5 bg-slate-200 rounded w-1/4" />
+                          <div className="h-4.5 bg-slate-250 rounded w-2/3" />
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
-                    <div key={globalIdx} className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:border-[#85A389]/30 transition-all">
+                    <div key={globalIdx} className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:border-slate-350 transition-all">
                       <div className="flex items-center space-x-4 min-w-0">
                         {item.image_url ? (
                           <img src={item.image_url} alt={item.title} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-100 shadow-sm" />
@@ -522,19 +582,29 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                   >
                     &larr;
                   </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setCurrentPage(p)}
-                      className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
-                        currentPage === p
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
+                  
+                  {/* Desktop Pagination Numbers */}
+                  <div className="hidden sm:flex items-center space-x-1.5">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setCurrentPage(p)}
+                        className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
+                          currentPage === p
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Mobile Pagination Info Indicator */}
+                  <span className="sm:hidden text-xs font-bold text-slate-500 px-3">
+                    Hal {currentPage} / {totalPages}
+                  </span>
+
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}

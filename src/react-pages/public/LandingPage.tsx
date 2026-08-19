@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserRole, RTSettings, NavigationItem, RTPengurus } from '../../types/database';
 import { HeaderBanner } from '../../components/landing/HeaderBanner';
 import { ProfileSection } from '../../components/landing/ProfileSection';
@@ -7,6 +7,7 @@ import { OrganogramSection } from '../../components/landing/OrganogramSection';
 import { LatestActivitiesSection } from '../../components/landing/LatestActivitiesSection';
 import { DeveloperCreditsSection } from '../../components/landing/DeveloperCreditsSection';
 import { ContactLocationSection } from '../../components/landing/ContactLocationSection';
+import { SupabaseService, supabase } from '../../lib/supabase';
 
 interface LandingPageProps {
   currentRole: UserRole;
@@ -23,12 +24,45 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   currentRole,
   navigateTo,
   settings,
-  navItems,
+  navItems: initialNavItems,
   pengurusList,
   onSettingsUpdate,
   defaultFormTab,
   onClearDefaultFormTab
 }) => {
+  const [navItems, setNavItems] = useState<NavigationItem[]>(initialNavItems || []);
+
+  useEffect(() => {
+    const loadLiveNav = async () => {
+      try {
+        const liveItems = await SupabaseService.fetchNavItems();
+        if (liveItems && liveItems.length > 0) {
+          setNavItems(liveItems);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch live navigation items:', err);
+      }
+    };
+    loadLiveNav();
+
+    const channel = supabase
+      .channel('realtime-navigation-public')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_navigation_items' },
+        async () => {
+          const updatedItems = await SupabaseService.fetchNavItems();
+          if (updatedItems) {
+            setNavItems(updatedItems);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [initialNavItems]);
   return (
     <>
       {/* 1. HERO BANNER PORTAL RT 35 */}

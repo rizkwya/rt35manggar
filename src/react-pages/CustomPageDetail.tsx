@@ -1,14 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import type { NavigationItem } from '../types/database';
+import { SupabaseService, supabase } from '../lib/supabase';
 
 interface CustomPageDetailProps {
   pageItem: NavigationItem;
   slug: string;
 }
 
-export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem, slug }) => {
+export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem: initialPageItem, slug }) => {
+  const [pageItem, setPageItem] = useState<NavigationItem>(initialPageItem);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadLivePage = async () => {
+      try {
+        const liveItems = await SupabaseService.fetchNavItems();
+        const livePage = liveItems.find((item) => item.id === initialPageItem.id || item.target_id === initialPageItem.target_id);
+        if (livePage) {
+          setPageItem(livePage);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch live page content:', err);
+      }
+    };
+    loadLivePage();
+
+    const channel = supabase
+      .channel('realtime-navigation-page')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_navigation_items' },
+        async () => {
+          const liveItems = await SupabaseService.fetchNavItems();
+          const livePage = liveItems.find((item) => item.id === initialPageItem.id || item.target_id === initialPageItem.target_id);
+          if (livePage) {
+            setPageItem(livePage);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [initialPageItem]);
 
   useEffect(() => {
     const handleUrlChange = () => {
