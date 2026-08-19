@@ -115,7 +115,7 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem: in
 
   if (selectedGridItem) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8 animate-fade-in space-y-6">
+      <div className="max-w-4xl mx-auto px-4 pt-12 pb-16 sm:pb-24 sm:px-6 lg:px-8 animate-fade-in space-y-6">
         {/* Back Button */}
         <div>
           <button 
@@ -128,17 +128,32 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem: in
         </div>
 
         <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-md space-y-6">
-          <div className="border-b border-slate-100 pb-5 space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              {selectedGridItem.badge && (
-                <span className="text-[10px] uppercase font-black px-2.5 py-0.5 rounded-md bg-[#1E4D6B]/15 text-[#1E4D6B] border border-[#1E4D6B]/25">
-                  {selectedGridItem.badge}
-                </span>
-              )}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-[9px] uppercase font-black px-2.5 py-1 rounded bg-slate-900 text-white shadow-sm">
+                {selectedGridItem.badge || 'Kegiatan Warga'}
+              </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+            
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">
               {selectedGridItem.title}
             </h1>
+
+            {/* Author profile card */}
+            <div className="flex items-center space-x-3 pt-2">
+              <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black">
+                RT
+              </div>
+              <div className="text-xs font-bold text-slate-705">
+                <p className="text-slate-900 font-black">Pengurus RT 35</p>
+                {selectedGridItem.created_at && (
+                  <p className="text-[10px] text-slate-405 mt-0.5">
+                    Dokumentasi tanggal {new Date(selectedGridItem.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                )}
+              </div>
+            </div>
+            <hr className="border-slate-150 my-4" />
           </div>
 
           {selectedGridItem.image_url ? (
@@ -156,7 +171,7 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem: in
           )}
 
           <div 
-            className="text-slate-700 text-sm sm:text-base leading-relaxed font-semibold pt-2 tiptap-content"
+            className="text-slate-750 text-sm sm:text-base leading-relaxed font-semibold pt-4 tiptap-content prose max-w-none"
             dangerouslySetInnerHTML={{ __html: selectedGridItem.description }}
           />
         </div>
