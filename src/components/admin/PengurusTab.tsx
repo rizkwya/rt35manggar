@@ -25,6 +25,8 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
   showSuccess
 }) => {
   const [loading, setLoading] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [newPName, setNewPName] = useState('');
   const [newPJabatan, setNewPJabatan] = useState('');
   const [newPPhone, setNewPPhone] = useState('');
@@ -94,6 +96,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
   const handleDeletePengurus = async (pId: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus data pengurus ini?')) return;
     setLoading(true);
+    setDeletingId(pId);
     try {
       const res = await SupabaseService.deletePengurus(pId);
       onUpdatePengurusList(res);
@@ -103,6 +106,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
       alert('Gagal menghapus pengurus: ' + err.message);
     } finally {
       setLoading(false);
+      setDeletingId(null);
     }
   };
 
@@ -119,6 +123,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
     };
 
     setLoading(true);
+    setIsAdding(true);
     try {
       const res = await SupabaseService.updatePengurus(newItem);
       onUpdatePengurusList(res);
@@ -132,6 +137,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
       alert('Gagal menambah pengurus: ' + (err.message || err));
     } finally {
       setLoading(false);
+      setIsAdding(false);
     }
   };
 
@@ -238,30 +244,36 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
           ) : (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
-                {/* Skeleton Loader during updates */}
-                {loading && (
-                  <>
-                    <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-5 animate-pulse">
-                      <div className="w-16 h-16 rounded-2xl bg-slate-200 shrink-0" />
-                      <div className="space-y-2 flex-grow">
-                        <div className="h-3.5 bg-slate-200 rounded w-1/3" />
-                        <div className="h-4.5 bg-slate-200 rounded w-2/3" />
-                        <div className="h-3.5 bg-slate-200 rounded w-1/2" />
-                      </div>
+                {/* Skeleton Loader at top only when adding a new officer */}
+                {isAdding && (
+                  <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-5 animate-pulse">
+                    <div className="w-16 h-16 rounded-2xl bg-slate-200 shrink-0" />
+                    <div className="space-y-2 flex-grow">
+                      <div className="h-3.5 bg-slate-200 rounded w-1/3" />
+                      <div className="h-4.5 bg-slate-200 rounded w-2/3" />
+                      <div className="h-3.5 bg-slate-200 rounded w-1/2" />
                     </div>
-                    <div className="hidden sm:flex p-5 rounded-2xl bg-white border border-slate-200 shadow-sm items-center space-x-5 animate-pulse">
-                      <div className="w-16 h-16 rounded-2xl bg-slate-200 shrink-0" />
-                      <div className="space-y-2 flex-grow">
-                        <div className="h-3.5 bg-slate-200 rounded w-1/3" />
-                        <div className="h-4.5 bg-slate-200 rounded w-2/3" />
-                        <div className="h-3.5 bg-slate-200 rounded w-1/2" />
-                      </div>
-                    </div>
-                  </>
+                  </div>
                 )}
 
                 {pengurusList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((p) => {
                   const isEditing = editingPengurusId === p.id;
+                  const isSavingThis = isEditing && loading;
+                  const isDeletingThis = deletingId === p.id && loading;
+
+                  if (isSavingThis || isDeletingThis) {
+                    return (
+                      <div key={p.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-5 animate-pulse min-h-[160px]">
+                        <div className="w-16 h-16 rounded-2xl bg-slate-200 shrink-0" />
+                        <div className="space-y-2 flex-grow">
+                          <div className="h-3.5 bg-slate-200 rounded w-1/3" />
+                          <div className="h-4.5 bg-slate-250 rounded w-2/3" />
+                          <div className="h-3.5 bg-slate-200 rounded w-1/2" />
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
                     <div key={p.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-5 hover:border-[#85A389]/30 transition-all duration-200">
                       {isEditing ? (
