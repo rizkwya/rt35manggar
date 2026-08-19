@@ -251,7 +251,10 @@ export const SupabaseService = {
   },
 
   // KKN TEAM MEMBERS CRUD (CORRESPONDING TO PUBLIC.USERS TABLE WITH ROLE = 'mahasiswa')
-  async fetchKKNTeam(): Promise<TeamMember[]> {
+  async fetchKKNTeam(bypassCache = false): Promise<TeamMember[]> {
+    if (bypassCache) {
+      localKknTeamStore = null;
+    }
     // 1. Always load cache first to make changes instantly persistent
     if (!localKknTeamStore) {
       try {

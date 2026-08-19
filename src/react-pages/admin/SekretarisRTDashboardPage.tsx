@@ -208,6 +208,16 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   const [editKProdi, setEditKProdi] = useState('');
   const [editKRole, setEditKRole] = useState('');
   const [editKAvatar, setEditKAvatar] = useState('');
+  const [editKDesc, setEditKDesc] = useState('');
+
+  // Add states for KKN Team Member
+  const [isAddingKKN, setIsAddingKKN] = useState(false);
+  const [newKName, setNewKName] = useState('');
+  const [newKNim, setNewKNim] = useState('');
+  const [newKProdi, setNewKProdi] = useState('');
+  const [newKRole, setNewKRole] = useState('');
+  const [newKAvatar, setNewKAvatar] = useState('');
+  const [newKDesc, setNewKDesc] = useState('');
 
   // Edit states for Proker
   const [editingProkerId, setEditingProkerId] = useState<string | null>(null);
@@ -255,6 +265,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
     setEditKProdi(m.prodi);
     setEditKRole(m.role_kkn);
     setEditKAvatar(m.avatar_url);
+    setEditKDesc(m.description || '');
   };
 
   const handleSaveKKN = async (mId: string) => {
@@ -270,7 +281,8 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
         nim: editKNim,
         prodi: editKProdi,
         role_kkn: editKRole,
-        avatar_url: editKAvatar
+        avatar_url: editKAvatar,
+        description: editKDesc
       };
 
       const res = await SupabaseService.updateKKNTeamMember(updatedMember);
@@ -280,6 +292,44 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
     } catch (err: any) {
       console.error('Error saving KKN member:', err);
       alert('Gagal menyimpan perubahan tim KKN: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateKKN = async () => {
+    if (!newKName.trim() || !newKNim.trim()) {
+      alert('Nama dan NIM wajib diisi!');
+      return;
+    }
+    setLoading(true);
+    try {
+      const newMember: TeamMember = {
+        id: `mock-id-${Date.now()}`,
+        name: newKName,
+        nim: newKNim,
+        prodi: newKProdi || 'S1 Sistem Informasi',
+        role_kkn: newKRole || 'Mahasiswa KKN',
+        avatar_url: newKAvatar || '/kkn_member_1.png',
+        description: newKDesc
+      };
+
+      const res = await SupabaseService.updateKKNTeamMember(newMember);
+      onUpdateKknTeam(res);
+      
+      // Reset form
+      setNewKName('');
+      setNewKNim('');
+      setNewKProdi('');
+      setNewKRole('');
+      setNewKAvatar('');
+      setNewKDesc('');
+      setIsAddingKKN(false);
+      
+      showSuccess('Anggota tim KKN berhasil ditambahkan!');
+    } catch (err: any) {
+      console.error('Error adding KKN member:', err);
+      alert('Gagal menambahkan anggota KKN: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -887,130 +937,268 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
 
         {/* TAB CONTENT: KKN TEAM (Mitra KKN) */}
         {activeTab === 'kkn_team' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {kknTeam.map((m) => {
-              const isEditing = editingKKNId === m.id;
-              return (
-                <div key={m.id} className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col justify-between space-y-6 hover:border-[#85A389]/30 transition-all">
-                  
-                  {isEditing ? (
-                    <div className="space-y-3.5 text-xs font-bold text-slate-700">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-505 mb-1">Nama Mahasiswa</label>
+          <div className="space-y-6 animate-fade-in">
+            {/* Header Control Card */}
+            <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-base font-black text-slate-900">
+                  Daftar Anggota Tim Mahasiswa KKN 7
+                </h3>
+                <p className="text-xs text-slate-400 font-bold mt-1">
+                  Kelola nama, jurusan, peran kelompok, deskripsi kontribusi, dan avatar tim mahasiswa KKN di RT 35 secara real-time.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddingKKN(!isAddingKKN)}
+                className="w-full sm:w-auto px-4.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm shrink-0"
+              >
+                {isAddingKKN ? 'Batal Tambah' : '+ Tambah Anggota'}
+              </button>
+            </div>
+
+            {/* Collapse/Expand Add Member Form */}
+            {isAddingKKN && (
+              <div className="p-6 bg-slate-105 border border-slate-200 rounded-3xl space-y-4 animate-fade-in">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">Form Tambah Anggota KKN Baru</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold text-slate-700">
+                  <div>
+                    <label className="block mb-1">Nama Mahasiswa <span className="text-rose-500">*</span></label>
+                    <input
+                      type="text"
+                      value={newKName}
+                      onChange={(e) => setNewKName(e.target.value)}
+                      placeholder="Masukkan nama lengkap..."
+                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">NIM <span className="text-rose-500">*</span></label>
+                    <input
+                      type="text"
+                      value={newKNim}
+                      onChange={(e) => setNewKNim(e.target.value)}
+                      placeholder="Masukkan NIM..."
+                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Program Studi / Jurusan</label>
+                    <input
+                      type="text"
+                      value={newKProdi}
+                      onChange={(e) => setNewKProdi(e.target.value)}
+                      placeholder="Contoh: S1 Informatika..."
+                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Peran di Kelompok KKN</label>
+                    <input
+                      type="text"
+                      value={newKRole}
+                      onChange={(e) => setNewKRole(e.target.value)}
+                      placeholder="Contoh: Ketua Kelompok, Bendahara..."
+                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block mb-1">Deskripsi Peran (Tugas/Kontribusi)</label>
+                    <textarea
+                      rows={3}
+                      value={newKDesc}
+                      onChange={(e) => setNewKDesc(e.target.value)}
+                      placeholder="Jelaskan peran, tugas utama, atau kontribusi mahasiswa di kelompok..."
+                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 transition-all resize-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="block">Unggah Foto Avatar</label>
+                    <div className="flex items-center space-x-3 p-3 rounded-xl bg-white border border-dashed border-slate-200">
+                      {newKAvatar ? (
+                        <img src={newKAvatar} alt="Preview" className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-400">?</div>
+                      )}
+                      <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer">
+                        <Upload className="w-4 h-4 text-slate-500" />
+                        <span>Pilih Avatar</span>
                         <input
-                          type="text"
-                          value={editKName}
-                          onChange={(e) => setEditKName(e.target.value)}
-                          className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleImageUpload(e, setNewKAvatar)}
                         />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-505 mb-1">NIM</label>
-                        <input
-                          type="text"
-                          value={editKNim}
-                          onChange={(e) => setEditKNim(e.target.value)}
-                          className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-505 mb-1">Program Studi</label>
-                        <input
-                          type="text"
-                          value={editKProdi}
-                          onChange={(e) => setEditKProdi(e.target.value)}
-                          className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-505 mb-1">Peran di Kelompok</label>
-                        <input
-                          type="text"
-                          value={editKRole}
-                          onChange={(e) => setEditKRole(e.target.value)}
-                          className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-slate-505">Unggah Foto Avatar</label>
-                        <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border border-dashed border-slate-200">
-                          {editKAvatar && (
-                            <img src={editKAvatar} alt="Preview" className="w-10 h-10 rounded-full object-cover" />
-                          )}
-                          <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer">
-                            <Upload className="w-4 h-4 text-slate-500" />
-                            <span>Pilih Avatar</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleImageUpload(e, setEditKAvatar)}
-                            />
-                          </label>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddingKKN(false);
+                      setNewKName('');
+                      setNewKNim('');
+                      setNewKProdi('');
+                      setNewKRole('');
+                      setNewKAvatar('');
+                      setNewKDesc('');
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-750 text-xs font-bold"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCreateKKN}
+                    className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm"
+                  >
+                    Simpan Anggota
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* KKN Team Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {kknTeam.map((m) => {
+                const isEditing = editingKKNId === m.id;
+                return (
+                  <div key={m.id} className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col justify-between space-y-6 hover:border-[#85A389]/30 transition-all">
+                    
+                    {isEditing ? (
+                      <div className="space-y-3.5 text-xs font-bold text-slate-700">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-550 mb-1">Nama Mahasiswa</label>
+                          <input
+                            type="text"
+                            value={editKName}
+                            onChange={(e) => setEditKName(e.target.value)}
+                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-550 mb-1">NIM</label>
+                          <input
+                            type="text"
+                            value={editKNim}
+                            onChange={(e) => setEditKNim(e.target.value)}
+                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-550 mb-1">Program Studi</label>
+                          <input
+                            type="text"
+                            value={editKProdi}
+                            onChange={(e) => setEditKProdi(e.target.value)}
+                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-550 mb-1">Peran di Kelompok</label>
+                          <input
+                            type="text"
+                            value={editKRole}
+                            onChange={(e) => setEditKRole(e.target.value)}
+                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-555 mb-1">Deskripsi Peran (Tugas/Kontribusi)</label>
+                          <textarea
+                            rows={3}
+                            value={editKDesc}
+                            onChange={(e) => setEditKDesc(e.target.value)}
+                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-[#85A389] transition-all resize-none"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-slate-550">Unggah Foto Avatar</label>
+                          <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border border-dashed border-slate-200">
+                            {editKAvatar && (
+                              <img src={editKAvatar} alt="Preview" className="w-10 h-10 rounded-full object-cover" />
+                            )}
+                            <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer">
+                              <Upload className="w-4 h-4 text-slate-500" />
+                              <span>Pilih Avatar</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleImageUpload(e, setEditKAvatar)}
+                              />
+                            </label>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-4">
-                      <img
-                        src={m.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
-                        alt={m.name}
-                        className="w-14 h-14 rounded-full object-cover border-2 border-[#85A389]/25 shadow-sm"
-                      />
-                      <div className="min-w-0">
-                        <span className="text-[9px] font-black text-[#5F8D4E] bg-[#85A389]/10 px-2 py-0.5 rounded border border-[#85A389]/20 uppercase tracking-wider">
-                          {m.role_kkn}
-                        </span>
-                        <h4 className="text-sm font-black text-slate-900 leading-tight pt-1 truncate">{m.name}</h4>
-                        <p className="text-[10px] text-slate-400 font-bold mt-0.5">NIM: {m.nim} • {m.prodi}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex space-x-2 pt-4 border-t border-slate-100">
-                    {isEditing ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleSaveKKN(m.id)}
-                          className="flex-grow py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow"
-                        >
-                          <Save className="w-4 h-4" />
-                          <span>Simpan</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingKKNId(null)}
-                          className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold"
-                        >
-                          Batal
-                        </button>
-                      </>
                     ) : (
-                      <div className="flex w-full space-x-2">
-                        <button
-                          type="button"
-                          onClick={() => startEditKKN(m)}
-                          className="flex-grow py-2.5 rounded-xl bg-slate-50 hover:bg-slate-105 text-slate-750 text-xs font-bold border-2 border-slate-200 flex items-center justify-center space-x-2 shadow-sm"
-                        >
-                          <Edit className="w-4 h-4 text-[#85A389]" />
-                          <span>Ubah Anggota</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteKKN(m.id)}
-                          className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-4">
+                          <img
+                            src={m.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
+                            alt={m.name}
+                            className="w-14 h-14 rounded-full object-cover border-2 border-[#85A389]/25 shadow-sm"
+                          />
+                          <div className="min-w-0">
+                            <span className="text-[9px] font-black text-[#5F8D4E] bg-[#85A389]/10 px-2 py-0.5 rounded border border-[#85A389]/20 uppercase tracking-wider">
+                              {m.role_kkn || 'Anggota'}
+                            </span>
+                            <h4 className="text-sm font-black text-slate-900 leading-tight pt-1 truncate">{m.name}</h4>
+                            <p className="text-[10px] text-slate-400 font-bold mt-0.5">NIM: {m.nim} • {m.prodi}</p>
+                          </div>
+                        </div>
+                        <div className="text-xs text-slate-500 font-bold line-clamp-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 min-h-[72px] leading-relaxed">
+                          {m.description || 'Tidak ada deskripsi tugas.'}
+                        </div>
                       </div>
                     )}
-                  </div>
 
-                </div>
-              );
-            })}
+                    <div className="flex space-x-2 pt-4 border-t border-slate-100">
+                      {isEditing ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveKKN(m.id)}
+                            className="flex-grow py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow"
+                          >
+                            <Save className="w-4 h-4" />
+                            <span>Simpan</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingKKNId(null)}
+                            className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold"
+                          >
+                            Batal
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex w-full space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => startEditKKN(m)}
+                            className="flex-grow py-2.5 rounded-xl bg-slate-50 hover:bg-slate-105 text-slate-750 text-xs font-bold border-2 border-slate-200 flex items-center justify-center space-x-2 shadow-sm"
+                          >
+                            <Edit className="w-4 h-4 text-[#85A389]" />
+                            <span>Ubah Anggota</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteKKN(m.id)}
+                            className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

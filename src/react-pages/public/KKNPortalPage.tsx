@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, GraduationCap, Clock, Award, ArrowLeft, MapPin, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProkerItem, TeamMember, RTSettings } from '../../types/database';
+import { SupabaseService, supabase } from '../../lib/supabase';
 
 interface KKNPortalPageProps {
   prokerList: ProkerItem[];
@@ -10,6 +11,7 @@ interface KKNPortalPageProps {
 }
 
 export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTeam, settings, onBackToHome }) => {
+  const [localKknTeam, setLocalKknTeam] = React.useState<TeamMember[]>(kknTeam);
   const [selectedProker, setSelectedProker] = React.useState<ProkerItem | null>(null);
   const [activeIdx, setActiveIdx] = React.useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = React.useState(true);
@@ -18,6 +20,26 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
   const [touchStart, setTouchStart] = React.useState<number | null>(null);
   const [touchEnd, setTouchEnd] = React.useState<number | null>(null);
   const minSwipeDistance = 50;
+
+  React.useEffect(() => {
+    setLocalKknTeam(kknTeam);
+
+    const channel = supabase
+      .channel('realtime-kkn-public-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'users' },
+        async () => {
+          const updated = await SupabaseService.fetchKKNTeam(true);
+          setLocalKknTeam(updated);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [kknTeam]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
@@ -44,22 +66,22 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
 
   // Auto-slide effect for KKN Team (every 4 seconds)
   React.useEffect(() => {
-    if (kknTeam.length === 0 || !isAutoPlaying) return;
+    if (localKknTeam.length === 0 || !isAutoPlaying) return;
     const interval = setInterval(() => {
-      setActiveIdx((prev) => (prev + 1) % kknTeam.length);
+      setActiveIdx((prev) => (prev + 1) % localKknTeam.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [kknTeam, isAutoPlaying]);
+  }, [localKknTeam, isAutoPlaying]);
 
   const handleNextMember = () => {
-    if (kknTeam.length === 0) return;
-    setActiveIdx((prev) => (prev + 1) % kknTeam.length);
+    if (localKknTeam.length === 0) return;
+    setActiveIdx((prev) => (prev + 1) % localKknTeam.length);
     setIsAutoPlaying(false); // Pause autoplay on manual interaction
   };
 
   const handlePrevMember = () => {
-    if (kknTeam.length === 0) return;
-    setActiveIdx((prev) => (prev - 1 + kknTeam.length) % kknTeam.length);
+    if (localKknTeam.length === 0) return;
+    setActiveIdx((prev) => (prev - 1 + localKknTeam.length) % localKknTeam.length);
     setIsAutoPlaying(false); // Pause autoplay on manual interaction
   };
 
@@ -337,7 +359,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
             </div>
             <div>
               <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Tim Pengabdi</p>
-              <h4 className="text-sm sm:text-base font-black text-slate-800">{kknTeam.length} Mahasiswa S1</h4>
+              <h4 className="text-sm sm:text-base font-black text-slate-800">{localKknTeam.length} Mahasiswa S1</h4>
             </div>
           </div>
         </div>
@@ -434,21 +456,21 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
             </div>
 
             {/* Interactive Spotlight Layout */}
-            {kknTeam.length > 0 && (() => {
-              const activeMember = kknTeam[activeIdx] || kknTeam[0];
-              const len = kknTeam.length;
+            {localKknTeam.length > 0 && (() => {
+              const activeMember = localKknTeam[activeIdx] || localKknTeam[0];
+              const len = localKknTeam.length;
               
               // Calculate indices for 3-member coverflow layout
               const leftIdx = (activeIdx - 1 + len) % len;
               const rightIdx = (activeIdx + 1) % len;
-
-              const leftMember = kknTeam[leftIdx];
-              const rightMember = kknTeam[rightIdx];
-
-              const leftCutout = `/kkn_member_${(leftIdx % 8) + 1}.png`;
-              const activeCutout = `/kkn_member_${(activeIdx % 8) + 1}.png`;
-              const rightCutout = `/kkn_member_${(rightIdx % 8) + 1}.png`;
-
+ 
+              const leftMember = localKknTeam[leftIdx];
+              const rightMember = localKknTeam[rightIdx];
+ 
+              const leftCutout = leftMember.avatar_url || `/kkn_member_${(leftIdx % 8) + 1}.png`;
+              const activeCutout = activeMember.avatar_url || `/kkn_member_${(activeIdx % 8) + 1}.png`;
+              const rightCutout = rightMember.avatar_url || `/kkn_member_${(rightIdx % 8) + 1}.png`;
+ 
               return (
                 <div className="w-full flex flex-col items-center py-6 space-y-8 animate-fade-in relative z-10">
                   
@@ -475,7 +497,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
-
+ 
                     <div className="flex items-center justify-center gap-4 sm:gap-8 md:gap-12 w-full select-none">
                       
                       {/* LEFT MEMBER (Faded, Blurred, Clickable to slide left) */}
@@ -491,7 +513,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
                           />
                         </div>
                       )}
-
+ 
                       {/* ACTIVE CENTER MEMBER (Highlighted, Opaque, Sharp) */}
                       <div 
                         className="w-60 h-80 sm:w-64 sm:h-84 md:w-72 md:h-[400px] lg:w-84 lg:h-[450px] shrink-0 bg-transparent flex items-center justify-center scale-110 md:scale-115 transition-all duration-500 relative z-10 overflow-visible"
@@ -502,7 +524,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
                           className="w-full h-full object-contain pointer-events-none filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.15)]"
                         />
                       </div>
-
+ 
                       {/* RIGHT MEMBER (Faded, Blurred, Clickable to slide right) */}
                       {len > 2 && (
                         <div 
@@ -519,7 +541,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
                       
                     </div>
                   </div>
-
+ 
                   {/* Active Member Details Centered Below */}
                   <div key={activeIdx} className="text-center max-w-2xl mx-auto space-y-4 px-4 pt-2 animate-fade-in">
                     <div className="space-y-1">
@@ -533,15 +555,15 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
                         {activeMember.prodi}
                       </p>
                     </div>
-
+ 
                     <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold max-w-lg mx-auto">
                       {activeMember.description || 'Bertanggung jawab penuh atas kelancaran program kerja pengabdian masyarakat di RT 35 Manggar, berkolaborasi aktif dengan warga sekitar untuk menciptakan solusi berbasis digital dan pemberdayaan berkelanjutan.'}
                     </p>
                   </div>
-
+ 
                   {/* Indicators (Dots) */}
                   <div className="flex items-center justify-center space-x-2 pt-2">
-                    {kknTeam.map((_, idx) => (
+                    {localKknTeam.map((_, idx) => (
                       <button
                         key={idx}
                         onClick={() => {

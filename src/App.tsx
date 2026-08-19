@@ -249,7 +249,7 @@ export const App = () => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'users' },
-        (payload) => {
+        async (payload) => {
           if (payload.new) {
             const updatedUser = payload.new as any;
             setUserProfile(currentUser => {
@@ -268,6 +268,14 @@ export const App = () => {
               return currentUser;
             });
           }
+
+          // Realtime KKN Team Sync
+          try {
+            const updatedTeam = await SupabaseService.fetchKKNTeam(true);
+            setKknTeam(updatedTeam);
+          } catch (e) {
+            console.warn('Realtime KKN team sync failed:', e);
+          }
         }
       )
       .subscribe();
@@ -285,16 +293,18 @@ export const App = () => {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const [settingsData, newsData, announceData, demoData] = await Promise.all([
+        const [settingsData, newsData, announceData, demoData, kknTeamData] = await Promise.all([
           SupabaseService.fetchSettings(),
           SupabaseService.fetchNews(),
           SupabaseService.fetchAnnouncements(),
           SupabaseService.fetchDemographics(),
+          SupabaseService.fetchKKNTeam(true),
         ]);
         if (settingsData) setSettings(settingsData);
         if (newsData) setNewsList(newsData);
         if (announceData) setAnnouncements(announceData);
         if (demoData) setDemographics(demoData);
+        if (kknTeamData) setKknTeam(kknTeamData);
       } catch (err) {
         console.warn('Fail-safe polling error:', err);
       }
