@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NewsPost } from '../../types/database';
 import { Calendar, User, Search, BookOpen, Clock, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { SupabaseService, supabase } from '../../lib/supabase';
 
 interface NewsListPageProps {
   newsList: NewsPost[];
@@ -11,6 +12,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
   newsList,
   onBackToHome
 }) => {
+  const [localNewsList, setLocalNewsList] = useState<NewsPost[]>(newsList);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
   const [selectedArticle, setSelectedArticle] = useState<NewsPost | null>(null);
@@ -29,7 +31,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
       const params = new URLSearchParams(window.location.search);
       const slug = params.get('slug');
       if (slug) {
-        const found = newsList.find(a => a.slug === slug);
+        const found = localNewsList.find(a => a.slug === slug);
         if (found) {
           setSelectedArticle(found);
           return;
@@ -42,6 +44,27 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
     
     window.addEventListener('popstate', checkSlug);
     return () => window.removeEventListener('popstate', checkSlug);
+  }, [localNewsList]);
+
+  // Sync prop changes and subscribe to realtime updates
+  useEffect(() => {
+    setLocalNewsList(newsList);
+
+    const channel = supabase
+      .channel('realtime-news-list-public')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'news' },
+        async () => {
+          const updated = await SupabaseService.fetchNews();
+          setLocalNewsList(updated);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [newsList]);
 
   const handleSelectArticle = (article: NewsPost | null) => {
@@ -56,7 +79,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
   const categories = ['Semua', 'Kegiatan Utama', 'Penghargaan', 'Pemberdayaan', 'Pembangunan', 'Lainnya'];
 
   // Filter & Search Logic
-  const filteredArticles = newsList.filter((item) => {
+  const filteredArticles = localNewsList.filter((item) => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.summary.toLowerCase().includes(searchQuery.toLowerCase());
@@ -224,22 +247,32 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
                 >
                   &larr;
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => {
-                      setCurrentPage(p);
-                      window.scrollTo({ top: 200, behavior: 'smooth' });
-                    }}
-                    className={`w-9 h-9 rounded-xl text-xs font-black transition-all active:scale-95 border ${
-                      currentPage === p
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
+                
+                {/* Desktop Numeric Pagination */}
+                <div className="hidden sm:flex items-center space-x-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => {
+                        setCurrentPage(p);
+                        window.scrollTo({ top: 200, behavior: 'smooth' });
+                      }}
+                      className={`w-9 h-9 rounded-xl text-xs font-black transition-all active:scale-95 border ${
+                        currentPage === p
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Mobile Text Pagination Indicator */}
+                <span className="sm:hidden text-xs font-bold text-slate-500 px-3">
+                  Hal {currentPage} / {totalPages}
+                </span>
+
                 <button
                   onClick={() => {
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
