@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { UserCheck, HeartHandshake, PhoneCall, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UserCheck, HeartHandshake, PhoneCall, ShieldCheck } from 'lucide-react';
 import { RTPengurus } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 
@@ -58,23 +58,6 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
             </p>
           </div>
 
-          {/* Carousel Control Buttons */}
-          <div className="flex items-center space-x-2.5 self-start md:self-auto">
-            <button
-              onClick={() => scroll('left')}
-              className="p-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              className="p-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
         </div>
 
         {/* ORGANOGRAM HORIZONTAL CAROUSEL */}
@@ -82,11 +65,7 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
           <div className="relative w-full overflow-hidden">
             <div 
               ref={scrollContainerRef}
-              className="flex overflow-x-auto gap-6 pb-6 pt-2 px-1 snap-x snap-mandatory scroll-smooth scrollbar-none"
-              style={{ 
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none'
-              }}
+              className="flex overflow-x-auto gap-6 pb-6 pt-2 px-1 snap-x snap-mandatory scroll-smooth"
             >
               {pengurusList.map((p) => (
                 <div
