@@ -39,7 +39,7 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
   };
 
   return (
-    <section id="pengurus-rt" className="py-24 bg-white relative border-t border-slate-200/60 scroll-mt-16 overflow-hidden w-full">
+    <section id="pengurus-rt" className="pt-24 pb-8 bg-white relative border-t border-slate-200/60 scroll-mt-16 overflow-hidden w-full">
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10 animate-fade-in">
         
@@ -65,7 +65,11 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
           <div className="relative w-full overflow-hidden">
             <div 
               ref={scrollContainerRef}
-              className="flex overflow-x-auto gap-6 pb-6 pt-2 px-1 snap-x snap-mandatory scroll-smooth"
+              className="flex overflow-x-auto gap-6 pb-6 pt-2 px-1 snap-x snap-mandatory scroll-smooth scrollbar-none"
+              style={{ 
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}
             >
               {pengurusList.map((p) => (
                 <div
