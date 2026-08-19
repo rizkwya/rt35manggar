@@ -32,6 +32,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
 
   const [editingPengurusId, setEditingPengurusId] = useState<string | null>(null);
   const [editPName, setEditPName] = useState('');
+  const [editPJabatan, setEditPJabatan] = useState('');
   const [editPPhone, setEditPPhone] = useState('');
   const [editPFoto, setEditPFoto] = useState('');
 
@@ -58,12 +59,13 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
   const startEditPengurus = (p: RTPengurus) => {
     setEditingPengurusId(p.id);
     setEditPName(p.nama);
+    setEditPJabatan(p.jabatan);
     setEditPPhone(p.phone);
     setEditPFoto(p.foto_url || '');
   };
 
   const handleSavePengurus = async (pId: string) => {
-    if (!editPName.trim() || !editPPhone.trim()) return;
+    if (!editPName.trim() || !editPJabatan.trim() || !editPPhone.trim()) return;
     setLoading(true);
     try {
       const target = pengurusList.find((p) => p.id === pId);
@@ -72,6 +74,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
       const updatedItem: RTPengurus = {
         ...target,
         nama: editPName,
+        jabatan: editPJabatan,
         phone: editPPhone,
         foto_url: editPFoto
       };
@@ -228,11 +231,17 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
                     <div key={p.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-5 hover:border-[#85A389]/30 transition-all duration-200">
                       {isEditing ? (
                         <div className="space-y-4">
-                          <span className="text-[10px] font-black text-white px-3 py-1 rounded-full bg-slate-900 uppercase tracking-wider">
-                            {p.jabatan}
-                          </span>
-                          
-                          <div className="space-y-3.5 pt-2 text-xs font-bold text-slate-700">
+                          <div className="space-y-3.5 text-xs font-bold text-slate-700">
+                            <div>
+                              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Jabatan / Peran</label>
+                              <input
+                                type="text"
+                                value={editPJabatan}
+                                onChange={(e) => setEditPJabatan(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
+                                required
+                              />
+                            </div>
                             <div>
                               <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Nama Pengurus</label>
                               <input
@@ -346,32 +355,40 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center space-x-1.5 pt-4">
+                <div className="flex items-center justify-center space-x-1.5 pt-4 flex-wrap gap-y-2">
                   <button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8 shadow-sm"
                     aria-label="Previous page"
                   >
                     &larr;
                   </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setCurrentPage(p)}
-                      className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
-                        currentPage === p
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
+                  
+                  <div className="hidden sm:flex items-center space-x-1.5">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setCurrentPage(p)}
+                        className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border shadow-sm ${
+                          currentPage === p
+                            ? 'bg-slate-900 text-white border-slate-900'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+
+                  <span className="block sm:hidden text-xs font-black text-slate-600 px-3 select-none">
+                    Hal {currentPage} / {totalPages}
+                  </span>
+
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
+                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8 shadow-sm"
                     aria-label="Next page"
                   >
                     &rarr;

@@ -1,13 +1,29 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { UserCheck, HeartHandshake, PhoneCall, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { RTPengurus } from '../../types/database';
+import { SupabaseService } from '../../lib/supabase';
 
 interface OrganogramSectionProps {
   pengurusList: RTPengurus[];
 }
 
-export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusList }) => {
+export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusList: initialPengurusList }) => {
+  const [pengurusList, setPengurusList] = useState<RTPengurus[]>(initialPengurusList || []);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const loadLivePengurus = async () => {
+      try {
+        const liveData = await SupabaseService.fetchPengurus();
+        if (liveData && liveData.length > 0) {
+          setPengurusList(liveData);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch live pengurus list:', err);
+      }
+    };
+    loadLivePengurus();
+  }, []);
 
   if (pengurusList.length === 0) return null;
 
