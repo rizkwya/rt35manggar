@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, GraduationCap, Clock, Award, ArrowLeft, Anchor, Compass, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle2, GraduationCap, Clock, Award, ArrowLeft, MapPin, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProkerItem, TeamMember, RTSettings } from '../../types/database';
 
 interface KKNPortalPageProps {
@@ -161,8 +161,8 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
                   />
                 </div>
               ) : (
-                <div className="w-full h-56 sm:h-72 rounded-2xl overflow-hidden shadow-sm border border-slate-200 bg-slate-50 flex items-center justify-center">
-                  <Compass className="w-12 h-12 text-[#0b5665] opacity-25" />
+                <div className="w-full h-52 sm:h-72 rounded-2xl overflow-hidden shadow-sm border border-slate-150 bg-slate-50 flex items-center justify-center">
+                  <Briefcase className="w-12 h-12 text-[#0b5665] opacity-25" />
                 </div>
               )}
 
@@ -313,7 +313,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4">
             <div className="p-3.5 rounded-2xl bg-[#0b5665]/10 text-[#0b5665] border border-[#0b5665]/20">
-              <Anchor className="w-6 h-6" />
+              <MapPin className="w-6 h-6" />
             </div>
             <div>
               <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Lokasi Posko</p>
@@ -323,7 +323,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
 
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4">
             <div className="p-3.5 rounded-2xl bg-amber-500/10 text-amber-600 border border-amber-500/20">
-              <Compass className="w-6 h-6" />
+              <Briefcase className="w-6 h-6" />
             </div>
             <div>
               <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Jumlah Proker</p>
@@ -391,8 +391,8 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList, kknTea
                       />
                     </div>
                   ) : (
-                    <div className="h-48 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
-                      <Compass className="w-10 h-10 text-slate-400 opacity-40 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="h-52 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
+                      <Briefcase className="w-10 h-10 text-slate-400 opacity-40 group-hover:scale-110 transition-transform duration-500" />
                     </div>
                   )}
 
