@@ -248,8 +248,14 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
     }
   };
 
-  const totalPages = Math.ceil(kegiatanItems.length / itemsPerPage);
-  const paginatedItems = kegiatanItems.slice(
+  const sortedKegiatanItems = [...kegiatanItems].sort((a, b) => {
+    const dateA = new Date(a.created_at || 0).getTime();
+    const dateB = new Date(b.created_at || 0).getTime();
+    return dateB - dateA;
+  });
+
+  const totalPages = Math.ceil(sortedKegiatanItems.length / itemsPerPage);
+  const paginatedItems = sortedKegiatanItems.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -441,10 +447,10 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
               disabled={loading}
               className="flex-grow py-3 rounded-2xl bg-slate-900 hover:bg-slate-850 text-white font-extrabold text-xs shadow transition-all flex items-center justify-center space-x-1.5 disabled:opacity-60"
             >
-              {loading && editingKegiatanIdx === null ? (
+              {loading ? (
                 <span className="flex items-center space-x-1.5">
                   <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Menyimpan...</span>
+                  <span>{editingKegiatanIdx !== null ? 'Menyimpan...' : 'Menambahkan...'}</span>
                 </span>
               ) : (
                 <>
@@ -504,13 +510,16 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                 )}
 
                 {paginatedItems.map((item, idx) => {
-                  const globalIdx = (currentPage - 1) * itemsPerPage + idx;
-                  const isSavingThis = editingKegiatanIdx === globalIdx && loading;
-                  const isDeletingThis = deletingIdx === globalIdx && loading;
+                  const originalIdx = kegiatanItems.findIndex(
+                    (origItem) => origItem.created_at === item.created_at && origItem.title === item.title
+                  ) ?? ((currentPage - 1) * itemsPerPage + idx);
+
+                  const isSavingThis = editingKegiatanIdx === originalIdx && loading;
+                  const isDeletingThis = deletingIdx === originalIdx && loading;
 
                   if (isSavingThis || isDeletingThis) {
                     return (
-                      <div key={globalIdx} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4 animate-pulse min-h-[80px]">
+                      <div key={originalIdx} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4 animate-pulse min-h-[80px]">
                         <div className="w-14 h-14 rounded-xl bg-slate-200 shrink-0" />
                         <div className="space-y-2 flex-grow">
                           <div className="h-3.5 bg-slate-200 rounded w-1/4" />
@@ -521,7 +530,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                   }
 
                   return (
-                    <div key={globalIdx} className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:border-slate-350 transition-all">
+                    <div key={originalIdx} className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:border-slate-350 transition-all">
                       <div className="flex items-center space-x-4 min-w-0">
                         {item.image_url ? (
                           <img src={item.image_url} alt={item.title} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-100 shadow-sm" />
@@ -545,7 +554,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                         <button
                           type="button"
                           onClick={() => {
-                            setEditingKegiatanIdx(globalIdx);
+                            setEditingKegiatanIdx(originalIdx);
                             setKegiatanTitle(item.title || '');
                             setKegiatanBadge(item.badge || '');
                             setKegiatanSummary(item.summary || '');
@@ -559,7 +568,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDeleteKegiatan(globalIdx)}
+                          onClick={() => handleDeleteKegiatan(originalIdx)}
                           className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
                           title="Hapus Kegiatan"
                         >
