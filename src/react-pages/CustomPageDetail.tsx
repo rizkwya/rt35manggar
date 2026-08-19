@@ -278,22 +278,32 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem: in
                 >
                   &larr;
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => {
-                      setCurrentPage(p);
-                      window.scrollTo({ top: 300, behavior: 'smooth' });
-                    }}
-                    className={`w-9 h-9 rounded-xl text-xs font-black transition-all active:scale-95 border ${
-                      currentPage === p
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
+
+                {/* Desktop Numeric Pagination */}
+                <div className="hidden sm:flex items-center space-x-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => {
+                        setCurrentPage(p);
+                        window.scrollTo({ top: 300, behavior: 'smooth' });
+                      }}
+                      className={`w-9 h-9 rounded-xl text-xs font-black transition-all active:scale-95 border ${
+                        currentPage === p
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Mobile Text Pagination Indicator */}
+                <span className="sm:hidden text-xs font-bold text-slate-500 px-3">
+                  Hal {currentPage} / {totalPages}
+                </span>
+
                 <button
                   onClick={() => {
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
