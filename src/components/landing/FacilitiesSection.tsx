@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Landmark, MapPin } from 'lucide-react';
 import { RTFacility } from '../../types/database';
-import { SupabaseService } from '../../lib/supabase';
+import { SupabaseService, supabase } from '../../lib/supabase';
 
 export const FacilitiesSection: React.FC = () => {
   const [facilities, setFacilities] = useState<RTFacility[]>([]);
@@ -20,6 +20,23 @@ export const FacilitiesSection: React.FC = () => {
       }
     };
     loadFacilities();
+
+    // Subscribe to realtime updates for facilities
+    const channel = supabase
+      .channel('realtime-facilities-landing')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_facilities' },
+        async () => {
+          const updated = await SupabaseService.fetchFacilities();
+          setFacilities(updated);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (loading) {

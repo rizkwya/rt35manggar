@@ -10,6 +10,8 @@ interface FasilitasTabProps {
 export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
   const [facilities, setFacilities] = useState<RTFacility[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   
   // Form States
@@ -63,6 +65,9 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
     if (!name.trim() || !description.trim()) return;
 
     setLoading(true);
+    if (!editId) {
+      setIsAdding(true);
+    }
     try {
       const facilityObj: RTFacility = {
         name,
@@ -93,6 +98,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
       alert('Gagal menyimpan fasilitas: ' + err.message);
     } finally {
       setLoading(false);
+      setIsAdding(false);
     }
   };
 
@@ -113,6 +119,7 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus fasilitas umum ini?')) return;
 
     setLoading(true);
+    setDeletingId(id);
     try {
       const updatedList = await SupabaseService.deleteFacility(id);
       setFacilities(updatedList);
@@ -122,11 +129,18 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
       alert('Gagal menghapus fasilitas: ' + err.message);
     } finally {
       setLoading(false);
+      setDeletingId(null);
     }
   };
 
-  const totalPages = Math.ceil(facilities.length / itemsPerPage);
-  const paginatedFacilities = facilities.slice(
+  const sortedFacilities = [...facilities].sort((a, b) => {
+    const dateA = new Date(a.created_at || 0).getTime();
+    const dateB = new Date(b.created_at || 0).getTime();
+    return dateB - dateA;
+  });
+
+  const totalPages = Math.ceil(sortedFacilities.length / itemsPerPage);
+  const paginatedFacilities = sortedFacilities.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -155,7 +169,8 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
               placeholder="Contoh: Balai Pertemuan RT 35"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-[#85A389]"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-slate-800 disabled:opacity-60"
+              disabled={loading}
             />
           </div>
 
@@ -168,7 +183,8 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
               placeholder="Tulis deskripsi fungsi, jadwal penggunaan, atau sejarah sarana..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-[#85A389]"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-slate-800 disabled:opacity-60"
+              disabled={loading}
             />
           </div>
 
@@ -180,7 +196,8 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
               placeholder="Contoh: Depan Musholla RT 35 atau Sektor Barat"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-[#85A389]"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-slate-800 disabled:opacity-60"
+              disabled={loading}
             />
           </div>
 
@@ -192,7 +209,8 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
               placeholder="Contoh: -1.2505, 116.8992"
               value={latLong}
               onChange={(e) => setLatLong(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-[#85A389]"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-805 focus:outline-none focus:border-slate-800 disabled:opacity-60"
+              disabled={loading}
             />
           </div>
 
@@ -208,28 +226,29 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
                     type="button"
                     onClick={() => setImageUrl('')}
                     className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow"
+                    disabled={loading}
                   >
                     Hapus Foto
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="relative border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-slate-50 text-center hover:bg-slate-100/50 transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[100px]">
+              <div className={`relative border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-slate-50 text-center hover:bg-slate-100/50 transition-colors flex flex-col items-center justify-center min-h-[100px] ${loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  disabled={uploadingImg}
+                  disabled={uploadingImg || loading}
                 />
                 {uploadingImg ? (
                   <div className="space-y-1.5">
-                    <div className="w-4 h-4 border-2 border-[#85A389] border-t-transparent rounded-full animate-spin mx-auto" />
+                    <div className="w-4 h-4 border-2 border-slate-800 border-t-transparent rounded-full animate-spin mx-auto" />
                     <span className="text-[9px] text-slate-555 font-bold">Mengunggah foto...</span>
                   </div>
                 ) : (
                   <div className="space-y-0.5">
-                    <span className="text-xs font-extrabold text-[#5F8D4E] hover:underline block">
+                    <span className="text-xs font-extrabold text-slate-800 hover:underline block">
                       Unggah Foto Fasilitas
                     </span>
                     <span className="text-[9px] text-slate-400 font-bold block">
@@ -246,10 +265,24 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className="flex-grow py-3 rounded-2xl bg-[#85A389] hover:bg-[#729276] text-white font-extrabold text-xs shadow transition-all flex items-center justify-center space-x-1.5"
+            className="flex-grow py-3 rounded-2xl bg-slate-900 hover:bg-slate-850 text-white font-extrabold text-xs shadow transition-all flex items-center justify-center space-x-1.5 disabled:opacity-60"
           >
-            {editId ? <Save className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
-            <span>{editId ? 'Simpan Perubahan' : 'Tambah Fasilitas'}</span>
+            {loading && !editId ? (
+              <span className="flex items-center space-x-1.5">
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Menambahkan...</span>
+              </span>
+            ) : loading && editId ? (
+              <span className="flex items-center space-x-1.5">
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Menyimpan...</span>
+              </span>
+            ) : (
+              <>
+                {editId ? <Save className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
+                <span>{editId ? 'Simpan Perubahan' : 'Tambah Fasilitas'}</span>
+              </>
+            )}
           </button>
 
           {editId && (
@@ -290,53 +323,81 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
         ) : (
           <div className="space-y-4">
             <div className="space-y-3">
-              {paginatedFacilities.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:border-[#85A389]/30 transition-all"
-                >
-                  <div className="flex items-center space-x-4 min-w-0">
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-100 shadow-sm" />
-                    ) : (
-                      <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
-                        <Landmark className="w-5 h-5" />
-                      </div>
-                    )}
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex items-center space-x-2 flex-wrap">
-                        <h4 className="text-sm font-black text-slate-800 truncate leading-snug">{item.name}</h4>
-                      </div>
-                      <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2">{item.description}</p>
-                      {item.location && (
-                        <p className="text-[10px] text-[#5F8D4E] font-bold flex items-center space-x-1">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span>{item.location}</span>
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2 w-full sm:w-auto shrink-0 justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => handleStartEdit(item)}
-                      className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-750 border border-slate-200 text-xs font-bold flex items-center justify-center shadow-sm"
-                      title="Ubah Fasilitas"
-                    >
-                      <Edit className="w-4 h-4 text-[#85A389]" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(item.id)}
-                      className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
-                      title="Hapus Fasilitas"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+              {/* Skeleton Loader at top only when adding a new facility */}
+              {isAdding && (
+                <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4 animate-pulse min-h-[80px]">
+                  <div className="w-14 h-14 rounded-xl bg-slate-200 shrink-0" />
+                  <div className="space-y-2 flex-grow">
+                    <div className="h-3.5 bg-slate-200 rounded w-1/4" />
+                    <div className="h-4.5 bg-slate-200 rounded w-2/3" />
                   </div>
                 </div>
-              ))}
+              )}
+
+              {paginatedFacilities.map((item) => {
+                const isSavingThis = editId === item.id && loading;
+                const isDeletingThis = deletingId === item.id && loading;
+
+                if (isSavingThis || isDeletingThis) {
+                  return (
+                    <div key={item.id} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4 animate-pulse min-h-[80px]">
+                      <div className="w-14 h-14 rounded-xl bg-slate-200 shrink-0" />
+                      <div className="space-y-2 flex-grow">
+                        <div className="h-3.5 bg-slate-200 rounded w-1/4" />
+                        <div className="h-4.5 bg-slate-250 rounded w-2/3" />
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div 
+                    key={item.id} 
+                    className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm hover:border-slate-350 transition-all"
+                  >
+                    <div className="flex items-center space-x-4 min-w-0">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-100 shadow-sm" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
+                          <Landmark className="w-5 h-5" />
+                        </div>
+                      )}
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex items-center space-x-2 flex-wrap">
+                          <h4 className="text-sm font-black text-slate-800 truncate leading-snug">{item.name}</h4>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed font-semibold line-clamp-2">{item.description}</p>
+                        {item.location && (
+                          <p className="text-[10px] text-[#5F8D4E] font-bold flex items-center space-x-1">
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span>{item.location}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2 w-full sm:w-auto shrink-0 justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(item)}
+                        className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-755 border border-slate-200 text-xs font-bold flex items-center justify-center shadow-sm animate-fade-in"
+                        title="Ubah Fasilitas"
+                      >
+                        <Edit className="w-4 h-4 text-slate-700" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(item.id)}
+                        className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
+                        title="Hapus Fasilitas"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Pagination Controls */}
@@ -350,19 +411,29 @@ export const FasilitasTab: React.FC<FasilitasTabProps> = ({ showSuccess }) => {
                 >
                   &larr;
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setCurrentPage(p)}
-                    className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
-                      currentPage === p
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
+                
+                {/* Desktop Numeric Pagination */}
+                <div className="hidden sm:flex items-center space-x-1.5">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
+                        currentPage === p
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Mobile Text Pagination Indicator */}
+                <span className="sm:hidden text-xs font-bold text-slate-500 px-3">
+                  Hal {currentPage} / {totalPages}
+                </span>
+
                 <button
                   onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
