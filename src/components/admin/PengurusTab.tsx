@@ -152,8 +152,9 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
               value={newPName}
               onChange={(e) => setNewPName(e.target.value)}
               placeholder="Contoh: Bapak H. Ahmad Sujono"
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-805 focus:outline-none focus:border-[#85A389] focus:bg-white transition-all"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-805 focus:outline-none focus:border-[#85A389] focus:bg-white transition-all disabled:opacity-60"
               required
+              disabled={loading}
             />
           </div>
 
@@ -164,8 +165,9 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
               value={newPJabatan}
               onChange={(e) => setNewPJabatan(e.target.value)}
               placeholder="Contoh: Ketua RT 35, Sekretaris RT"
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-805 focus:outline-none focus:border-[#85A389] focus:bg-white transition-all"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-805 focus:outline-none focus:border-[#85A389] focus:bg-white transition-all disabled:opacity-60"
               required
+              disabled={loading}
             />
           </div>
 
@@ -176,8 +178,9 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
               value={newPPhone}
               onChange={(e) => setNewPPhone(e.target.value)}
               placeholder="Contoh: 081234567890"
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-805 focus:outline-none focus:border-[#85A389] focus:bg-white transition-all"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-805 focus:outline-none focus:border-[#85A389] focus:bg-white transition-all disabled:opacity-60"
               required
+              disabled={loading}
             />
           </div>
 
@@ -187,7 +190,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
               {newPFoto && (
                 <img src={newPFoto} alt="Preview" className="w-12 h-12 rounded-xl object-cover" />
               )}
-              <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer shadow-sm">
+              <label className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs shadow-sm ${loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}>
                 <Upload className="w-4 h-4 text-slate-500" />
                 <span>Pilih File</span>
                 <input
@@ -195,6 +198,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
                   accept="image/*"
                   className="hidden"
                   onChange={(e) => handleImageUpload(e, setNewPFoto)}
+                  disabled={loading}
                 />
               </label>
             </div>
@@ -204,10 +208,19 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow"
+          className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow disabled:opacity-60"
         >
-          <Plus className="w-4 h-4" />
-          <span>Tambah Aparatur</span>
+          {loading ? (
+            <span className="flex items-center space-x-1.5">
+              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Menyimpan...</span>
+            </span>
+          ) : (
+            <>
+              <Plus className="w-4 h-4" />
+              <span>Tambah Aparatur</span>
+            </>
+          )}
         </button>
       </form>
 
@@ -225,6 +238,28 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
           ) : (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
+                {/* Skeleton Loader during updates */}
+                {loading && (
+                  <>
+                    <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-5 animate-pulse">
+                      <div className="w-16 h-16 rounded-2xl bg-slate-200 shrink-0" />
+                      <div className="space-y-2 flex-grow">
+                        <div className="h-3.5 bg-slate-200 rounded w-1/3" />
+                        <div className="h-4.5 bg-slate-200 rounded w-2/3" />
+                        <div className="h-3.5 bg-slate-200 rounded w-1/2" />
+                      </div>
+                    </div>
+                    <div className="hidden sm:flex p-5 rounded-2xl bg-white border border-slate-200 shadow-sm items-center space-x-5 animate-pulse">
+                      <div className="w-16 h-16 rounded-2xl bg-slate-200 shrink-0" />
+                      <div className="space-y-2 flex-grow">
+                        <div className="h-3.5 bg-slate-200 rounded w-1/3" />
+                        <div className="h-4.5 bg-slate-200 rounded w-2/3" />
+                        <div className="h-3.5 bg-slate-200 rounded w-1/2" />
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {pengurusList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((p) => {
                   const isEditing = editingPengurusId === p.id;
                   return (
@@ -238,8 +273,9 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
                                 type="text"
                                 value={editPJabatan}
                                 onChange={(e) => setEditPJabatan(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
+                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white disabled:opacity-60"
                                 required
+                                disabled={loading}
                               />
                             </div>
                             <div>
@@ -248,8 +284,9 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
                                 type="text"
                                 value={editPName}
                                 onChange={(e) => setEditPName(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
+                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white disabled:opacity-60"
                                 required
+                                disabled={loading}
                               />
                             </div>
 
@@ -259,8 +296,9 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
                                 type="text"
                                 value={editPPhone}
                                 onChange={(e) => setEditPPhone(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white"
+                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white disabled:opacity-60"
                                 required
+                                disabled={loading}
                               />
                             </div>
 
@@ -270,7 +308,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
                                 {editPFoto && (
                                   <img src={editPFoto} alt="Preview" className="w-12 h-12 rounded-xl object-cover" />
                                 )}
-                                <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer shadow-sm">
+                                <label className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs shadow-sm ${loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}>
                                   <Upload className="w-4 h-4 text-slate-500" />
                                   <span>Pilih File Gambar</span>
                                   <input
@@ -278,6 +316,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
                                     accept="image/*"
                                     className="hidden"
                                     onChange={(e) => handleImageUpload(e, setEditPFoto)}
+                                    disabled={loading}
                                   />
                                 </label>
                               </div>
@@ -311,16 +350,25 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
                               type="button"
                               disabled={loading}
                               onClick={() => handleSavePengurus(p.id)}
-                              className="flex-grow py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-sm"
+                              className="flex-grow py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-sm disabled:opacity-60"
                             >
-                              <Save className="w-4 h-4" />
-                              <span>Simpan</span>
+                              {loading ? (
+                                <span className="flex items-center space-x-1.5">
+                                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                  <span>Menyimpan...</span>
+                                </span>
+                              ) : (
+                                <>
+                                  <Save className="w-4 h-4" />
+                                  <span>Simpan</span>
+                                </>
+                              )}
                             </button>
                             <button
                               type="button"
                               disabled={loading}
                               onClick={() => setEditingPengurusId(null)}
-                              className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold"
+                              className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold disabled:opacity-60"
                             >
                               Batal
                             </button>
@@ -331,7 +379,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
                               type="button"
                               disabled={loading}
                               onClick={() => startEditPengurus(p)}
-                              className="flex-grow py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-855 text-xs font-bold border-2 border-slate-200 flex items-center justify-center space-x-2 shadow-sm"
+                              className="flex-grow py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-855 text-xs font-bold border-2 border-slate-200 flex items-center justify-center space-x-2 shadow-sm disabled:opacity-60"
                             >
                               <Edit className="w-4 h-4 text-[#85A389]" />
                               <span>Edit Biodata</span>
