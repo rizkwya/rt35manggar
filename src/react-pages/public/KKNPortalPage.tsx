@@ -18,10 +18,48 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
   const [activeIdx, setActiveIdx] = React.useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = React.useState(true);
 
+  // Proker horizontal slider auto-swipe & active dot state
+  const [prokerActiveDot, setProkerActiveDot] = React.useState(0);
+  const [isProkerHovered, setIsProkerHovered] = React.useState(false);
+  const prokerScrollRef = React.useRef<HTMLDivElement>(null);
+
   // Swipe gesture touch state hooks
   const [touchStart, setTouchStart] = React.useState<number | null>(null);
   const [touchEnd, setTouchEnd] = React.useState<number | null>(null);
   const minSwipeDistance = 50;
+
+  // Auto-swipe horizontal carousel every 4.5 seconds
+  React.useEffect(() => {
+    if (localProkerList.length <= 1 || isProkerHovered) return;
+    const timer = setInterval(() => {
+      const el = prokerScrollRef.current;
+      if (!el) return;
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (el.scrollLeft >= maxScroll - 30) {
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+        setProkerActiveDot(0);
+      } else {
+        el.scrollBy({ left: 340, behavior: 'smooth' });
+      }
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [localProkerList.length, isProkerHovered]);
+
+  const handleProkerScroll = () => {
+    const el = prokerScrollRef.current;
+    if (!el) return;
+    const cardWidth = 340;
+    const newIdx = Math.round(el.scrollLeft / cardWidth);
+    setProkerActiveDot(Math.max(0, Math.min(newIdx, localProkerList.length - 1)));
+  };
+
+  const scrollToProkerIndex = (idx: number) => {
+    const el = prokerScrollRef.current;
+    if (!el) return;
+    const cardWidth = 340;
+    el.scrollTo({ left: idx * cardWidth, behavior: 'smooth' });
+    setProkerActiveDot(idx);
+  };
 
   React.useEffect(() => {
     const fetchFreshData = async () => {
@@ -423,23 +461,29 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
             </div>
           </div>
 
-          {/* Cards Showcase: Swipeable on Mobile, Responsive Grid on Desktop */}
+          {/* Cards Showcase: Strict 1-Row Horizontal Swipe Carousel on All Devices */}
           {localProkerList.length === 0 ? (
             <div className="text-center py-16 text-slate-400 font-bold text-xs bg-white rounded-3xl border border-slate-200 max-w-4xl mx-auto">
               Belum ada program kerja terdaftar.
             </div>
           ) : (
             <div className="max-w-6xl mx-auto">
-              {/* Swipeable Container on Mobile/Tablet & Grid on Desktop */}
+              {/* Swipeable 1-Row Container across Desktop & Mobile */}
               <div
-                className="flex lg:grid lg:grid-cols-3 gap-5 overflow-x-auto lg:overflow-x-visible pb-4 pt-1 snap-x snap-mandatory scroll-smooth no-scrollbar -mx-2 px-2"
+                ref={prokerScrollRef}
+                onScroll={handleProkerScroll}
+                onMouseEnter={() => setIsProkerHovered(true)}
+                onMouseLeave={() => setIsProkerHovered(false)}
+                onTouchStart={() => setIsProkerHovered(true)}
+                onTouchEnd={() => setIsProkerHovered(false)}
+                className="flex flex-nowrap gap-5 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scroll-smooth no-scrollbar -mx-2 px-2"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
-                {localProkerList.map((item: any) => (
+                {localProkerList.map((item: any, itemIdx: number) => (
                   <div
                     key={item.id}
                     onClick={() => handleSelectProker(item)}
-                    className="group bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-[#0b5665]/40 transition-all duration-200 flex flex-col justify-between p-4 sm:p-5 w-[280px] sm:w-[320px] lg:w-auto shrink-0 snap-start cursor-pointer"
+                    className="group bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-[#0b5665]/40 transition-all duration-200 flex flex-col justify-between p-4 sm:p-5 w-[84vw] sm:w-[320px] md:w-[340px] lg:w-[calc(33.333%-14px)] shrink-0 snap-start cursor-pointer"
                   >
                     <div>
                       {/* Image Container */}
@@ -511,15 +555,20 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
                 ))}
               </div>
 
-              {/* Dot Indicators matching reference */}
+              {/* Dynamic Interactive Dot Indicators */}
               {localProkerList.length > 1 && (
-                <div className="flex items-center justify-center space-x-1.5 pt-3">
-                  {localProkerList.slice(0, 5).map((_, idx) => (
-                    <div
+                <div className="flex items-center justify-center space-x-2 pt-4">
+                  {localProkerList.map((_, idx) => (
+                    <button
                       key={idx}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        idx === 0 ? 'w-4 bg-[#0b5665]' : 'w-1.5 bg-slate-300'
+                      type="button"
+                      onClick={() => scrollToProkerIndex(idx)}
+                      className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                        prokerActiveDot === idx
+                          ? 'w-6 bg-[#0b5665]'
+                          : 'w-2 bg-slate-300 hover:bg-slate-400'
                       }`}
+                      aria-label={`Lihat program kerja ke-${idx + 1}`}
                     />
                   ))}
                 </div>
