@@ -898,8 +898,8 @@ export const App = () => {
         <Footer settings={settings} />
       )}
 
-      {/* GLOBAL DEVELOPER BROADCAST NOTIFICATION POPUP */}
-      {incomingBroadcast && (
+      {/* GLOBAL DEVELOPER BROADCAST NOTIFICATION POPUP (Excludes Developer Sender) */}
+      {incomingBroadcast && currentRole !== 'developer' && currentPath !== '/admin/developer' && (
         <DevBroadcastModal
           broadcast={incomingBroadcast}
           onClose={() => {
