@@ -1,5 +1,25 @@
 import React, { useState } from 'react';
-import { MessageSquare, Shield, Clock, CheckCircle, Trash2, Mail, ExternalLink, Calendar, UserCheck } from 'lucide-react';
+import { 
+  MessageSquare, 
+  Shield, 
+  Clock, 
+  CheckCircle2, 
+  Trash2, 
+  Mail, 
+  ExternalLink, 
+  Calendar, 
+  Eye, 
+  X, 
+  Search, 
+  Phone, 
+  User, 
+  Check, 
+  AlertTriangle,
+  RotateCcw,
+  Loader2,
+  Share2,
+  Home
+} from 'lucide-react';
 import { RTSettings, RTMessage } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 
@@ -15,48 +35,58 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
   showSuccess
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'aspirasi' | 'wajib_lapor'>('aspirasi');
-  const [loading, setLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'read' | 'resolved'>('all');
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   // Search & Pagination States
-  const [searchAspirasi, setSearchAspirasi] = useState('');
-  const [currentPageAspirasi, setCurrentPageAspirasi] = useState(1);
-  
-  const [searchLapor, setSearchLapor] = useState('');
-  const [currentPageLapor, setCurrentPageLapor] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const itemsPerPage = 11;
+  // Modals state
+  const [selectedMessage, setSelectedMessage] = useState<RTMessage | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const messagesList = settings?.messages_list || [];
 
-  // Filter messages based on type
-  const aspirasiMessages = messagesList.filter(m => m.type === 'aspirasi');
-  const wajibLaporMessages = messagesList.filter(m => m.type === 'wajib_lapor');
+  // Filter messages based on sub-tab
+  const currentTabMessages = messagesList.filter(m => m.type === activeSubTab);
 
-  // Filter by Search Query
-  const filteredAspirasi = aspirasiMessages.filter(m => 
-    m.name.toLowerCase().includes(searchAspirasi.toLowerCase()) ||
-    (m.message || '').toLowerCase().includes(searchAspirasi.toLowerCase()) ||
-    (m.phone || '').includes(searchAspirasi)
-  );
+  // Filter by Status & Search Query
+  const filteredMessages = currentTabMessages.filter(m => {
+    // Status Filter
+    if (statusFilter !== 'all' && m.status !== statusFilter) {
+      return false;
+    }
 
-  const filteredLapor = wajibLaporMessages.filter(m => 
-    m.name.toLowerCase().includes(searchLapor.toLowerCase()) ||
-    (m.guestNik || '').includes(searchLapor) ||
-    (m.hostName || '').toLowerCase().includes(searchLapor.toLowerCase()) ||
-    (m.phone || '').includes(searchLapor)
-  );
+    // Search query filter
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    
+    if (activeSubTab === 'aspirasi') {
+      return (
+        m.name.toLowerCase().includes(q) ||
+        (m.message || '').toLowerCase().includes(q) ||
+        (m.phone || '').includes(q)
+      );
+    } else {
+      return (
+        m.name.toLowerCase().includes(q) ||
+        (m.guestNik || '').includes(q) ||
+        (m.hostName || '').toLowerCase().includes(q) ||
+        (m.phone || '').includes(q) ||
+        (m.relation || '').toLowerCase().includes(q)
+      );
+    }
+  });
 
-  // Reset pagination on search or list change
+  // Reset pagination on sub-tab, search, or status filter change
   React.useEffect(() => {
-    setCurrentPageAspirasi(1);
-  }, [searchAspirasi, aspirasiMessages.length]);
+    setCurrentPage(1);
+  }, [activeSubTab, searchQuery, statusFilter, itemsPerPage]);
 
-  React.useEffect(() => {
-    setCurrentPageLapor(1);
-  }, [searchLapor, wajibLaporMessages.length]);
-
-  const pendingAspirasiCount = aspirasiMessages.filter(m => m.status === 'pending').length;
-  const pendingWajibLaporCount = wajibLaporMessages.filter(m => m.status === 'pending').length;
+  const pendingAspirasiCount = messagesList.filter(m => m.type === 'aspirasi' && m.status === 'pending').length;
+  const pendingWajibLaporCount = messagesList.filter(m => m.type === 'wajib_lapor' && m.status === 'pending').length;
 
   const formatWhatsAppLink = (phone: string) => {
     if (!phone) return '#';
@@ -69,6 +99,7 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
 
   const handleUpdateStatus = async (messageId: string, nextStatus: 'pending' | 'read' | 'resolved') => {
     if (!settings) return;
+    setProcessingId(messageId);
     
     // Optimistic update for instant UI feedback
     const updatedMessages = messagesList.map(m => {
@@ -87,27 +118,36 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
       onSettingsUpdate(updatedSettings);
     }
 
-    setLoading(true);
+    // Update inside modal if currently opened
+    if (selectedMessage && selectedMessage.id === messageId) {
+      setSelectedMessage({ ...selectedMessage, status: nextStatus });
+    }
+
     try {
       await SupabaseService.updateSettings(updatedSettings);
-      showSuccess('Status pesan berhasil diperbarui!');
+      const statusLabels = {
+        pending: 'Menunggu',
+        read: 'Dibaca',
+        resolved: 'Selesai'
+      };
+      showSuccess(`Status berhasil diubah menjadi: ${statusLabels[nextStatus]}`);
     } catch (err: any) {
       console.error(err);
       alert('Gagal memperbarui status: ' + err.message);
-      // Revert state if api fails
       if (onSettingsUpdate) {
         onSettingsUpdate(settings);
       }
     } finally {
-      setLoading(false);
+      setProcessingId(null);
     }
   };
 
-  const handleDeleteMessage = async (messageId: string) => {
-    if (!settings || !confirm('Apakah Anda yakin ingin menghapus data laporan ini secara permanen?')) return;
+  const confirmDelete = async () => {
+    if (!settings || !deleteTargetId) return;
+    const targetId = deleteTargetId;
+    setProcessingId(targetId);
     
-    // Optimistic update for instant UI feedback
-    const updatedMessages = messagesList.filter(m => m.id !== messageId);
+    const updatedMessages = messagesList.filter(m => m.id !== targetId);
 
     const updatedSettings: RTSettings = {
       ...settings,
@@ -118,139 +158,225 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
       onSettingsUpdate(updatedSettings);
     }
 
-    setLoading(true);
+    if (selectedMessage && selectedMessage.id === targetId) {
+      setSelectedMessage(null);
+    }
+    setDeleteTargetId(null);
+
     try {
       await SupabaseService.updateSettings(updatedSettings);
-      showSuccess('Data laporan berhasil dihapus!');
+      showSuccess('Data pesan/laporan berhasil dihapus!');
     } catch (err: any) {
       console.error(err);
       alert('Gagal menghapus data: ' + err.message);
-      // Revert state if api fails
       if (onSettingsUpdate) {
         onSettingsUpdate(settings);
       }
     } finally {
-      setLoading(false);
+      setProcessingId(null);
     }
   };
 
   // Pagination Slice
-  const totalPagesAspirasi = Math.ceil(filteredAspirasi.length / itemsPerPage);
-  const paginatedAspirasi = filteredAspirasi.slice(
-    (currentPageAspirasi - 1) * itemsPerPage,
-    currentPageAspirasi * itemsPerPage
-  );
-
-  const totalPagesLapor = Math.ceil(filteredLapor.length / itemsPerPage);
-  const paginatedLapor = filteredLapor.slice(
-    (currentPageLapor - 1) * itemsPerPage,
-    currentPageLapor * itemsPerPage
-  );
+  const totalPages = Math.max(1, Math.ceil(filteredMessages.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedMessages = filteredMessages.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       
-      {/* Sub-tabs switcher */}
-      <div className="flex border-b border-slate-200">
+      {/* 1. SUB-TABS SWITCHER */}
+      <div className="bg-white p-2 border border-slate-200 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-2">
         <button
-          onClick={() => setActiveSubTab('aspirasi')}
-          className={`px-6 py-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center space-x-2 ${
+          type="button"
+          onClick={() => { setActiveSubTab('aspirasi'); setStatusFilter('all'); setSearchQuery(''); }}
+          className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center space-x-2.5 ${
             activeSubTab === 'aspirasi'
-              ? 'border-[#1E4D6B] text-[#1E4D6B]'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'bg-slate-900 text-white shadow-sm'
+              : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
           <Mail className="w-4 h-4" />
           <span>Aspirasi & Pengaduan Warga</span>
           {pendingAspirasiCount > 0 && (
-            <span className="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+              activeSubTab === 'aspirasi' ? 'bg-rose-500 text-white' : 'bg-rose-100 text-rose-600'
+            }`}>
               {pendingAspirasiCount} Baru
             </span>
           )}
         </button>
+
         <button
-          onClick={() => setActiveSubTab('wajib_lapor')}
-          className={`px-6 py-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center space-x-2 ${
+          type="button"
+          onClick={() => { setActiveSubTab('wajib_lapor'); setStatusFilter('all'); setSearchQuery(''); }}
+          className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center space-x-2.5 ${
             activeSubTab === 'wajib_lapor'
-              ? 'border-[#1E4D6B] text-[#1E4D6B]'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'bg-slate-900 text-white shadow-sm'
+              : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
           <Shield className="w-4 h-4" />
           <span>Wajib Lapor Tamu (1x24 Jam)</span>
           {pendingWajibLaporCount > 0 && (
-            <span className="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+              activeSubTab === 'wajib_lapor' ? 'bg-rose-500 text-white' : 'bg-rose-100 text-rose-600'
+            }`}>
               {pendingWajibLaporCount} Baru
             </span>
           )}
         </button>
       </div>
 
-      {activeSubTab === 'aspirasi' ? (
-        /* ASPIRASI TABLE LIST */
-        <div className="premium-card p-6 sm:p-8 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <div>
-              <h3 className="text-base font-black text-slate-900">Kotak Masuk Saran & Aspirasi</h3>
-              <p className="text-xs text-slate-505 font-semibold mt-1">Daftar aspirasi, masukan, pengaduan kebersihan, dan keamanan dari warga RT 35.</p>
-            </div>
-            
-            {/* Search Input */}
-            <div className="flex items-center space-x-2">
-              <input 
-                type="text"
-                placeholder="Cari nama, pesan, kontak..."
-                value={searchAspirasi}
-                onChange={(e) => setSearchAspirasi(e.target.value)}
-                className="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold focus:outline-none focus:border-slate-400"
-              />
-              <span className="text-xs font-black text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full shrink-0">
-                {filteredAspirasi.length} Data
-              </span>
-            </div>
+      {/* 2. MAIN CONTAINER CARD */}
+      <div className="p-6 sm:p-8 bg-white border border-slate-200 rounded-3xl shadow-sm space-y-6">
+        
+        {/* Header & Filter Controls Bar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-slate-900">
+              {activeSubTab === 'aspirasi' ? 'Kotak Masuk Saran & Aspirasi' : 'Arsip Wajib Lapor Tamu 1x24 Jam'}
+            </h3>
+            <p className="text-xs text-slate-400 font-bold mt-0.5">
+              {activeSubTab === 'aspirasi' 
+                ? 'Kelola aspirasi, masukan kebersihan, dan keamanan warga RT 35 secara real-time.' 
+                : 'Daftar laporan kedatangan tamu menginap yang dilaporkan oleh warga/penanggung jawab.'}
+            </p>
           </div>
 
-          {filteredAspirasi.length === 0 ? (
-            <div className="text-center py-12 text-xs font-semibold text-slate-400">
-              Tidak ada data aspirasi yang cocok atau belum ada pesan masuk.
+          {/* Search, Filter & Items per page controls */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Search Input */}
+            <div className="relative flex-1 sm:flex-initial min-w-[220px]">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input 
+                type="text"
+                placeholder="Cari nama, kontak, isi..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-800 transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-bold text-slate-700 min-w-[700px]">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-[10px] text-slate-400 uppercase tracking-wider">
-                      <th className="pb-3 w-1/5">Pengirim & Kontak</th>
-                      <th className="pb-3 w-2/5">Isi Pesan/Aspirasi</th>
-                      <th className="pb-3 w-1/5">Tanggal Masuk</th>
-                      <th className="pb-3 w-1/10">Status</th>
-                      <th className="pb-3 w-1/10 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {paginatedAspirasi.map((m) => (
-                      <tr key={m.id} className={`hover:bg-slate-50/50 ${m.status === 'pending' ? 'bg-[#1E4D6B]/5 font-black' : ''}`}>
-                        <td className="py-4 pr-3">
-                          <div className="text-slate-900 font-black">{m.name}</div>
+
+            {/* Status Filter Dropdown / Pill */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-800"
+            >
+              <option value="all">Semua Status</option>
+              <option value="pending">Menunggu (Pending)</option>
+              <option value="read">Dibaca / Diterima</option>
+              <option value="resolved">Selesai</option>
+            </select>
+
+            {/* Items Per Page */}
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-800"
+              title="Jumlah baris per halaman"
+            >
+              <option value={5}>5 Data</option>
+              <option value={10}>10 Data</option>
+              <option value={20}>20 Data</option>
+            </select>
+
+            {/* Total Data Count Badge */}
+            <span className="text-xs font-black text-slate-700 bg-slate-100 px-3.5 py-2 rounded-xl shrink-0">
+              {filteredMessages.length} Total
+            </span>
+          </div>
+        </div>
+
+        {/* 3. LIST / TABLE DATA */}
+        {filteredMessages.length === 0 ? (
+          <div className="text-center py-16 space-y-3 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+            <div className="w-12 h-12 rounded-full bg-slate-100 mx-auto flex items-center justify-center text-slate-400">
+              <MessageSquare className="w-6 h-6" />
+            </div>
+            <p className="text-xs font-bold text-slate-500">
+              {searchQuery || statusFilter !== 'all'
+                ? 'Tidak ada data yang sesuai dengan filter atau pencarian Anda.'
+                : 'Belum ada data pesan masuk di kategori ini.'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200/80">
+              <table className="w-full text-left text-xs font-bold text-slate-700 min-w-[760px]">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 uppercase tracking-wider">
+                    <th className="py-3.5 px-4 w-[22%]">Pengirim / Tamu</th>
+                    <th className="py-3.5 px-4 w-[38%]">{activeSubTab === 'aspirasi' ? 'Isi Aspirasi' : 'Detail Tuan Rumah & Durasi'}</th>
+                    <th className="py-3.5 px-4 w-[18%]">Waktu Masuk</th>
+                    <th className="py-3.5 px-4 w-[10%]">Status</th>
+                    <th className="py-3.5 px-4 w-[12%] text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedMessages.map((m) => {
+                    const isProcessing = processingId === m.id;
+                    return (
+                      <tr 
+                        key={m.id} 
+                        className={`hover:bg-slate-50/60 transition-colors ${
+                          m.status === 'pending' ? 'bg-[#0b5665]/[0.03]' : ''
+                        }`}
+                      >
+                        {/* Column 1: Sender & Contact */}
+                        <td className="py-4 px-4 align-top">
+                          <div className="text-slate-900 font-black text-xs">{m.name}</div>
+                          {activeSubTab === 'wajib_lapor' && m.guestNik && (
+                            <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                              NIK: {m.guestNik}
+                            </div>
+                          )}
                           {m.phone ? (
                             <a 
                               href={formatWhatsAppLink(m.phone)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-[10px] text-slate-400 hover:text-emerald-600 transition-colors flex items-center gap-1 mt-0.5 font-mono"
-                              title="Hubungi via WhatsApp"
+                              className="text-[11px] text-slate-500 hover:text-emerald-600 transition-colors inline-flex items-center gap-1 mt-1 font-mono font-bold"
+                              title="Hubungi Pengirim via WhatsApp"
                             >
                               <span>{m.phone}</span>
-                              <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                              <ExternalLink className="w-3 h-3 shrink-0" />
                             </a>
                           ) : (
-                            <div className="text-[10px] text-slate-400 mt-0.5">-</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5 font-mono">-</div>
                           )}
                         </td>
-                        <td className="py-4 pr-3 leading-relaxed text-slate-650 font-medium whitespace-pre-wrap break-all">
-                          {m.message}
+
+                        {/* Column 2: Message Content / Guest Details */}
+                        <td className="py-4 px-4 align-top">
+                          {activeSubTab === 'aspirasi' ? (
+                            <div className="line-clamp-2 text-slate-700 leading-relaxed font-semibold">
+                              {m.message || '-'}
+                            </div>
+                          ) : (
+                            <div className="space-y-1 text-slate-700 text-xs">
+                              <div>
+                                <span className="text-slate-400 text-[10px] uppercase tracking-wider font-bold">Tuan Rumah:</span>{' '}
+                                <span className="font-bold text-slate-900">{m.hostName || '-'}</span>
+                              </div>
+                              <div className="text-[11px] text-slate-500 font-bold">
+                                Hubungan: {m.relation || '-'} • Durasi: {m.duration ? `${m.duration} Hari` : '-'}
+                              </div>
+                            </div>
+                          )}
                         </td>
-                        <td className="py-4 pr-3 text-slate-450 font-semibold">
+
+                        {/* Column 3: Submission Date */}
+                        <td className="py-4 px-4 align-top text-slate-500 text-[11px] font-bold">
                           {new Date(m.createdAt).toLocaleDateString('id-ID', {
                             day: 'numeric',
                             month: 'short',
@@ -259,240 +385,345 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
                             minute: '2-digit'
                           })}
                         </td>
-                        <td className="py-4 pr-3">
+
+                        {/* Column 4: Status Badge */}
+                        <td className="py-4 px-4 align-top">
                           {m.status === 'pending' ? (
-                            <span className="text-[9px] font-black text-rose-600 bg-rose-50 border border-rose-250 px-2 py-0.5 rounded-full animate-pulse">Pending</span>
+                            <span className="text-[10px] font-black text-rose-600 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full inline-block">
+                              Menunggu
+                            </span>
                           ) : m.status === 'read' ? (
-                            <span className="text-[9px] font-black text-[#1E4D6B] bg-[#1E4D6B]/10 border border-[#1E4D6B]/25 px-2 py-0.5 rounded-full">Dibaca</span>
+                            <span className="text-[10px] font-black text-[#0b5665] bg-[#0b5665]/10 border border-[#0b5665]/20 px-2.5 py-1 rounded-full inline-block">
+                              Dibaca
+                            </span>
                           ) : (
-                            <span className="text-[9px] font-black text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/25 px-2 py-0.5 rounded-full">Selesai</span>
+                            <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full inline-block">
+                              Selesai
+                            </span>
                           )}
                         </td>
-                        <td className="py-4 text-right space-x-1.5 whitespace-nowrap">
-                          {m.status === 'pending' && (
+
+                        {/* Column 5: Actions */}
+                        <td className="py-4 px-4 align-top text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end space-x-1.5">
+                            
+                            {/* View Detail Button */}
                             <button
-                              onClick={() => handleUpdateStatus(m.id, 'read')}
-                              className="p-1 rounded text-[#1E4D6B] hover:bg-[#1E4D6B]/10"
-                              title="Tandai Dibaca"
+                              type="button"
+                              onClick={() => setSelectedMessage(m)}
+                              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
+                              title="Lihat Detail Pesan"
                             >
-                              <CheckCircle className="w-3.5 h-3.5 inline" />
+                              <Eye className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                          {m.status === 'read' && (
+
+                            {/* Status Advancement Button */}
+                            {m.status === 'pending' && (
+                              <button
+                                type="button"
+                                disabled={isProcessing}
+                                onClick={() => handleUpdateStatus(m.id, 'read')}
+                                className="p-2 rounded-xl bg-[#0b5665]/10 hover:bg-[#0b5665]/20 text-[#0b5665] transition-all disabled:opacity-50"
+                                title="Tandai Sudah Dibaca"
+                              >
+                                {isProcessing ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Check className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            )}
+
+                            {m.status === 'read' && (
+                              <button
+                                type="button"
+                                disabled={isProcessing}
+                                onClick={() => handleUpdateStatus(m.id, 'resolved')}
+                                className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition-all disabled:opacity-50"
+                                title="Tandai Selesai"
+                              >
+                                {isProcessing ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            )}
+
+                            {/* Delete Button */}
                             <button
-                              onClick={() => handleUpdateStatus(m.id, 'resolved')}
-                              className="p-1 rounded text-[#5F8D4E] hover:bg-[#85A389]/10"
-                              title="Selesaikan Aspirasi"
+                              type="button"
+                              onClick={() => setDeleteTargetId(m.id)}
+                              className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-all"
+                              title="Hapus Pesan"
                             >
-                              <CheckCircle className="w-3.5 h-3.5 inline" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                          <button
-                            onClick={() => handleDeleteMessage(m.id)}
-                            className="p-1 rounded text-rose-500 hover:text-rose-600 hover:bg-rose-55"
-                            title="Hapus"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 inline" />
-                          </button>
+
+                          </div>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-              {/* Pagination Controls */}
-              {totalPagesAspirasi > 1 && (
-                <div className="flex items-center justify-center space-x-1.5 pt-2">
+            {/* 4. RESPONSIVE PAGINATION CONTROLS */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+              <p className="text-xs text-slate-400 font-bold">
+                Menampilkan <span className="text-slate-700 font-black">{filteredMessages.length === 0 ? 0 : startIndex + 1}</span> - <span className="text-slate-700 font-black">{Math.min(startIndex + itemsPerPage, filteredMessages.length)}</span> dari <span className="text-slate-700 font-black">{filteredMessages.length}</span> data
+              </p>
+
+              {totalPages > 1 && (
+                <div className="flex items-center space-x-1.5">
                   <button
-                    onClick={() => setCurrentPageAspirasi((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPageAspirasi === 1}
-                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
-                    aria-label="Previous page"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-black text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center h-9"
+                    aria-label="Halaman sebelumnya"
                   >
-                    &larr;
+                    &larr; Prev
                   </button>
-                  {Array.from({ length: totalPagesAspirasi }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setCurrentPageAspirasi(p)}
-                      className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
-                        currentPageAspirasi === p
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
+
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                      .map((p, idx, arr) => {
+                        const showEllipsisBefore = idx > 0 && p - arr[idx - 1] > 1;
+                        return (
+                          <React.Fragment key={p}>
+                            {showEllipsisBefore && (
+                              <span className="px-1 text-slate-400 text-xs font-black">...</span>
+                            )}
+                            <button
+                              onClick={() => setCurrentPage(p)}
+                              className={`w-9 h-9 rounded-xl text-xs font-black transition-all active:scale-95 border ${
+                                currentPage === p
+                                  ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                  </div>
+
                   <button
-                    onClick={() => setCurrentPageAspirasi((prev) => Math.min(prev + 1, totalPagesAspirasi))}
-                    disabled={currentPageAspirasi === totalPagesAspirasi}
-                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
-                    aria-label="Next page"
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-black text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center h-9"
+                    aria-label="Halaman berikutnya"
                   >
-                    &rarr;
+                    Next &rarr;
                   </button>
                 </div>
               )}
             </div>
-          )}
-        </div>
-      ) : (
-        /* GUEST REPORT TABLE LIST */
-        <div className="premium-card p-6 sm:p-8 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <div>
-              <h3 className="text-base font-black text-slate-900">Arsip Wajib Lapor Tamu 1x24 Jam</h3>
-              <p className="text-xs text-slate-505 font-semibold mt-1">Daftar laporan kedatangan tamu menginap yang dilaporkan oleh warga/penanggung jawab.</p>
+
+          </div>
+        )}
+
+      </div>
+
+      {/* 5. DETAIL POPUP MODAL (MODERN, RESPONSIVE, STANDARD INTERNASIONAL) */}
+      {selectedMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div 
+            className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 relative overflow-hidden animate-scale-up max-h-[90vh] flex flex-col justify-between"
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Header with Close */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className={`p-2.5 rounded-2xl ${
+                  selectedMessage.type === 'aspirasi' ? 'bg-[#0b5665]/10 text-[#0b5665]' : 'bg-amber-500/10 text-amber-600'
+                }`}>
+                  {selectedMessage.type === 'aspirasi' ? <MessageSquare className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                </div>
+                <div>
+                  <h4 className="text-base font-black text-slate-900 leading-tight">
+                    {selectedMessage.type === 'aspirasi' ? 'Detail Aspirasi Warga' : 'Detail Laporan Tamu (1x24 Jam)'}
+                  </h4>
+                  <p className="text-[11px] text-slate-400 font-bold mt-0.5">
+                    Diterima pada {new Date(selectedMessage.createdAt).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedMessage(null)}
+                className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            
-            {/* Search Input */}
-            <div className="flex items-center space-x-2">
-              <input 
-                type="text"
-                placeholder="Cari nama, NIK, tuan rumah..."
-                value={searchLapor}
-                onChange={(e) => setSearchLapor(e.target.value)}
-                className="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold focus:outline-none focus:border-slate-400"
-              />
-              <span className="text-xs font-black text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full shrink-0">
-                {filteredLapor.length} Data
-              </span>
+
+            {/* Scrollable Modal Content */}
+            <div className="space-y-4 overflow-y-auto pr-1 text-xs font-semibold">
+              
+              {/* Profile Details Card */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Nama Lengkap</span>
+                  <span className="font-black text-slate-900">{selectedMessage.name}</span>
+                </div>
+
+                {selectedMessage.phone && (
+                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">No. HP / WhatsApp</span>
+                    <a
+                      href={formatWhatsAppLink(selectedMessage.phone)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono font-black text-[#0b5665] hover:underline flex items-center gap-1"
+                    >
+                      <span>{selectedMessage.phone}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
+
+                {selectedMessage.type === 'wajib_lapor' && (
+                  <>
+                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">NIK Tamu</span>
+                      <span className="font-mono font-black text-slate-900">{selectedMessage.guestNik || '-'}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Hubungan</span>
+                      <span className="font-bold text-slate-800">{selectedMessage.relation || '-'}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tuan Rumah</span>
+                      <span className="font-bold text-slate-800">{selectedMessage.hostName || '-'}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tanggal Menginap</span>
+                      <span className="font-bold text-slate-800">
+                        {selectedMessage.startDate ? new Date(selectedMessage.startDate).toLocaleDateString('id-ID', { dateStyle: 'long' }) : '-'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Durasi</span>
+                      <span className="font-bold text-slate-800">{selectedMessage.duration ? `${selectedMessage.duration} Hari` : '-'}</span>
+                    </div>
+                  </>
+                )}
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Status Pesan</span>
+                  <div>
+                    {selectedMessage.status === 'pending' ? (
+                      <span className="text-[10px] font-black text-rose-600 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">Menunggu</span>
+                    ) : selectedMessage.status === 'read' ? (
+                      <span className="text-[10px] font-black text-[#0b5665] bg-[#0b5665]/10 border border-[#0b5665]/20 px-2.5 py-0.5 rounded-full">Dibaca</span>
+                    ) : (
+                      <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">Selesai</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Message Box if Aspirasi */}
+              {selectedMessage.type === 'aspirasi' && (
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Isi Pesan / Saran Warga:</label>
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs font-medium text-slate-800 leading-relaxed whitespace-pre-wrap">
+                    {selectedMessage.message || 'Tidak ada pesan tertulis.'}
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer Action Buttons */}
+            <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+              {selectedMessage.phone ? (
+                <a
+                  href={formatWhatsAppLink(selectedMessage.phone)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-all flex items-center space-x-1.5 shadow-sm"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Balas via WhatsApp</span>
+                </a>
+              ) : <div />}
+
+              <div className="flex items-center space-x-2">
+                {selectedMessage.status !== 'resolved' ? (
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateStatus(selectedMessage.id, selectedMessage.status === 'pending' ? 'read' : 'resolved')}
+                    className="px-4 py-2.5 rounded-xl bg-[#0b5665] hover:bg-[#08424e] text-white text-xs font-black transition-all shadow-sm"
+                  >
+                    {selectedMessage.status === 'pending' ? 'Tandai Dibaca' : 'Tandai Selesai'}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateStatus(selectedMessage.id, 'pending')}
+                    className="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black transition-all"
+                  >
+                    Kembalikan ke Pending
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedMessage(null)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* 6. DELETE CONFIRMATION MODAL */}
+      {deleteTargetId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-6 animate-scale-up">
+            <div className="w-14 h-14 rounded-full bg-rose-50 border-4 border-rose-100 mx-auto flex items-center justify-center text-rose-600">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-base font-black text-slate-900">Hapus Data Permanen?</h4>
+              <p className="text-xs text-slate-500 font-bold leading-relaxed">
+                Tindakan ini tidak dapat dibatalkan. Laporan ini akan dihapus permanen dari daftar arsip.
+              </p>
+            </div>
+
+            <div className="flex space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTargetId(null)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-all shadow-md active:scale-98"
+              >
+                Hapus Sekarang
+              </button>
             </div>
           </div>
-
-          {filteredLapor.length === 0 ? (
-            <div className="text-center py-12 text-xs font-semibold text-slate-400">
-              Tidak ada data lapor tamu yang cocok atau belum ada laporan masuk.
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-bold text-slate-700 min-w-[850px]">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-[10px] text-slate-400 uppercase tracking-wider">
-                      <th className="pb-3">Tamu (NIK)</th>
-                      <th className="pb-3">Hubungan</th>
-                      <th className="pb-3">Tuan Rumah</th>
-                      <th className="pb-3">Stay Mulai</th>
-                      <th className="pb-3">Durasi</th>
-                      <th className="pb-3">Kontak Lapor</th>
-                      <th className="pb-3">Status</th>
-                      <th className="pb-3 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {paginatedLapor.map((m) => (
-                      <tr key={m.id} className={`hover:bg-slate-50/50 ${m.status === 'pending' ? 'bg-[#1E4D6B]/5 font-black' : ''}`}>
-                        <td className="py-4 pr-3">
-                          <div className="text-slate-900 font-black">{m.name}</div>
-                          <div className="text-[10px] text-slate-400 font-mono mt-0.5">NIK: {m.guestNik || '-'}</div>
-                        </td>
-                        <td className="py-4 pr-3 font-semibold text-slate-700">{m.relation || '-'}</td>
-                        <td className="py-4 pr-3 font-black text-slate-800">{m.hostName || '-'}</td>
-                        <td className="py-4 pr-3 text-slate-500">
-                          {m.startDate ? new Date(m.startDate).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric'
-                          }) : '-'}
-                        </td>
-                        <td className="py-4 pr-3">{m.duration ? `${m.duration} Hari` : '-'}</td>
-                        <td className="py-4 pr-3">
-                          {m.phone ? (
-                            <a 
-                              href={formatWhatsAppLink(m.phone)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-slate-600 hover:text-emerald-600 transition-colors flex items-center gap-1 font-mono font-bold"
-                              title="Hubungi via WhatsApp"
-                            >
-                              <span>{m.phone}</span>
-                              <ExternalLink className="w-3 h-3 shrink-0 text-slate-400" />
-                            </a>
-                          ) : (
-                            <div className="text-xs text-slate-500 font-mono">-</div>
-                          )}
-                        </td>
-                        <td className="py-4 pr-3">
-                          {m.status === 'pending' ? (
-                            <span className="text-[9px] font-black text-rose-600 bg-rose-50 border border-rose-250 px-2 py-0.5 rounded-full animate-pulse">Menunggu</span>
-                          ) : m.status === 'read' ? (
-                            <span className="text-[9px] font-black text-[#1E4D6B] bg-[#1E4D6B]/10 border border-[#1E4D6B]/25 px-2 py-0.5 rounded-full">Diterima</span>
-                          ) : (
-                            <span className="text-[9px] font-black text-[#5F8D4E] bg-[#85A389]/10 border border-[#85A389]/25 px-2 py-0.5 rounded-full">Selesai</span>
-                          )}
-                        </td>
-                        <td className="py-4 text-right space-x-1.5 whitespace-nowrap">
-                          {m.status === 'pending' && (
-                            <button
-                              onClick={() => handleUpdateStatus(m.id, 'read')}
-                              className="p-1 rounded text-[#1E4D6B] hover:bg-[#1E4D6B]/10"
-                              title="Konfirmasi / Terima Laporan"
-                            >
-                              <CheckCircle className="w-3.5 h-3.5 inline" />
-                            </button>
-                          )}
-                          {m.status === 'read' && (
-                            <button
-                              onClick={() => handleUpdateStatus(m.id, 'resolved')}
-                              className="p-1 rounded text-[#5F8D4E] hover:bg-[#85A389]/10"
-                              title="Selesaikan Status Tamu"
-                            >
-                              <CheckCircle className="w-3.5 h-3.5 inline" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeleteMessage(m.id)}
-                            className="p-1 rounded text-rose-500 hover:text-rose-600 hover:bg-rose-55"
-                            title="Hapus"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 inline" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination Controls */}
-              {totalPagesLapor > 1 && (
-                <div className="flex items-center justify-center space-x-1.5 pt-2">
-                  <button
-                    onClick={() => setCurrentPageLapor((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPageLapor === 1}
-                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
-                    aria-label="Previous page"
-                  >
-                    &larr;
-                  </button>
-                  {Array.from({ length: totalPagesLapor }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setCurrentPageLapor(p)}
-                      className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border ${
-                        currentPageLapor === p
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setCurrentPageLapor((prev) => Math.min(prev + 1, totalPagesLapor))}
-                    disabled={currentPageLapor === totalPagesLapor}
-                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8"
-                    aria-label="Next page"
-                  >
-                    &rarr;
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
 
