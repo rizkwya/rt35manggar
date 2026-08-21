@@ -403,83 +403,129 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
           </div>
         </div>
 
-        {/* PROGRAM KERJA (PROKER) SECTION */}
-        <div id="proker-kkn" className="p-6 sm:p-8 bg-slate-100/60 border border-slate-200/80 rounded-3xl space-y-8 scroll-mt-20">
+        {/* PROGRAM KERJA (PROKER) SECTION - SHOWCASE NEWS/MAGAZINE STYLE */}
+        <div id="proker-kkn" className="p-6 sm:p-10 bg-white border border-slate-200 rounded-3xl sm:rounded-[36px] shadow-sm space-y-10 scroll-mt-20">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="inline-block text-[10px] font-black uppercase tracking-wider text-[#0b5665] bg-[#0b5665]/10 px-3.5 py-1.5 rounded-full border border-[#0b5665]/20">
-              Program Kerja & Progress Pengabdian
+            <span className="inline-block text-[10px] font-black uppercase tracking-wider text-[#0b5665] bg-[#0b5665]/10 px-4 py-1.5 rounded-full border border-[#0b5665]/20">
+              Program Kerja & Dokumentasi Aksi
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none uppercase">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight uppercase">
               Program Kerja KKN Kelompok 7
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 font-bold leading-relaxed">
-              Dokumentasi kegiatan, rencana aksi digitalisasi, pendataan warga, serta edukasi masyarakat oleh mahasiswa KKN Kelompok 7.
+              Dokumentasi pelaksanaan, rencana aksi digitalisasi lingkungan, survei kependudukan, serta capaian target pengabdian masyarakat di RT 35 Manggar.
             </p>
-            
-            {/* Center Action Button like Image 2 */}
-            <div className="pt-2">
-              <button 
-                onClick={() => {
-                  const el = document.getElementById('proker-scroller');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="px-8 py-2.5 rounded-full bg-[#0b5665] hover:bg-[#08424e] text-white text-xs font-black tracking-wide shadow transition-all active:scale-98"
-              >
-                Lihat Selengkapnya
-              </button>
+          </div>
+
+          {/* Cards Grid Showcase */}
+          {localProkerList.length === 0 ? (
+            <div className="text-center py-16 text-slate-400 font-bold text-xs bg-slate-50 rounded-3xl border border-slate-200">
+              Belum ada program kerja terdaftar.
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {localProkerList.map((item: any) => (
+                <div
+                  key={item.id}
+                  onClick={() => handleSelectProker(item)}
+                  className="group bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-[#0b5665]/40 hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer"
+                >
+                  <div>
+                    {/* Photo Header with floating Status Badge */}
+                    <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden bg-slate-100 border-b border-slate-100">
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+                          <Briefcase className="w-10 h-10 opacity-30 group-hover:scale-110 transition-transform duration-300" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-2">Dokumentasi Proker</span>
+                        </div>
+                      )}
 
-          {/* Horizontally scrollable flex row (matching image 2) */}
-          <div 
-            id="proker-scroller"
-            className="flex overflow-x-auto gap-6 pb-6 pt-2 scrollbar-thin snap-x snap-mandatory scroll-smooth"
-          >
-            {localProkerList.map((item: any) => (
-              <div
-                key={item.id}
-                onClick={() => handleSelectProker(item)}
-                className="min-w-[280px] sm:min-w-[340px] max-w-[340px] flex-shrink-0 snap-start bg-white rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer border border-slate-200"
-              >
-                <div>
-                  {/* Photo Header (Simkopdes style height) */}
-                  {item.image_url ? (
-                    <div className="h-48 w-full overflow-hidden relative border-b border-slate-100 bg-slate-50">
-                      <img
-                        src={item.image_url}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                      />
+                      {/* Status & Category Overlays */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+                        <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/95 text-slate-800 shadow-sm border border-slate-200/60 backdrop-blur-xs">
+                          {item.category}
+                        </span>
+                        <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm backdrop-blur-xs border ${
+                          item.status === 'Completed'
+                            ? 'bg-emerald-500 text-white border-emerald-600'
+                            : item.status === 'In Progress'
+                              ? 'bg-amber-500 text-white border-amber-600'
+                              : 'bg-slate-800 text-white border-slate-900'
+                        }`}>
+                          {item.status === 'Completed' ? '✓ Selesai' : item.status === 'In Progress' ? '● Berjalan' : '○ Rencana'}
+                        </span>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="h-52 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
-                      <Briefcase className="w-10 h-10 text-slate-400 opacity-40 group-hover:scale-110 transition-transform duration-500" />
-                    </div>
-                  )}
 
-                  {/* Card Body */}
-                  <div className="p-5 space-y-2">
-                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-[#0b5665]">
-                      <span>{item.category}</span>
+                    {/* Card Content Body */}
+                    <div className="p-6 space-y-3">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Target: {item.target_date}</span>
+                      </div>
+
+                      <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-[#0b5665] transition-colors line-clamp-2">
+                        {item.title}
+                      </h3>
+
+                      <p className="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2">
+                        {item.description}
+                      </p>
                     </div>
-                    <h3 className="text-sm sm:text-base font-black text-slate-900 leading-snug group-hover:text-[#0b5665] transition-colors line-clamp-2">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 font-bold leading-relaxed line-clamp-2">
-                      {item.description}
-                    </p>
+                  </div>
+
+                  {/* Card Footer: Progress & Action */}
+                  <div className="px-6 pb-6 pt-0 space-y-4">
+                    {/* Progress Bar with Capaian Percentage */}
+                    <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-150">
+                      <div className="flex items-center justify-between text-[11px] font-black">
+                        <span className="text-slate-600">Capaian Target</span>
+                        <span className={`font-black ${
+                          item.progress_percent === 100
+                            ? 'text-emerald-600'
+                            : item.progress_percent >= 50
+                              ? 'text-[#0b5665]'
+                              : 'text-amber-600'
+                        }`}>
+                          {item.progress_percent}%
+                        </span>
+                      </div>
+                      <div className="w-full h-2.5 rounded-full bg-slate-200/80 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${
+                            item.progress_percent === 100
+                              ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                              : item.progress_percent >= 50
+                                ? 'bg-gradient-to-r from-[#0b5665] to-emerald-500'
+                                : 'bg-gradient-to-r from-amber-500 to-amber-600'
+                          }`}
+                          style={{ width: `${item.progress_percent}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* PIC info and Detail Button */}
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs font-bold text-slate-500">
+                      <div className="min-w-0 pr-2">
+                        <span className="text-[9px] text-slate-400 block font-bold uppercase">PIC Proker:</span>
+                        <span className="text-slate-800 font-black text-xs truncate block">{item.pic_name}</span>
+                      </div>
+                      <span className="text-[11px] font-black text-[#0b5665] group-hover:translate-x-0.5 transition-transform shrink-0 flex items-center gap-1">
+                        <span>Lihat Rincian</span>
+                        <span>&rarr;</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
-
-                {/* Footer Target Date */}
-                <div className="px-5 pb-5 pt-0">
-                  <div className="text-[10px] text-amber-500 font-extrabold uppercase tracking-wider">
-                    Target: {item.target_date}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
           {/* 3D INTERACTIVE TEAM SHOWCASE SECTION */}

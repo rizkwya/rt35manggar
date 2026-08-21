@@ -402,79 +402,42 @@ export const SupabaseService = {
 
   // PROKER KKN CRUD
   async fetchProker(): Promise<ProkerItem[]> {
-    let localProkerStore: ProkerItem[] | null = null;
-    try {
-      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('rt35_proker_cache') : null;
-      if (saved) {
-        localProkerStore = JSON.parse(saved);
-      }
-    } catch (e) {}
-
     try {
       const { data, error } = await supabase.from('proker').select('*');
-      if (data && data.length > 0 && !error) {
-        const sorted = data as ProkerItem[];
-        // Keep order consistent
-        localProkerStore = sorted;
-        try { if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_proker_cache', JSON.stringify(localProkerStore)); } catch (e) {}
-        return localProkerStore;
+      if (!error && data) {
+        return data as ProkerItem[];
       }
     } catch (e) {
       console.warn('Proker query error:', e);
     }
-
-    if (!localProkerStore || localProkerStore.length === 0) {
-      localProkerStore = [...INITIAL_PROKER];
-    }
-    return localProkerStore;
+    return [];
   },
 
   async addProker(item: ProkerItem): Promise<ProkerItem[]> {
-    let currentStore = await this.fetchProker();
-    currentStore.push(item);
-    try {
-      if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_proker_cache', JSON.stringify(currentStore));
-    } catch (e) {}
-
     try {
       await supabase.from('proker').insert([item]);
     } catch (e) {
       console.warn('Proker insert error:', e);
     }
-    return currentStore;
+    return this.fetchProker();
   },
 
   async updateProker(item: ProkerItem): Promise<ProkerItem[]> {
-    let currentStore = await this.fetchProker();
-    const idx = currentStore.findIndex((p) => p.id === item.id);
-    if (idx !== -1) {
-      currentStore[idx] = { ...item };
-    }
-    try {
-      if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_proker_cache', JSON.stringify(currentStore));
-    } catch (e) {}
-
     try {
       await supabase.from('proker').upsert([item]);
     } catch (e) {
       console.warn('Proker update error:', e);
     }
-    return currentStore;
+    return this.fetchProker();
   },
 
   async deleteProker(id: string): Promise<ProkerItem[]> {
-    let currentStore = await this.fetchProker();
-    currentStore = currentStore.filter((p) => p.id !== id);
-    try {
-      if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_proker_cache', JSON.stringify(currentStore));
-    } catch (e) {}
-
     try {
       await supabase.from('proker').delete().eq('id', id);
     } catch (e) {
       console.warn('Proker delete error:', e);
     }
-    return currentStore;
+    return this.fetchProker();
   },
 
 
