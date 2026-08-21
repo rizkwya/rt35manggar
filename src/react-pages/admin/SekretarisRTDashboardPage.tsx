@@ -157,34 +157,34 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   };
 
   const resizeAndCompressImage = (file: File, callback: (base64: string) => void) => {
+    const isTransparentFormat = file.type.includes('png') || file.type.includes('webp') || file.type.includes('svg');
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 150;
-        const MAX_HEIGHT = 150;
+        // High resolution for 3D full-body cutout characters
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 1200;
         let width = img.width;
         let height = img.height;
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
+        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
         }
 
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: true });
         if (ctx) {
+          // Clear canvas so transparent alpha channel is 100% preserved
+          ctx.clearRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          // Use image/png to retain 100% transparent backgrounds without turning black
+          const outputFormat = isTransparentFormat ? 'image/png' : 'image/jpeg';
+          const dataUrl = canvas.toDataURL(outputFormat, isTransparentFormat ? 0.95 : 0.85);
           callback(dataUrl);
         } else {
           callback(event.target?.result as string);
