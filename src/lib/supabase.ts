@@ -402,42 +402,140 @@ export const SupabaseService = {
 
   // PROKER KKN CRUD
   async fetchProker(): Promise<ProkerItem[]> {
+    // 1. Try dedicated table 'proker'
     try {
       const { data, error } = await supabase.from('proker').select('*');
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         return data as ProkerItem[];
       }
     } catch (e) {
-      console.warn('Proker query error:', e);
+      console.warn('Proker table query notice:', e);
     }
+
+    // 2. Check rt_settings emergency_description for proker_list
+    try {
+      const { data: settingsData, error: sErr } = await supabase.from('rt_settings').select('*');
+      if (!sErr && settingsData && settingsData.length > 0) {
+        const firstRow = settingsData[0];
+        if (firstRow.emergency_description) {
+          try {
+            const extra = JSON.parse(firstRow.emergency_description);
+            if (extra.proker_list && Array.isArray(extra.proker_list)) {
+              return extra.proker_list as ProkerItem[];
+            }
+          } catch (jsonErr) {}
+        }
+      }
+    } catch (e) {
+      console.warn('rt_settings proker fetch exception:', e);
+    }
+
+    // 3. Check local storage cache
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem('rt35_proker_cache');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      }
+    } catch (e) {}
+
     return [];
   },
 
   async addProker(item: ProkerItem): Promise<ProkerItem[]> {
-    try {
-      await supabase.from('proker').insert([item]);
-    } catch (e) {
-      console.warn('Proker insert error:', e);
-    }
-    return this.fetchProker();
-  },
+    const currentList = await this.fetchProker();
+    const updatedList = [item, ...currentList.filter(p => p.id !== item.id)];
 
-  async updateProker(item: ProkerItem): Promise<ProkerItem[]> {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('rt35_proker_cache', JSON.stringify(updatedList));
+      }
+    } catch (e) {}
+
+    // 1. Sync to rt_settings (guaranteed cloud persistence)
+    try {
+      const currentSettings = await this.fetchSettings();
+      (currentSettings as any).proker_list = updatedList;
+      await this.updateSettings(currentSettings);
+    } catch (e) {
+      console.warn('Failed saving proker to rt_settings:', e);
+    }
+
+    // 2. Try dedicated proker table
     try {
       await supabase.from('proker').upsert([item]);
     } catch (e) {
-      console.warn('Proker update error:', e);
+      console.warn('Proker table insert notice:', e);
     }
-    return this.fetchProker();
+
+    return updatedList;
+  },
+
+  async updateProker(item: ProkerItem): Promise<ProkerItem[]> {
+    const currentList = await this.fetchProker();
+    const idx = currentList.findIndex(p => p.id === item.id);
+    let updatedList: ProkerItem[];
+    if (idx !== -1) {
+      updatedList = [...currentList];
+      updatedList[idx] = { ...item };
+    } else {
+      updatedList = [item, ...currentList];
+    }
+
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('rt35_proker_cache', JSON.stringify(updatedList));
+      }
+    } catch (e) {}
+
+    // 1. Sync to rt_settings
+    try {
+      const currentSettings = await this.fetchSettings();
+      (currentSettings as any).proker_list = updatedList;
+      await this.updateSettings(currentSettings);
+    } catch (e) {
+      console.warn('Failed saving updated proker to rt_settings:', e);
+    }
+
+    // 2. Try dedicated proker table
+    try {
+      await supabase.from('proker').upsert([item]);
+    } catch (e) {
+      console.warn('Proker table update notice:', e);
+    }
+
+    return updatedList;
   },
 
   async deleteProker(id: string): Promise<ProkerItem[]> {
+    const currentList = await this.fetchProker();
+    const updatedList = currentList.filter(p => p.id !== id);
+
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('rt35_proker_cache', JSON.stringify(updatedList));
+      }
+    } catch (e) {}
+
+    // 1. Sync to rt_settings
+    try {
+      const currentSettings = await this.fetchSettings();
+      (currentSettings as any).proker_list = updatedList;
+      await this.updateSettings(currentSettings);
+    } catch (e) {
+      console.warn('Failed deleting proker from rt_settings:', e);
+    }
+
+    // 2. Try dedicated proker table
     try {
       await supabase.from('proker').delete().eq('id', id);
     } catch (e) {
-      console.warn('Proker delete error:', e);
+      console.warn('Proker table delete notice:', e);
     }
-    return this.fetchProker();
+
+    return updatedList;
   },
 
 
@@ -464,6 +562,7 @@ export const SupabaseService = {
         let kk_list: any[] = [];
         let messages_list: any[] = [];
         let kkn_team_list: any[] = [];
+        let proker_list: any[] = [];
 
         if (firstRow.emergency_description) {
           try {
@@ -483,6 +582,7 @@ export const SupabaseService = {
             if (extra.kk_list) kk_list = extra.kk_list;
             if (extra.messages_list) messages_list = extra.messages_list;
             if (extra.kkn_team_list) kkn_team_list = extra.kkn_team_list;
+            if (extra.proker_list) proker_list = extra.proker_list;
           } catch (jsonErr) {
             console.warn('Failed to parse emergency_description as JSON:', jsonErr);
             emergency_description = firstRow.emergency_description;
@@ -513,6 +613,7 @@ export const SupabaseService = {
             kk_list,
             messages_list,
             kkn_team_list,
+            proker_list,
             active_dev_broadcast
           } as any;
       }
@@ -549,6 +650,7 @@ export const SupabaseService = {
       kk_list: settings.kk_list || [],
       messages_list: settings.messages_list || [],
       kkn_team_list: settings.kkn_team_list || [],
+      proker_list: (settings as any).proker_list || [],
       active_dev_broadcast: (settings as any).active_dev_broadcast || null
     };
     const dbObj: any = {

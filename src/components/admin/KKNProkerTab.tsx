@@ -34,9 +34,29 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
   onUpdateProkerList,
   showSuccess
 }) => {
+  const [localProkerList, setLocalProkerList] = useState<ProkerItem[]>(prokerList || []);
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
+
+  React.useEffect(() => {
+    if (prokerList) {
+      setLocalProkerList(prokerList);
+    }
+  }, [prokerList]);
+
+  React.useEffect(() => {
+    const fetchFresh = async () => {
+      try {
+        const fresh = await SupabaseService.fetchProker();
+        if (fresh && fresh.length > 0) {
+          setLocalProkerList(fresh);
+          onUpdateProkerList(fresh);
+        }
+      } catch (e) {}
+    };
+    fetchFresh();
+  }, []);
 
   // Form state for creating new proker
   const [newTitle, setNewTitle] = useState('');
@@ -114,6 +134,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
       };
 
       const updated = await SupabaseService.addProker(newItem);
+      setLocalProkerList(updated);
       onUpdateProkerList(updated);
       showSuccess('Program kerja KKN berhasil ditambahkan!');
 
@@ -169,6 +190,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
       };
 
       const updated = await SupabaseService.updateProker(updatedItem);
+      setLocalProkerList(updated);
       onUpdateProkerList(updated);
       showSuccess('Perubahan program kerja berhasil disimpan!');
       setEditingProkerId(null);
@@ -187,6 +209,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
     setDeletingId(deleteTarget.id);
     try {
       const updated = await SupabaseService.deleteProker(deleteTarget.id);
+      setLocalProkerList(updated);
       onUpdateProkerList(updated);
       showSuccess(`Program kerja "${deleteTarget.title}" berhasil dihapus!`);
       setDeleteTarget(null);
@@ -412,18 +435,18 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
               <Briefcase className="w-4 h-4 text-slate-500" />
-              <span>Daftar Program Kerja KKN ({prokerList.length})</span>
+              <span>Daftar Program Kerja KKN ({localProkerList.length})</span>
             </h3>
           </div>
 
-          {prokerList.length === 0 ? (
+          {localProkerList.length === 0 ? (
             <div className="py-16 text-center text-slate-400 font-bold text-xs space-y-2">
               <Briefcase className="w-8 h-8 text-slate-300 mx-auto" />
               <p>Belum ada program kerja terdaftar. Gunakan formulir di sebelah kiri untuk menambahkan.</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {prokerList.map((p) => {
+              {localProkerList.map((p) => {
                 const isEditing = editingProkerId === p.id;
                 const isDeleting = deletingId === p.id;
 
