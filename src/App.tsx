@@ -344,6 +344,18 @@ export const App = () => {
       });
     } catch (e) {}
 
+    const handleLocalBroadcast = (e: any) => {
+      if (e.detail) {
+        setIncomingBroadcast(e.detail);
+      }
+    };
+    const handleLocalBroadcastClear = () => {
+      setIncomingBroadcast(null);
+    };
+
+    window.addEventListener('rt35_dev_broadcast', handleLocalBroadcast);
+    window.addEventListener('rt35_dev_broadcast_clear', handleLocalBroadcastClear);
+
     return () => {
       supabase.removeChannel(settingsChannel);
       supabase.removeChannel(newsChannel);
@@ -352,6 +364,8 @@ export const App = () => {
       supabase.removeChannel(usersChannel);
       supabase.removeChannel(kknTeamChannel);
       supabase.removeChannel(broadcastChannel);
+      window.removeEventListener('rt35_dev_broadcast', handleLocalBroadcast);
+      window.removeEventListener('rt35_dev_broadcast_clear', handleLocalBroadcastClear);
     };
   }, []);
 

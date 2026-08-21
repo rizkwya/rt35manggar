@@ -768,25 +768,15 @@ export const SupabaseService = {
   // DEVELOPER BROADCAST SYSTEM
   async sendDevBroadcast(broadcast: DevBroadcast): Promise<boolean> {
     try {
-      // 1. Broadcast live via Supabase realtime channel to all active connected browsers
-      const channel = supabase.channel('global-dev-broadcast-channel');
-      await channel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.send({
-            type: 'broadcast',
-            event: 'dev_broadcast',
-            payload: broadcast,
-          });
-        }
-      });
+      // 1. Persist to rt_settings in Supabase Cloud
+      // This will automatically fire realtime postgres_changes to ALL connected devices (HP, Laptop, PC)
+      const currentSettings = await this.fetchSettings();
+      (currentSettings as any).active_dev_broadcast = broadcast;
+      await this.updateSettings(currentSettings);
 
-      // 2. Persist to rt_settings so subsequent logins/refreshes also receive it
-      try {
-        const currentSettings = await this.fetchSettings();
-        (currentSettings as any).active_dev_broadcast = broadcast;
-        await this.updateSettings(currentSettings);
-      } catch (e) {
-        console.warn('Failed saving active broadcast to settings:', e);
+      // 2. Local window event for same-browser instant responsiveness
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('rt35_dev_broadcast', { detail: broadcast }));
       }
 
       return true;
@@ -810,20 +800,13 @@ export const SupabaseService = {
 
   async clearActiveDevBroadcast(): Promise<boolean> {
     try {
-      const channel = supabase.channel('global-dev-broadcast-channel');
-      await channel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.send({
-            type: 'broadcast',
-            event: 'dev_broadcast_clear',
-            payload: {},
-          });
-        }
-      });
-
       const currentSettings = await this.fetchSettings();
-      delete (currentSettings as any).active_dev_broadcast;
+      (currentSettings as any).active_dev_broadcast = null;
       await this.updateSettings(currentSettings);
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('rt35_dev_broadcast_clear'));
+      }
       return true;
     } catch (e) {
       console.warn('clearActiveDevBroadcast error:', e);
