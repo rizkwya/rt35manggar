@@ -406,7 +406,12 @@ export const SupabaseService = {
     try {
       const { data, error } = await supabase.from('proker').select('*').order('created_at', { ascending: true });
       if (!error && data && data.length > 0) {
-        return data as ProkerItem[];
+        return (data as ProkerItem[]).sort((a: any, b: any) => {
+          if (a.created_at && b.created_at) {
+            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          }
+          return 0;
+        });
       }
     } catch (e) {
       console.warn('Proker table query notice:', e);
@@ -421,7 +426,12 @@ export const SupabaseService = {
           try {
             const extra = JSON.parse(firstRow.emergency_description);
             if (extra.proker_list && Array.isArray(extra.proker_list)) {
-              return extra.proker_list as ProkerItem[];
+              return (extra.proker_list as ProkerItem[]).sort((a: any, b: any) => {
+                if (a.created_at && b.created_at) {
+                  return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                }
+                return 0;
+              });
             }
           } catch (jsonErr) {}
         }
@@ -436,7 +446,14 @@ export const SupabaseService = {
         const saved = localStorage.getItem('rt35_proker_cache');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) return parsed;
+          if (Array.isArray(parsed)) {
+            return parsed.sort((a: any, b: any) => {
+              if (a.created_at && b.created_at) {
+                return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+              }
+              return 0;
+            });
+          }
         }
       }
     } catch (e) {}
@@ -445,8 +462,12 @@ export const SupabaseService = {
   },
 
   async addProker(item: ProkerItem): Promise<ProkerItem[]> {
+    const itemWithTime = {
+      ...item,
+      created_at: (item as any).created_at || new Date().toISOString()
+    };
     const currentList = await this.fetchProker();
-    const updatedList = [...currentList.filter(p => p.id !== item.id), item];
+    const updatedList = [...currentList.filter(p => p.id !== item.id), itemWithTime];
 
     try {
       if (typeof localStorage !== 'undefined') {
@@ -474,6 +495,7 @@ export const SupabaseService = {
         progress_percent: item.progress_percent,
         status: item.status,
         pic_name: item.pic_name,
+        created_at: (itemWithTime as any).created_at
       };
       if (item.image_url) dbPayload.image_url = item.image_url;
       if (isValidUUID) dbPayload.id = item.id;
@@ -490,11 +512,22 @@ export const SupabaseService = {
     const currentList = await this.fetchProker();
     const idx = currentList.findIndex(p => p.id === item.id);
     let updatedList: ProkerItem[];
+    let itemWithTime: any;
     if (idx !== -1) {
+      const existing = currentList[idx] as any;
+      itemWithTime = {
+        ...existing,
+        ...item,
+        created_at: existing.created_at || (item as any).created_at || new Date().toISOString()
+      };
       updatedList = [...currentList];
-      updatedList[idx] = { ...item };
+      updatedList[idx] = itemWithTime;
     } else {
-      updatedList = [item, ...currentList];
+      itemWithTime = {
+        ...item,
+        created_at: (item as any).created_at || new Date().toISOString()
+      };
+      updatedList = [...currentList, itemWithTime];
     }
 
     try {
@@ -523,6 +556,7 @@ export const SupabaseService = {
         progress_percent: item.progress_percent,
         status: item.status,
         pic_name: item.pic_name,
+        created_at: itemWithTime.created_at
       };
       if (item.image_url) dbPayload.image_url = item.image_url;
       if (isValidUUID) dbPayload.id = item.id;

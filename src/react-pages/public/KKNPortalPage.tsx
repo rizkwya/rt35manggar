@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, GraduationCap, Clock, Award, ArrowLeft, MapPin, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle2, GraduationCap, Clock, Award, ArrowLeft, ArrowRight, MapPin, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProkerItem, TeamMember, RTSettings } from '../../types/database';
 import { SupabaseService, supabase } from '../../lib/supabase';
 
@@ -403,36 +403,70 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
           </div>
         </div>
 
-        {/* PROGRAM KERJA (PROKER) SECTION - SHOWCASE NEWS/MAGAZINE STYLE */}
-        <div id="proker-kkn" className="p-6 sm:p-10 bg-white border border-slate-200 rounded-3xl sm:rounded-[36px] shadow-sm space-y-10 scroll-mt-20">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="inline-block text-[10px] font-black uppercase tracking-wider text-[#0b5665] bg-[#0b5665]/10 px-4 py-1.5 rounded-full border border-[#0b5665]/20">
-              Program Kerja & Dokumentasi Aksi
-            </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight uppercase">
-              Program Kerja KKN Kelompok 7
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 font-bold leading-relaxed">
-              Dokumentasi pelaksanaan, rencana aksi digitalisasi lingkungan, survei kependudukan, serta capaian target pengabdian masyarakat di RT 35 Manggar.
-            </p>
+        {/* PROGRAM KERJA (PROKER) SECTION - HORIZONTAL SWIPE / CAROUSEL SHOWCASE */}
+        <div id="proker-kkn" className="p-6 sm:p-10 bg-white border border-slate-200 rounded-3xl sm:rounded-[36px] shadow-sm space-y-8 scroll-mt-20">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-6">
+            <div className="space-y-2 max-w-2xl">
+              <span className="inline-block text-[10px] font-black uppercase tracking-wider text-[#0b5665] bg-[#0b5665]/10 px-4 py-1.5 rounded-full border border-[#0b5665]/20">
+                Program Kerja & Dokumentasi Aksi
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight uppercase">
+                Program Kerja KKN Kelompok 7
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-bold leading-relaxed">
+                Geser (swipe) ke samping untuk menjelajahi dokumentasi pelaksanaan, target capaian, dan progress pengabdian masyarakat di RT 35 Manggar.
+              </p>
+            </div>
+
+            {/* Slider Navigation Buttons */}
+            {localProkerList.length > 0 && (
+              <div className="flex items-center space-x-2 shrink-0 self-start md:self-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('proker-slider-container');
+                    if (el) el.scrollBy({ left: -360, behavior: 'smooth' });
+                  }}
+                  className="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-[#0b5665] hover:text-white text-slate-700 font-black flex items-center justify-center transition-all active:scale-90 border border-slate-200 shadow-sm cursor-pointer"
+                  title="Geser ke kiri"
+                >
+                  <ArrowRight className="w-5 h-5 rotate-180" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('proker-slider-container');
+                    if (el) el.scrollBy({ left: 360, behavior: 'smooth' });
+                  }}
+                  className="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-[#0b5665] hover:text-white text-slate-700 font-black flex items-center justify-center transition-all active:scale-90 border border-slate-200 shadow-sm cursor-pointer"
+                  title="Geser ke kanan"
+                >
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Cards Grid Showcase */}
+          {/* Cards Horizontal Carousel */}
           {localProkerList.length === 0 ? (
             <div className="text-center py-16 text-slate-400 font-bold text-xs bg-slate-50 rounded-3xl border border-slate-200">
               Belum ada program kerja terdaftar.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div
+              id="proker-slider-container"
+              className="flex gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scroll-smooth no-scrollbar -mx-2 px-2"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {localProkerList.map((item: any) => (
                 <div
                   key={item.id}
                   onClick={() => handleSelectProker(item)}
-                  className="group bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-[#0b5665]/40 hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer"
+                  className="group w-[290px] sm:w-[340px] md:w-[370px] shrink-0 snap-start bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-[#0b5665]/50 hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer"
                 >
                   <div>
                     {/* Photo Header with floating Status Badge */}
-                    <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden bg-slate-100 border-b border-slate-100">
+                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100 border-b border-slate-100">
                       {item.image_url ? (
                         <img
                           src={item.image_url}
@@ -464,7 +498,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
                     </div>
 
                     {/* Card Content Body */}
-                    <div className="p-6 space-y-3">
+                    <div className="p-5 sm:p-6 space-y-2.5">
                       <div className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
                         <span>Target: {item.target_date}</span>
@@ -481,9 +515,9 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
                   </div>
 
                   {/* Card Footer: Progress & Action */}
-                  <div className="px-6 pb-6 pt-0 space-y-4">
+                  <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-0 space-y-3.5">
                     {/* Progress Bar with Capaian Percentage */}
-                    <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-150">
+                    <div className="space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-150">
                       <div className="flex items-center justify-between text-[11px] font-black">
                         <span className="text-slate-600">Capaian Target</span>
                         <span className={`font-black ${
@@ -496,7 +530,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
                           {item.progress_percent}%
                         </span>
                       </div>
-                      <div className="w-full h-2.5 rounded-full bg-slate-200/80 overflow-hidden">
+                      <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-700 ${
                             item.progress_percent === 100
@@ -516,9 +550,9 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
                         <span className="text-[9px] text-slate-400 block font-bold uppercase">PIC Proker:</span>
                         <span className="text-slate-800 font-black text-xs truncate block">{item.pic_name}</span>
                       </div>
-                      <span className="text-[11px] font-black text-[#0b5665] group-hover:translate-x-0.5 transition-transform shrink-0 flex items-center gap-1">
-                        <span>Lihat Rincian</span>
-                        <span>&rarr;</span>
+                      <span className="text-[11px] font-black text-[#0b5665] group-hover:translate-x-1 transition-transform shrink-0 flex items-center gap-1">
+                        <span>Rincian</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </span>
                     </div>
                   </div>
