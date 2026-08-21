@@ -24,7 +24,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { RTDemographics, RTAnnouncement, UserProfile, RTPengurus, TeamMember, ProkerItem, RTSettings, NavigationItem, NewsPost, RTFacility } from '../../types/database';
-import { SupabaseService } from '../../lib/supabase';
+import { SupabaseService, supabase } from '../../lib/supabase';
 import { KegiatanWargaTab } from '../../components/admin/KegiatanWargaTab';
 import { DemografisTab } from '../../components/admin/DemografisTab';
 import { PengumumanTab } from '../../components/admin/PengumumanTab';
@@ -219,6 +219,44 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   const [newKRole, setNewKRole] = useState('');
   const [newKAvatar, setNewKAvatar] = useState('');
   const [newKDesc, setNewKDesc] = useState('');
+
+  // KKN Team Pagination (Max 9 items per page, 3x3 layout)
+  const [kknCurrentPage, setKknCurrentPage] = useState(1);
+  const kknItemsPerPage = 9;
+  const totalKknPages = Math.ceil(kknTeam.length / kknItemsPerPage) || 1;
+  const startKknIndex = (kknCurrentPage - 1) * kknItemsPerPage;
+  const paginatedKknTeam = kknTeam.slice(startKknIndex, startKknIndex + kknItemsPerPage);
+
+  useEffect(() => {
+    if (kknCurrentPage > totalKknPages && totalKknPages > 0) {
+      setKknCurrentPage(totalKknPages);
+    }
+  }, [kknTeam.length, totalKknPages, kknCurrentPage]);
+
+  // Realtime Live Subscription for KKN Team in Admin Dashboard
+  useEffect(() => {
+    const kknAdminChannel = supabase
+      .channel('realtime-kkn-admin-live-channel')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'kkn_team' },
+        async () => {
+          try {
+            const updated = await SupabaseService.fetchKKNTeam(true);
+            if (Array.isArray(updated)) {
+              onUpdateKknTeam(updated);
+            }
+          } catch (e) {
+            console.warn('Realtime KKN Team admin sync notice:', e);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(kknAdminChannel);
+    };
+  }, []);
 
   // Action Loading Buffer State for All Buttons
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -1146,10 +1184,11 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
 
             {/* KKN Team Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {kknTeam.map((m, mIdx) => {
+              {paginatedKknTeam.map((m, mIdx) => {
                 const isEditing = editingKKNId === m.id;
                 const isThisSaving = actionLoadingId === `save_kkn_${m.id}`;
                 const isThisDeleting = actionLoadingId === `delete_kkn_${m.id}`;
+                const globalIndex = startKknIndex + mIdx;
 
                 return (
                   <div key={m.id} className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col justify-between space-y-6 hover:border-[#85A389]/30 transition-all">
@@ -1236,7 +1275,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                           <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border border-dashed border-slate-200">
                             <div className="w-10 h-12 rounded-lg bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0">
                               <img 
-                                src={editKAvatar || `/kkn_member_${(mIdx % 8) + 1}.png`} 
+                                src={editKAvatar || `/kkn_member_${(globalIndex % 8) + 1}.png`} 
                                 alt="Preview" 
                                 className="w-full h-full object-contain" 
                               />
@@ -1260,7 +1299,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                         <div className="flex items-center space-x-4">
                           <div className="w-14 h-16 rounded-2xl border border-slate-200 bg-slate-50 shadow-sm flex items-center justify-center p-1 shrink-0 overflow-hidden">
                             <img
-                              src={m.avatar_url || `/kkn_member_${(mIdx % 8) + 1}.png`}
+                              src={m.avatar_url || `/kkn_member_${(globalIndex % 8) + 1}.png`}
                               alt={m.name}
                               className="w-full h-full object-contain"
                             />
@@ -1340,6 +1379,64 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                   </div>
                 );
               })}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="p-4 sm:p-5 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-xs text-slate-400 font-bold">
+                Menampilkan <span className="text-slate-700 font-black">{kknTeam.length === 0 ? 0 : startKknIndex + 1}</span> - <span className="text-slate-700 font-black">{Math.min(startKknIndex + kknItemsPerPage, kknTeam.length)}</span> dari <span className="text-slate-700 font-black">{kknTeam.length}</span> anggota tim
+              </p>
+
+              {totalKknPages > 1 && (
+                <div className="flex items-center space-x-1.5 flex-wrap justify-center gap-y-1">
+                  <button
+                    type="button"
+                    onClick={() => setKknCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={kknCurrentPage === 1 || !!actionLoadingId}
+                    className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-black text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center h-9"
+                    aria-label="Halaman sebelumnya"
+                  >
+                    &larr; Prev
+                  </button>
+
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalKknPages }, (_, i) => i + 1)
+                      .filter((p) => p === 1 || p === totalKknPages || Math.abs(p - kknCurrentPage) <= 1)
+                      .map((p, idx, arr) => {
+                        const showEllipsisBefore = idx > 0 && p - arr[idx - 1] > 1;
+                        return (
+                          <React.Fragment key={p}>
+                            {showEllipsisBefore && (
+                              <span className="px-1 text-slate-400 text-xs font-black">...</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setKknCurrentPage(p)}
+                              disabled={!!actionLoadingId}
+                              className={`w-9 h-9 rounded-xl text-xs font-black transition-all active:scale-95 border ${
+                                kknCurrentPage === p
+                                  ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setKknCurrentPage((prev) => Math.min(prev + 1, totalKknPages))}
+                    disabled={kknCurrentPage === totalKknPages || !!actionLoadingId}
+                    className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-black text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center h-9"
+                    aria-label="Halaman berikutnya"
+                  >
+                    Next &rarr;
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
