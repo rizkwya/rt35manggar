@@ -163,6 +163,7 @@ export const App = () => {
             let boundary_south = '';
             let boundary_east = '';
             let boundary_west = '';
+            let kkn_posko_location = '';
             let kk_list = [];
             let messages_list = [];
 
@@ -181,6 +182,7 @@ export const App = () => {
                 if (extra.boundary_south) boundary_south = extra.boundary_south;
                 if (extra.boundary_east) boundary_east = extra.boundary_east;
                 if (extra.boundary_west) boundary_west = extra.boundary_west;
+                if (extra.kkn_posko_location) kkn_posko_location = extra.kkn_posko_location;
                 if (extra.kk_list) kk_list = extra.kk_list;
                 if (extra.messages_list) messages_list = extra.messages_list;
               } catch (jsonErr) {
@@ -221,6 +223,7 @@ export const App = () => {
               boundary_south,
               boundary_east,
               boundary_west,
+              kkn_posko_location,
               kk_list,
               messages_list
             });
