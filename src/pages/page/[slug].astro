@@ -58,5 +58,5 @@ if (!pageItem) {
   <main class="flex-grow pt-24 md:pt-28 min-h-screen bg-slate-50">
     <CustomPageDetail pageItem={pageItem} slug={slug} client:load />
   </main>
-  <Footer settings={settings} />
+  <Footer settings={settings} client:load />
 </Layout>
