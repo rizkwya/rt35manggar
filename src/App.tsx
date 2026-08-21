@@ -828,6 +828,7 @@ export const App = () => {
           <KKNPortalPage
             prokerList={prokerList}
             kknTeam={kknTeam}
+            settings={settings}
             onBackToHome={() => navigateTo(lastPublicPath)}
           />
         );

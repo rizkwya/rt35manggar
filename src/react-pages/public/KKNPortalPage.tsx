@@ -89,6 +89,10 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
   }, [totalSlides, isProkerHovered]);
 
   React.useEffect(() => {
+    if (settings) setLocalSettings(settings);
+  }, [settings]);
+
+  React.useEffect(() => {
     const fetchFreshData = async () => {
       setIsLoading(true);
       try {
