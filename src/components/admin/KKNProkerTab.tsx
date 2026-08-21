@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, Upload, Loader2, Award, Briefcase, CheckCircle2, Clock, Calendar, User, BarChart3, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Plus, Edit, Trash2, Save, X, Upload, Loader2, Briefcase, Clock } from 'lucide-react';
 import { ProkerItem } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 
@@ -39,24 +40,9 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
 
-  React.useEffect(() => {
-    if (prokerList) {
-      setLocalProkerList(prokerList);
-    }
-  }, [prokerList]);
-
-  React.useEffect(() => {
-    const fetchFresh = async () => {
-      try {
-        const fresh = await SupabaseService.fetchProker();
-        if (fresh && fresh.length > 0) {
-          setLocalProkerList(fresh);
-          onUpdateProkerList(fresh);
-        }
-      } catch (e) {}
-    };
-    fetchFresh();
-  }, []);
+  // Pagination state (Max 3 prokers per page for ultra clean layout)
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
 
   // Form state for creating new proker
   const [newTitle, setNewTitle] = useState('');
@@ -83,7 +69,34 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
   const [deleteTarget, setDeleteTarget] = useState<ProkerItem | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Handle image upload for creating
+  useEffect(() => {
+    if (prokerList) {
+      setLocalProkerList(prokerList);
+    }
+  }, [prokerList]);
+
+  useEffect(() => {
+    const fetchFresh = async () => {
+      try {
+        const fresh = await SupabaseService.fetchProker();
+        if (fresh && fresh.length > 0) {
+          setLocalProkerList(fresh);
+          onUpdateProkerList(fresh);
+        }
+      } catch (e) {}
+    };
+    fetchFresh();
+  }, []);
+
+  // Reset pagination to page 1 if current page becomes out of range
+  const totalPages = Math.ceil(localProkerList.length / itemsPerPage);
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [localProkerList.length, totalPages, currentPage]);
+
+  // Handle image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditMode = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -99,7 +112,6 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
       showSuccess('Foto dokumentasi proker berhasil diunggah!');
     } catch (err: any) {
       console.error(err);
-      // Fallback base64
       const reader = new FileReader();
       reader.onloadend = () => {
         if (isEditMode) {
@@ -222,8 +234,14 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
     }
   };
 
+  // Slice paginated items
+  const paginatedProker = localProkerList.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6">
       
       {/* HEADER SECTION */}
       <div>
@@ -236,7 +254,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         
         {/* CREATE PROKER FORM */}
-        <div className="xl:col-span-4 bg-white p-6 sm:p-7 rounded-3xl border-2 border-slate-200 shadow-sm space-y-5">
+        <div className="xl:col-span-5 bg-white p-6 sm:p-7 rounded-3xl border-2 border-slate-200 shadow-sm space-y-5">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
               <Plus className="w-4 h-4 text-emerald-600" />
@@ -368,7 +386,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
                 type="text"
                 value={newImageUrl}
                 onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="URL Gambar atau unggah file di bawah"
+                placeholder="URL Gambar atau unggah berkas di bawah"
                 className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800 mb-1.5"
               />
               <label className="cursor-pointer px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] inline-flex items-center space-x-1.5">
@@ -388,7 +406,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setNewImageUrl('')}
-                    className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-black text-white rounded-full text-xs"
+                    className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-black text-white rounded-full text-xs cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -431,12 +449,17 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
         </div>
 
         {/* LIST PROKER ITEMS */}
-        <div className="xl:col-span-8 bg-white p-6 sm:p-7 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
+        <div className="xl:col-span-7 bg-white p-6 sm:p-7 rounded-3xl border-2 border-slate-200 shadow-sm space-y-5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
               <Briefcase className="w-4 h-4 text-slate-500" />
               <span>Daftar Program Kerja KKN ({localProkerList.length})</span>
             </h3>
+            {totalPages > 1 && (
+              <span className="text-xs font-bold text-slate-500">
+                Halaman {currentPage} dari {totalPages}
+              </span>
+            )}
           </div>
 
           {localProkerList.length === 0 ? (
@@ -446,7 +469,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
             </div>
           ) : (
             <div className="space-y-4">
-              {localProkerList.map((p) => {
+              {paginatedProker.map((p) => {
                 const isEditing = editingProkerId === p.id;
                 const isDeleting = deletingId === p.id;
 
@@ -469,7 +492,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
                           <button
                             type="button"
                             onClick={cancelEdit}
-                            className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
+                            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -581,7 +604,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
                             type="button"
                             disabled={loading}
                             onClick={cancelEdit}
-                            className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold"
+                            className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold cursor-pointer"
                           >
                             Batal
                           </button>
@@ -589,7 +612,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
                             type="button"
                             disabled={loading}
                             onClick={() => handleSaveEdit(p.id)}
-                            className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black flex items-center space-x-1.5 shadow-sm"
+                            className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black flex items-center space-x-1.5 shadow-sm cursor-pointer"
                           >
                             {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                             <span>Simpan Perubahan</span>
@@ -694,18 +717,59 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
                   </div>
                 );
               })}
+
+              {/* NUMERIC PAGINATION CONTROLS (1 2 3 dst) */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center space-x-1.5 pt-4 flex-wrap gap-y-2 border-t border-slate-100">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8 shadow-sm cursor-pointer"
+                    aria-label="Previous page"
+                  >
+                    &larr;
+                  </button>
+                  
+                  <div className="flex items-center space-x-1.5">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setCurrentPage(p)}
+                        className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 border shadow-sm cursor-pointer ${
+                          currentPage === p
+                            ? 'bg-slate-900 text-white border-slate-900'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-600 font-extrabold text-xs transition-all active:scale-95 disabled:active:scale-100 flex items-center justify-center min-w-[32px] h-8 shadow-sm cursor-pointer"
+                    aria-label="Next page"
+                  >
+                    &rarr;
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* DELETE CONFIRMATION MODAL POPUP */}
-      {deleteTarget && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
+      {/* FULLSCREEN DELETE CONFIRMATION MODAL VIA PORTAL TO BODY */}
+      {deleteTarget && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/75 backdrop-blur-md">
+          {/* Backdrop click to dismiss */}
           <div className="absolute inset-0" onClick={() => !loading && setDeleteTarget(null)} />
           
+          {/* Modal Container */}
           <div 
-            className="relative w-full max-w-md bg-white rounded-3xl sm:rounded-[32px] shadow-2xl border border-rose-150 p-6 sm:p-8 space-y-6 z-10 animate-scale-up text-center"
+            className="relative w-full max-w-md bg-white rounded-3xl sm:rounded-[32px] shadow-2xl border border-rose-150 p-6 sm:p-8 space-y-6 z-10 text-center animate-scale-up"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Warning Icon Badge */}
@@ -755,7 +819,8 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

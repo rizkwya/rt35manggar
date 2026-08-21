@@ -465,7 +465,20 @@ export const SupabaseService = {
 
     // 2. Try dedicated proker table
     try {
-      await supabase.from('proker').upsert([item]);
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id);
+      const dbPayload: any = {
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        target_date: item.target_date,
+        progress_percent: item.progress_percent,
+        status: item.status,
+        pic_name: item.pic_name,
+      };
+      if (item.image_url) dbPayload.image_url = item.image_url;
+      if (isValidUUID) dbPayload.id = item.id;
+
+      await supabase.from('proker').upsert([dbPayload]);
     } catch (e) {
       console.warn('Proker table insert notice:', e);
     }
@@ -501,7 +514,20 @@ export const SupabaseService = {
 
     // 2. Try dedicated proker table
     try {
-      await supabase.from('proker').upsert([item]);
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id);
+      const dbPayload: any = {
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        target_date: item.target_date,
+        progress_percent: item.progress_percent,
+        status: item.status,
+        pic_name: item.pic_name,
+      };
+      if (item.image_url) dbPayload.image_url = item.image_url;
+      if (isValidUUID) dbPayload.id = item.id;
+
+      await supabase.from('proker').upsert([dbPayload]);
     } catch (e) {
       console.warn('Proker table update notice:', e);
     }
@@ -530,7 +556,10 @@ export const SupabaseService = {
 
     // 2. Try dedicated proker table
     try {
-      await supabase.from('proker').delete().eq('id', id);
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      if (isValidUUID) {
+        await supabase.from('proker').delete().eq('id', id);
+      }
     } catch (e) {
       console.warn('Proker table delete notice:', e);
     }
