@@ -23,7 +23,7 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({
   currentRole,
   navigateTo,
-  settings,
+  settings: initialSettings,
   navItems: initialNavItems,
   pengurusList,
   onSettingsUpdate,
@@ -31,21 +31,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onClearDefaultFormTab
 }) => {
   const [navItems, setNavItems] = useState<NavigationItem[]>(initialNavItems || []);
+  const [liveSettings, setLiveSettings] = useState<RTSettings | undefined>(initialSettings);
 
   useEffect(() => {
-    const loadLiveNav = async () => {
+    // 1. Fetch fresh settings and navigation on mount
+    const loadLiveContent = async () => {
       try {
-        const liveItems = await SupabaseService.fetchNavItems();
-        if (liveItems && liveItems.length > 0) {
-          setNavItems(liveItems);
-        }
+        const [freshSettings, freshNav] = await Promise.all([
+          SupabaseService.fetchSettings(),
+          SupabaseService.fetchNavItems()
+        ]);
+        if (freshSettings) setLiveSettings(freshSettings);
+        if (freshNav && freshNav.length > 0) setNavItems(freshNav);
       } catch (err) {
-        console.warn('Failed to fetch live navigation items:', err);
+        console.warn('Failed to fetch live landing page content:', err);
       }
     };
-    loadLiveNav();
+    loadLiveContent();
 
-    const channel = supabase
+    // 2. Realtime subscription for Navigation Items
+    const navChannel = supabase
       .channel('realtime-navigation-public')
       .on(
         'postgres_changes',
@@ -59,10 +64,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       )
       .subscribe();
 
+    // 3. Realtime subscription for Portal Settings
+    const settingsChannel = supabase
+      .channel('realtime-settings-landing-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_settings' },
+        async () => {
+          const updatedSettings = await SupabaseService.fetchSettings();
+          if (updatedSettings) {
+            setLiveSettings(updatedSettings);
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(navChannel);
+      supabase.removeChannel(settingsChannel);
     };
-  }, [initialNavItems]);
+  }, [initialNavItems, initialSettings]);
+
   return (
     <>
       {/* 1. HERO BANNER PORTAL RT 35 */}
@@ -71,14 +93,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         onOpenAuth={() => navigateTo('/login')}
         onOpenDashboard={() => navigateTo('/admin/dashboard')}
         onOpenPresensi={() => navigateTo('/presensi')}
-        settings={settings}
+        settings={liveSettings}
       />
 
       {/* 2. PROFIL RT (VISI, MISI, SEJARAH, BATAS WILAYAH) */}
-      <ProfileSection settings={settings} />
+      <ProfileSection settings={liveSettings} />
 
       {/* 3. STATISTIK DEMOGRAFI & WARGA */}
-      <DemographicsSection settings={settings} />
+      <DemographicsSection settings={liveSettings} />
 
       {/* 4. ORGANOGRAM & PENGURUS RT 35 */}
       <OrganogramSection pengurusList={pengurusList} />
@@ -91,8 +113,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* 7. POSKO, LOKASI & CONTACT ASPIRASI WARGA */}
       <ContactLocationSection 
-        settings={settings} 
-        onSettingsUpdate={onSettingsUpdate} 
+        settings={liveSettings} 
+        onSettingsUpdate={(upd) => {
+          setLiveSettings(upd);
+          if (onSettingsUpdate) onSettingsUpdate(upd);
+        }} 
         defaultFormTab={defaultFormTab}
         onClearDefaultFormTab={onClearDefaultFormTab}
       />
