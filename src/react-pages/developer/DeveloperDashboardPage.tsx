@@ -1,18 +1,26 @@
-import React, { useState } from 'react';
-import { UserProfile, NewsPost, ProkerItem } from '../../types/database';
+import React, { useState, useEffect } from 'react';
+import { UserProfile, NewsPost, ProkerItem, DevBroadcast } from '../../types/database';
+import { SupabaseService } from '../../lib/supabase';
 import { 
   Code2, 
   FileText, 
   PlusCircle, 
   Trash2, 
-  Download, 
   ExternalLink, 
   LogOut, 
   CheckCircle2, 
   Sparkles, 
-  Waves,
-  LayoutDashboard
+  Radio,
+  Send,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  RefreshCw,
+  Eye,
+  Terminal,
+  Volume2
 } from 'lucide-react';
+import { DevBroadcastModal } from '../../components/admin/DevBroadcastModal';
 
 interface DeveloperDashboardPageProps {
   userProfile: UserProfile;
@@ -35,7 +43,7 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
   onGoToLanding,
   onLogout,
 }) => {
-  const [activeTab, setActiveTab] = useState<'news' | 'proker'>('news');
+  const [activeTab, setActiveTab] = useState<'news' | 'proker' | 'broadcast'>('broadcast');
 
   // FORM NEWS STATE
   const [titleInput, setTitleInput] = useState('');
@@ -44,6 +52,23 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
   const [contentInput, setContentInput] = useState('');
   const [imageInput, setImageInput] = useState('https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1000&q=80');
   const [alertSuccess, setAlertSuccess] = useState(false);
+
+  // BROADCAST STATE
+  const [bcTitle, setBcTitle] = useState('');
+  const [bcMessage, setBcMessage] = useState('');
+  const [bcType, setBcType] = useState<'info' | 'warning' | 'urgent' | 'success'>('urgent');
+  const [bcSending, setBcSending] = useState(false);
+  const [bcSuccessMsg, setBcSuccessMsg] = useState('');
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [activeBroadcast, setActiveBroadcast] = useState<DevBroadcast | null>(null);
+
+  useEffect(() => {
+    const loadCurrentBroadcast = async () => {
+      const active = await SupabaseService.fetchActiveDevBroadcast();
+      setActiveBroadcast(active);
+    };
+    loadCurrentBroadcast();
+  }, []);
 
   const handleAddNewsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +97,67 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
     setTimeout(() => setAlertSuccess(false), 4000);
   };
 
+  // BROADCAST SUBMISSION
+  const handleSendBroadcast = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bcTitle.trim() || !bcMessage.trim()) {
+      alert('Judul dan pesan siaran wajib diisi!');
+      return;
+    }
+
+    setBcSending(true);
+    try {
+      const nowStr = new Intl.DateTimeFormat('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'Asia/Makassar'
+      }).format(new Date()) + ' WITA';
+
+      const payload: DevBroadcast = {
+        id: 'bc-' + Date.now(),
+        title: bcTitle.trim(),
+        message: bcMessage.trim(),
+        type: bcType,
+        author_name: userProfile.full_name,
+        author_avatar: userProfile.avatar_url || '/logo.png',
+        timestamp: nowStr,
+        is_active: true
+      };
+
+      const success = await SupabaseService.sendDevBroadcast(payload);
+      if (success) {
+        setActiveBroadcast(payload);
+        setBcSuccessMsg('Siaran berhasil dikirim ke seluruh layar admin secara realtime!');
+        setTimeout(() => setBcSuccessMsg(''), 5000);
+      } else {
+        alert('Gagal mengirim siaran. Silakan coba lagi.');
+      }
+    } catch (err: any) {
+      alert('Terjadi kesalahan: ' + err.message);
+    } finally {
+      setBcSending(false);
+    }
+  };
+
+  const handleClearBroadcast = async () => {
+    if (!confirm('Hapus siaran popup aktif dari semua layar?')) return;
+    setBcSending(true);
+    try {
+      await SupabaseService.clearActiveDevBroadcast();
+      setActiveBroadcast(null);
+      setBcSuccessMsg('Siaran aktif berhasil dibersihkan.');
+      setTimeout(() => setBcSuccessMsg(''), 4000);
+    } finally {
+      setBcSending(false);
+    }
+  };
+
+  const applyTemplate = (title: string, message: string, type: 'info' | 'warning' | 'urgent' | 'success') => {
+    setBcTitle(title);
+    setBcMessage(message);
+    setBcType(type);
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
       
@@ -87,10 +173,10 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
               </div>
               <div>
                 <h1 className="font-display font-black text-white text-base leading-tight">
-                  CMS DEVELOPER & ADMIN
+                  CMS DEVELOPER & CONTROL PANEL
                 </h1>
                 <p className="text-[11px] font-extrabold text-amber-400">
-                  RT 35 Manggar 2 • Control Panel
+                  RT 35 Manggar 2 • System Command Center
                 </p>
               </div>
             </div>
@@ -102,12 +188,12 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
                 className="hidden sm:flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs border border-slate-700 transition-all"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                <span>🌐 Lihat Landing Page Utama</span>
+                <span>🌐 Lihat Portal Publik</span>
               </button>
 
               <div className="flex items-center space-x-2.5 pl-3 border-l border-slate-800">
                 <img
-                  src={userProfile.avatar_url}
+                  src={userProfile.avatar_url || '/logo.png'}
                   alt={userProfile.full_name}
                   className="w-9 h-9 rounded-full object-cover border-2 border-amber-500"
                 />
@@ -135,8 +221,9 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
         
         {/* TABS HEADER */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 flex-wrap gap-y-2">
             {[
+              { id: 'broadcast', label: 'Broadcast Notifikasi Dev', icon: Radio },
               { id: 'news', label: 'CMS Berita Realtime', icon: FileText },
               { id: 'proker', label: 'Kelola Proker', icon: Sparkles },
             ].map((tab) => {
@@ -147,7 +234,7 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${
                     activeTab === tab.id
-                      ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+                      ? 'bg-amber-500 text-slate-950 shadow-md font-black ring-2 ring-amber-400/20'
                       : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-300'
                   }`}
                 >
@@ -158,6 +245,244 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
             })}
           </div>
         </div>
+
+        {/* TAB 0: BROADCAST NOTIFICATION CENTER */}
+        {activeTab === 'broadcast' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* SENDER FORM */}
+            <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-3xl border-2 border-slate-200 shadow-sm space-y-6">
+              
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-wider border border-rose-200">
+                    Live Broadcast Hub
+                  </span>
+                </div>
+                <h3 className="text-xl font-black text-slate-900 mt-2">Kirim Siaran Notifikasi ke Seluruh Admin</h3>
+                <p className="text-xs text-slate-500 font-semibold mt-1">
+                  Pemberitahuan ini akan langsung muncul sebagai <strong>modal popup seketika</strong> di seluruh layar pengguna/admin yang sedang membuka dashboard RT 35 secara real-time.
+                </p>
+              </div>
+
+              {bcSuccessMsg && (
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-2.5 animate-scale-up">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <span>{bcSuccessMsg}</span>
+                </div>
+              )}
+
+              {/* QUICK TEMPLATES */}
+              <div className="space-y-2 pt-2">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-600">
+                  ⚡ Template Cepat Siaran:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => applyTemplate(
+                      'Pemeliharaan Server & Database',
+                      'Halo Petugas RT 35, sistem portal akan melakukan maintenance dan optimasi database pada pukul 23:00 WITA. Harap pastikan data yang sedang diinput telah disimpan.',
+                      'warning'
+                    )}
+                    className="p-2.5 text-left rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-[11px] font-bold text-amber-900 transition-all flex items-center space-x-2"
+                  >
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span className="truncate">Pemeliharaan Server</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => applyTemplate(
+                      'Pemberitahuan Mendesak Developer',
+                      'PERHATIAN: Mohon tidak mengubah data demografis untuk 15 menit ke depan karena sedang sinkronisasi cadangan server cloud.',
+                      'urgent'
+                    )}
+                    className="p-2.5 text-left rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[11px] font-bold text-rose-900 transition-all flex items-center space-x-2"
+                  >
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span className="truncate">Pemberitahuan Mendesak</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => applyTemplate(
+                      'Pembaruan Fitur Baru Selesai',
+                      'Fitur sinkronisasi real-time dan paginasi kartu KKN telah berhasil diperbarui dan aktif di sistem. Terima kasih atas kerja samanya!',
+                      'success'
+                    )}
+                    className="p-2.5 text-left rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold text-emerald-900 transition-all flex items-center space-x-2"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="truncate">Pembaruan Fitur Baru</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => applyTemplate(
+                      'Informasi Pengembang',
+                      'Halo admin, pastikan selalu memeriksa menu Aspirasi Warga secara berkala setiap pagi untuk respon cepat warga RT 35.',
+                      'info'
+                    )}
+                    className="p-2.5 text-left rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-[11px] font-bold text-sky-900 transition-all flex items-center space-x-2"
+                  >
+                    <Info className="w-4 h-4 text-sky-600 shrink-0" />
+                    <span className="truncate">Informasi Pengembang</span>
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={handleSendBroadcast} className="space-y-4">
+                
+                {/* SEVERITY TYPE SELECTOR */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Tingkat Urgensi / Tipe Notifikasi</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'urgent', label: 'Mendesak (Rose)', icon: AlertTriangle, bg: 'peer-checked:bg-rose-50 peer-checked:border-rose-500 peer-checked:text-rose-700' },
+                      { id: 'warning', label: 'Peringatan (Kuning)', icon: AlertCircle, bg: 'peer-checked:bg-amber-50 peer-checked:border-amber-500 peer-checked:text-amber-700' },
+                      { id: 'info', label: 'Info (Biru)', icon: Info, bg: 'peer-checked:bg-sky-50 peer-checked:border-sky-500 peer-checked:text-sky-700' },
+                      { id: 'success', label: 'Pengumuman (Hijau)', icon: CheckCircle2, bg: 'peer-checked:bg-emerald-50 peer-checked:border-emerald-500 peer-checked:text-emerald-700' },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <label key={item.id} className="cursor-pointer">
+                          <input
+                            type="radio"
+                            name="bcType"
+                            value={item.id}
+                            checked={bcType === item.id}
+                            onChange={() => setBcType(item.id as any)}
+                            className="hidden peer"
+                          />
+                          <div className={`p-3 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold flex flex-col items-center justify-center space-y-1.5 transition-all text-center ${item.bg}`}>
+                            <Icon className="w-4 h-4" />
+                            <span className="text-[11px] leading-tight">{item.label}</span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* TITLE INPUT */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Judul Pemberitahuan <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Contoh: Pemberitahuan Pemeliharaan Sistem..."
+                    value={bcTitle}
+                    onChange={(e) => setBcTitle(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800"
+                  />
+                </div>
+
+                {/* MESSAGE INPUT */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Pesan Lengkap Siaran <span className="text-rose-500">*</span></label>
+                  <textarea
+                    rows={4}
+                    required
+                    placeholder="Tuliskan pesan yang akan dibaca oleh seluruh user di admin dashboard..."
+                    value={bcMessage}
+                    onChange={(e) => setBcMessage(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-slate-800 resize-none leading-relaxed"
+                  />
+                </div>
+
+                {/* ACTIONS */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewModalOpen(true)}
+                    disabled={!bcTitle.trim() || !bcMessage.trim()}
+                    className="w-full sm:w-auto px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 font-bold text-xs flex items-center justify-center space-x-2 transition-all"
+                  >
+                    <Eye className="w-4 h-4 text-slate-500" />
+                    <span>Lihat Preview Popup</span>
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={bcSending || !bcTitle.trim() || !bcMessage.trim()}
+                    className="w-full sm:flex-1 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white font-black text-xs shadow-md transition-all flex items-center justify-center space-x-2 active:scale-98"
+                  >
+                    <Send className="w-4 h-4 text-amber-400" />
+                    <span>{bcSending ? 'Mengirim Siaran...' : '🚀 Kirim Siaran Realtime Sekarang'}</span>
+                  </button>
+                </div>
+
+              </form>
+            </div>
+
+            {/* ACTIVE BROADCAST STATUS & CONTROLS */}
+            <div className="lg:col-span-5 space-y-6">
+              
+              <div className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+                    <h4 className="text-sm font-black text-slate-900">Status Siaran Aktif</h4>
+                  </div>
+                  {activeBroadcast && (
+                    <button
+                      onClick={handleClearBroadcast}
+                      disabled={bcSending}
+                      className="px-3 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] font-bold border border-rose-200 transition-all"
+                    >
+                      Hapus Siaran
+                    </button>
+                  )}
+                </div>
+
+                {activeBroadcast ? (
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-700">
+                        {activeBroadcast.type}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-bold">{activeBroadcast.timestamp}</span>
+                    </div>
+                    <h5 className="font-black text-slate-900 text-sm leading-snug">{activeBroadcast.title}</h5>
+                    <p className="text-xs text-slate-600 font-semibold line-clamp-3 leading-relaxed">{activeBroadcast.message}</p>
+                    <p className="text-[10px] text-slate-400 font-bold">Oleh: {activeBroadcast.author_name}</p>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center rounded-2xl bg-slate-50 border border-dashed border-slate-200">
+                    <Radio className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs text-slate-500 font-bold">Tidak ada siaran popup aktif saat ini.</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Siaran yang dikirim akan tampil di sini.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* INSTRUCTION CARD */}
+              <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-md space-y-3">
+                <div className="flex items-center space-x-2 text-amber-400">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-xs font-black uppercase tracking-wider">Bagaimana Fitur Ini Bekerja?</span>
+                </div>
+                <ul className="text-xs text-slate-300 space-y-2 font-medium leading-relaxed">
+                  <li className="flex items-start space-x-2">
+                    <span className="text-amber-400 font-bold">•</span>
+                    <span><strong>Realtime WebSocket:</strong> Notifikasi langsung menyembur ke setiap browser pengguna tanpa delay.</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-amber-400 font-bold">•</span>
+                    <span><strong>Audio Chime:</strong> Dilengkapi nada notifikasi lembut yang memicu perhatian admin.</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-amber-400 font-bold">•</span>
+                    <span><strong>Persistent:</strong> Pengguna yang baru membuka admin 5 menit kemudian tetap melihat pengumuman aktif ini.</span>
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+
+          </div>
+        )}
 
         {/* TAB 1: CMS BERITA */}
         {activeTab === 'news' && (
@@ -307,6 +632,23 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
         )}
 
       </main>
+
+      {/* PREVIEW MODAL */}
+      {previewModalOpen && (
+        <DevBroadcastModal
+          broadcast={{
+            id: 'preview',
+            title: bcTitle || 'Judul Contoh Siaran',
+            message: bcMessage || 'Ini adalah contoh isi pesan siaran yang akan tampil.',
+            type: bcType,
+            author_name: userProfile.full_name,
+            author_avatar: userProfile.avatar_url,
+            timestamp: 'Pratinjau Langsung',
+            is_active: true
+          }}
+          onClose={() => setPreviewModalOpen(false)}
+        />
+      )}
 
     </div>
   );

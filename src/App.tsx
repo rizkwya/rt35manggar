@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { UserRole, UserProfile, ProkerItem, TeamMember, RTSettings, NavigationItem, RTAnnouncement, NewsPost, RTDemographics, RTPengurus, RTFacility } from './types/database';
+import { UserRole, UserProfile, ProkerItem, TeamMember, RTSettings, NavigationItem, RTAnnouncement, NewsPost, RTDemographics, RTPengurus, RTFacility, DevBroadcast } from './types/database';
 import { SupabaseService, supabase } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { stripHtml, getPreviewText } from './lib/utils';
 import { INITIAL_SETTINGS, INITIAL_NAV_ITEMS } from './lib/initialData';
+import { DevBroadcastModal } from './components/admin/DevBroadcastModal';
 
 // Page imports (Clean routing layout)
 import { LandingPage } from './react-pages/public/LandingPage';
@@ -68,6 +69,7 @@ export const App = () => {
   const [pengurusList, setPengurusList] = useState<RTPengurus[]>([]);
   const [facilitiesList, setFacilitiesList] = useState<RTFacility[]>([]);
   const [activeSection, setActiveSection] = useState('beranda');
+  const [incomingBroadcast, setIncomingBroadcast] = useState<DevBroadcast | null>(null);
 
   // TRACK LAST PATHS FOR DASHBOARD <-> PUBLIC PORTAL PERSISTENT HISTORY
   const [lastDashboardPath, setLastDashboardPath] = useState<string>('/admin/dashboard');
@@ -294,6 +296,35 @@ export const App = () => {
       )
       .subscribe();
 
+    // Realtime Global Developer Broadcast Receiver
+    const broadcastChannel = supabase
+      .channel('global-dev-broadcast-channel')
+      .on('broadcast', { event: 'dev_broadcast' }, (payload) => {
+        if (payload && payload.payload) {
+          setIncomingBroadcast(payload.payload as DevBroadcast);
+        }
+      })
+      .on('broadcast', { event: 'dev_broadcast_clear' }, () => {
+        setIncomingBroadcast(null);
+      })
+      .subscribe();
+
+    // Check on mount for any active broadcast not yet dismissed
+    try {
+      SupabaseService.fetchActiveDevBroadcast().then((active) => {
+        if (active) {
+          try {
+            const lastDismissed = localStorage.getItem('rt35_last_dismissed_broadcast');
+            if (lastDismissed !== active.id) {
+              setIncomingBroadcast(active);
+            }
+          } catch (e) {
+            setIncomingBroadcast(active);
+          }
+        }
+      });
+    } catch (e) {}
+
     return () => {
       supabase.removeChannel(settingsChannel);
       supabase.removeChannel(newsChannel);
@@ -301,6 +332,7 @@ export const App = () => {
       supabase.removeChannel(demoChannel);
       supabase.removeChannel(usersChannel);
       supabase.removeChannel(kknTeamChannel);
+      supabase.removeChannel(broadcastChannel);
     };
   }, []);
 
@@ -821,6 +853,19 @@ export const App = () => {
       {/* FOOTER */}
       {!(currentPath === '/login' || currentPath.startsWith('/admin')) && (
         <Footer settings={settings} />
+      )}
+
+      {/* GLOBAL DEVELOPER BROADCAST NOTIFICATION POPUP */}
+      {incomingBroadcast && (
+        <DevBroadcastModal
+          broadcast={incomingBroadcast}
+          onClose={() => {
+            try {
+              localStorage.setItem('rt35_last_dismissed_broadcast', incomingBroadcast.id);
+            } catch (e) {}
+            setIncomingBroadcast(null);
+          }}
+        />
       )}
 
     </div>

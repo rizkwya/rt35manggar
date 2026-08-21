@@ -237,6 +237,13 @@ export interface FamilyMember {
   pekerjaan?: string;
   created_at?: string;
 }
-
-
-
+export interface DevBroadcast {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'urgent' | 'success';
+  author_name: string;
+  author_avatar?: string;
+  timestamp: string;
+  is_active?: boolean;
+}

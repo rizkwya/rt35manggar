@@ -12,7 +12,8 @@ import {
   NavigationItem,
   RTFacility,
   FamilyCard,
-  FamilyMember
+  FamilyMember,
+  DevBroadcast
 } from '../types/database';
 import { 
   INITIAL_DEMOGRAPHICS, 
@@ -752,5 +753,71 @@ export const SupabaseService = {
     const { error } = await supabase.from('family_members').delete().eq('id', id);
     if (error) throw error;
     return this.fetchFamilyMembers(familyCardId);
+  },
+
+  // DEVELOPER BROADCAST SYSTEM
+  async sendDevBroadcast(broadcast: DevBroadcast): Promise<boolean> {
+    try {
+      // 1. Broadcast live via Supabase realtime channel to all active connected browsers
+      const channel = supabase.channel('global-dev-broadcast-channel');
+      await channel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.send({
+            type: 'broadcast',
+            event: 'dev_broadcast',
+            payload: broadcast,
+          });
+        }
+      });
+
+      // 2. Persist to rt_settings so subsequent logins/refreshes also receive it
+      try {
+        const currentSettings = await this.fetchSettings();
+        (currentSettings as any).active_dev_broadcast = broadcast;
+        await this.updateSettings(currentSettings);
+      } catch (e) {
+        console.warn('Failed saving active broadcast to settings:', e);
+      }
+
+      return true;
+    } catch (e) {
+      console.error('sendDevBroadcast error:', e);
+      return false;
+    }
+  },
+
+  async fetchActiveDevBroadcast(): Promise<DevBroadcast | null> {
+    try {
+      const settings = await this.fetchSettings();
+      if ((settings as any).active_dev_broadcast && (settings as any).active_dev_broadcast.is_active !== false) {
+        return (settings as any).active_dev_broadcast as DevBroadcast;
+      }
+    } catch (e) {
+      console.warn('fetchActiveDevBroadcast error:', e);
+    }
+    return null;
+  },
+
+  async clearActiveDevBroadcast(): Promise<boolean> {
+    try {
+      const channel = supabase.channel('global-dev-broadcast-channel');
+      await channel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.send({
+            type: 'broadcast',
+            event: 'dev_broadcast_clear',
+            payload: {},
+          });
+        }
+      });
+
+      const currentSettings = await this.fetchSettings();
+      delete (currentSettings as any).active_dev_broadcast;
+      await this.updateSettings(currentSettings);
+      return true;
+    } catch (e) {
+      console.warn('clearActiveDevBroadcast error:', e);
+      return false;
+    }
   }
 };
