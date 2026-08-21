@@ -510,28 +510,6 @@ export const PortalSettingsTab: React.FC<PortalSettingsTabProps> = ({
           </div>
         </div>
       </div>
-
-      {/* BOTTOM ACTION BAR */}
-      <div className="flex items-center justify-end space-x-3 pt-2">
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-slate-900 hover:bg-[#0b5665] text-white font-black text-xs sm:text-sm shadow-xl transition-all flex items-center justify-center space-x-2.5 disabled:opacity-60 cursor-pointer active:scale-95"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin text-white" />
-              <span>Menyimpan Seluruh Pengaturan...</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4 text-emerald-400" />
-              <span>Simpan Perubahan Pengaturan Portal</span>
-            </>
-          )}
-        </button>
-      </div>
-
     </form>
   );
 };
