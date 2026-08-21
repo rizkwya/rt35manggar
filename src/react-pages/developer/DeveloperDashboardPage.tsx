@@ -15,15 +15,19 @@ import {
   AlertTriangle,
   AlertCircle,
   Info,
-  RefreshCw,
   Eye,
-  Terminal,
-  Volume2
+  Camera,
+  Upload,
+  User,
+  X,
+  Save,
+  Loader2
 } from 'lucide-react';
 import { DevBroadcastModal } from '../../components/admin/DevBroadcastModal';
 
 interface DeveloperDashboardPageProps {
   userProfile: UserProfile;
+  onUserProfileUpdate?: (profile: UserProfile) => void;
   newsList: NewsPost[];
   prokerList: ProkerItem[];
   onAddNews: (news: NewsPost) => void;
@@ -35,6 +39,7 @@ interface DeveloperDashboardPageProps {
 
 export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
   userProfile,
+  onUserProfileUpdate,
   newsList,
   prokerList,
   onAddNews,
@@ -44,6 +49,13 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
   onLogout,
 }) => {
   const [activeTab, setActiveTab] = useState<'news' | 'proker' | 'broadcast'>('broadcast');
+
+  // PROFILE EDIT STATE
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState(userProfile.full_name || '');
+  const [editAvatar, setEditAvatar] = useState(userProfile.avatar_url || '');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
 
   // FORM NEWS STATE
   const [titleInput, setTitleInput] = useState('');
@@ -69,6 +81,84 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
     };
     loadCurrentBroadcast();
   }, []);
+
+  // IMAGE RESIZER & COMPRESSOR
+  const resizeAndCompressImage = (file: File, callback: (base64: string) => void) => {
+    const isTransparentFormat = file.type.includes('png') || file.type.includes('webp') || file.type.includes('svg');
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 600;
+        const MAX_HEIGHT = 600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d', { alpha: true });
+        if (ctx) {
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          const outputFormat = isTransparentFormat ? 'image/png' : 'image/jpeg';
+          const dataUrl = canvas.toDataURL(outputFormat, isTransparentFormat ? 0.95 : 0.85);
+          callback(dataUrl);
+        } else {
+          callback(event.target?.result as string);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    resizeAndCompressImage(file, setEditAvatar);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editName.trim()) {
+      alert('Nama tidak boleh kosong!');
+      return;
+    }
+
+    setIsSavingProfile(true);
+    try {
+      const updatedUser: UserProfile = {
+        ...userProfile,
+        full_name: editName.trim(),
+        avatar_url: editAvatar || userProfile.avatar_url || '/logo.png',
+      };
+
+      const result = await SupabaseService.updateUserProfile(updatedUser);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userProfile', JSON.stringify(result));
+      }
+      if (onUserProfileUpdate) {
+        onUserProfileUpdate(result);
+      }
+
+      setProfileSuccessMsg('Foto profil dan nama developer berhasil diperbarui!');
+      setTimeout(() => {
+        setProfileSuccessMsg('');
+        setIsEditingProfile(false);
+      }, 1500);
+    } catch (err: any) {
+      alert('Gagal menyimpan profil: ' + err.message);
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   const handleAddNewsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,17 +281,38 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
                 <span>🌐 Lihat Portal Publik</span>
               </button>
 
-              <div className="flex items-center space-x-2.5 pl-3 border-l border-slate-800">
-                <img
-                  src={userProfile.avatar_url || '/logo.png'}
-                  alt={userProfile.full_name}
-                  className="w-9 h-9 rounded-full object-cover border-2 border-amber-500"
-                />
-                <div className="hidden md:block text-left">
-                  <p className="text-xs font-black text-white line-clamp-1">{userProfile.full_name}</p>
-                  <p className="text-[10px] text-amber-400 font-mono font-bold">Dev Master</p>
+              {/* CLICKABLE PROFILE TO EDIT PHOTO */}
+              <button
+                onClick={() => {
+                  setEditName(userProfile.full_name);
+                  setEditAvatar(userProfile.avatar_url || '');
+                  setIsEditingProfile(true);
+                }}
+                className="flex items-center space-x-2.5 pl-3 pr-2 py-1 rounded-2xl border-l border-slate-800 hover:bg-slate-800/80 transition-all group cursor-pointer text-left"
+                title="Klik untuk ubah foto profil developer"
+              >
+                <div className="relative">
+                  <img
+                    src={userProfile.avatar_url || '/logo.png'}
+                    alt={userProfile.full_name}
+                    className="w-9 h-9 rounded-full object-cover border-2 border-amber-500 group-hover:opacity-80 transition-opacity"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[9px] shadow">
+                    <Camera className="w-2.5 h-2.5" />
+                  </div>
                 </div>
-              </div>
+                <div className="hidden md:block">
+                  <div className="flex items-center space-x-1">
+                    <p className="text-xs font-black text-white line-clamp-1 group-hover:text-amber-300 transition-colors">
+                      {userProfile.full_name}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-amber-400 font-mono font-bold flex items-center space-x-1">
+                    <span>Dev Master</span>
+                    <span className="text-slate-500">• Ubah Foto</span>
+                  </p>
+                </div>
+              </button>
 
               <button
                 onClick={onLogout}
@@ -632,6 +743,139 @@ export const DeveloperDashboardPage: React.FC<DeveloperDashboardPageProps> = ({
         )}
 
       </main>
+
+      {/* EDIT PROFILE MODAL */}
+      {isEditingProfile && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
+          <div className="absolute inset-0" onClick={() => !isSavingProfile && setIsEditingProfile(false)} />
+          
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 sm:p-8 space-y-6 z-10 animate-scale-up" onClick={(e) => e.stopPropagation()}>
+            
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-200 flex items-center justify-center font-bold">
+                  <User className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900">Ubah Profil Developer</h4>
+                  <p className="text-[10px] text-slate-400 font-bold">Perbarui nama dan foto profil Anda</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isSavingProfile}
+                onClick={() => setIsEditingProfile(false)}
+                className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {profileSuccessMsg && (
+              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{profileSuccessMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveProfile} className="space-y-5">
+              
+              {/* AVATAR PREVIEW & UPLOAD */}
+              <div className="flex flex-col items-center justify-center space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="relative group">
+                  <img
+                    src={editAvatar || userProfile.avatar_url || '/logo.png'}
+                    alt="Preview"
+                    className="w-20 h-20 rounded-full object-cover border-4 border-amber-500 shadow-md"
+                  />
+                  <label className="absolute bottom-0 right-0 p-1.5 rounded-full bg-slate-900 text-white hover:bg-slate-800 cursor-pointer shadow transition-all active:scale-95">
+                    <Upload className="w-3.5 h-3.5" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={isSavingProfile}
+                      className="hidden"
+                      onChange={handleProfileImageUpload}
+                    />
+                  </label>
+                </div>
+                
+                <div className="text-center">
+                  <label className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer transition-all shadow-sm">
+                    <Camera className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Pilih Foto Baru dari Galeri / Kamera</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={isSavingProfile}
+                      className="hidden"
+                      onChange={handleProfileImageUpload}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* NAME INPUT */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap Developer</label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  disabled={isSavingProfile}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="GUSTI IHSANUDDIN"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800"
+                />
+              </div>
+
+              {/* AVATAR URL ALTERNATIVE */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Atau Masukkan URL Gambar (Opsional)</label>
+                <input
+                  type="text"
+                  value={editAvatar}
+                  disabled={isSavingProfile}
+                  onChange={(e) => setEditAvatar(e.target.value)}
+                  placeholder="https://example.com/foto.jpg"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-slate-800"
+                />
+              </div>
+
+              {/* BUTTON ACTIONS */}
+              <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  disabled={isSavingProfile}
+                  onClick={() => setIsEditingProfile(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white font-black text-xs shadow-md transition-all flex items-center space-x-2"
+                >
+                  {isSavingProfile ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>Simpan Perubahan</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      )}
 
       {/* PREVIEW MODAL */}
       {previewModalOpen && (
