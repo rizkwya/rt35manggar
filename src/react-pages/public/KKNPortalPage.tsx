@@ -21,6 +21,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
   // Proker horizontal slider auto-swipe & active dot state
   const [prokerActiveDot, setProkerActiveDot] = React.useState(0);
   const [isProkerHovered, setIsProkerHovered] = React.useState(false);
+  const [cardsPerSlide, setCardsPerSlide] = React.useState(3);
   const prokerScrollRef = React.useRef<HTMLDivElement>(null);
 
   // Swipe gesture touch state hooks
@@ -28,38 +29,63 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
   const [touchEnd, setTouchEnd] = React.useState<number | null>(null);
   const minSwipeDistance = 50;
 
-  // Auto-swipe horizontal carousel every 4.5 seconds
+  // Track responsive cards per slide
   React.useEffect(() => {
-    if (localProkerList.length <= 1 || isProkerHovered) return;
-    const timer = setInterval(() => {
-      const el = prokerScrollRef.current;
-      if (!el) return;
-      const maxScroll = el.scrollWidth - el.clientWidth;
-      if (el.scrollLeft >= maxScroll - 30) {
-        el.scrollTo({ left: 0, behavior: 'smooth' });
-        setProkerActiveDot(0);
+    const updateCardsPerSlide = () => {
+      if (typeof window === 'undefined') return;
+      if (window.innerWidth < 768) {
+        setCardsPerSlide(1);
+      } else if (window.innerWidth < 1024) {
+        setCardsPerSlide(2);
       } else {
-        el.scrollBy({ left: 340, behavior: 'smooth' });
+        setCardsPerSlide(3);
       }
-    }, 4500);
-    return () => clearInterval(timer);
-  }, [localProkerList.length, isProkerHovered]);
+    };
+    updateCardsPerSlide();
+    window.addEventListener('resize', updateCardsPerSlide);
+    return () => window.removeEventListener('resize', updateCardsPerSlide);
+  }, []);
+
+  const totalSlides = Math.max(1, Math.ceil(localProkerList.length / cardsPerSlide));
 
   const handleProkerScroll = () => {
     const el = prokerScrollRef.current;
     if (!el) return;
-    const cardWidth = 340;
-    const newIdx = Math.round(el.scrollLeft / cardWidth);
-    setProkerActiveDot(Math.max(0, Math.min(newIdx, localProkerList.length - 1)));
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll <= 5) {
+      setProkerActiveDot(0);
+      return;
+    }
+    const ratio = el.scrollLeft / maxScroll;
+    const currentSlide = Math.min(totalSlides - 1, Math.max(0, Math.round(ratio * (totalSlides - 1))));
+    setProkerActiveDot(currentSlide);
   };
 
-  const scrollToProkerIndex = (idx: number) => {
+  const scrollToProkerSlide = (slideIdx: number) => {
     const el = prokerScrollRef.current;
     if (!el) return;
-    const cardWidth = 340;
-    el.scrollTo({ left: idx * cardWidth, behavior: 'smooth' });
-    setProkerActiveDot(idx);
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (totalSlides <= 1 || maxScroll <= 0) {
+      el.scrollTo({ left: 0, behavior: 'smooth' });
+    } else {
+      const targetScroll = (slideIdx / (totalSlides - 1)) * maxScroll;
+      el.scrollTo({ left: targetScroll, behavior: 'smooth' });
+    }
+    setProkerActiveDot(slideIdx);
   };
+
+  // Auto-swipe horizontal carousel per slide every 4.5 seconds
+  React.useEffect(() => {
+    if (totalSlides <= 1 || isProkerHovered) return;
+    const timer = setInterval(() => {
+      setProkerActiveDot((prev) => {
+        const nextSlide = (prev + 1) % totalSlides;
+        scrollToProkerSlide(nextSlide);
+        return nextSlide;
+      });
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [totalSlides, isProkerHovered]);
 
   React.useEffect(() => {
     const fetchFreshData = async () => {
@@ -555,20 +581,20 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
                 ))}
               </div>
 
-              {/* Dynamic Interactive Dot Indicators */}
-              {localProkerList.length > 1 && (
+              {/* Dynamic Interactive Dot Indicators (Exact match to total slides) */}
+              {totalSlides > 1 && (
                 <div className="flex items-center justify-center space-x-2 pt-4">
-                  {localProkerList.map((_, idx) => (
+                  {Array.from({ length: totalSlides }).map((_, idx) => (
                     <button
                       key={idx}
                       type="button"
-                      onClick={() => scrollToProkerIndex(idx)}
+                      onClick={() => scrollToProkerSlide(idx)}
                       className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                         prokerActiveDot === idx
                           ? 'w-6 bg-[#0b5665]'
                           : 'w-2 bg-slate-300 hover:bg-slate-400'
                       }`}
-                      aria-label={`Lihat program kerja ke-${idx + 1}`}
+                      aria-label={`Lihat slide ke-${idx + 1}`}
                     />
                   ))}
                 </div>
