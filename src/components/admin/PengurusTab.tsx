@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Plus, Smartphone, Edit, Trash2, Save } from 'lucide-react';
+import { Upload, Plus, Smartphone, Edit, Trash2, Save, AlertTriangle, X, Loader2, UserCheck } from 'lucide-react';
 import { RTPengurus } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 
@@ -27,6 +27,8 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<RTPengurus | null>(null);
+  
   const [newPName, setNewPName] = useState('');
   const [newPJabatan, setNewPJabatan] = useState('');
   const [newPPhone, setNewPPhone] = useState('');
@@ -45,7 +47,7 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
   // Reset to page 1 when list updates
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [pengurusList]);
+  }, [pengurusList.length]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setTarget: (val: string) => void) => {
     const file = e.target.files?.[0];
@@ -75,9 +77,9 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
 
       const updatedItem: RTPengurus = {
         ...target,
-        nama: editPName,
-        jabatan: editPJabatan,
-        phone: editPPhone,
+        nama: editPName.trim(),
+        jabatan: editPJabatan.trim(),
+        phone: editPPhone.trim(),
         foto_url: editPFoto
       };
 
@@ -93,14 +95,15 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
     }
   };
 
-  const handleDeletePengurus = async (pId: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus data pengurus ini?')) return;
+  const confirmDeleteAction = async () => {
+    if (!deleteTarget) return;
     setLoading(true);
-    setDeletingId(pId);
+    setDeletingId(deleteTarget.id);
     try {
-      const res = await SupabaseService.deletePengurus(pId);
+      const res = await SupabaseService.deletePengurus(deleteTarget.id);
       onUpdatePengurusList(res);
-      showSuccess('Data pengurus RT berhasil dihapus!');
+      showSuccess(`Data aparatur "${deleteTarget.nama}" berhasil dihapus!`);
+      setDeleteTarget(null);
     } catch (err: any) {
       console.error('Error deleting pengurus:', err);
       alert('Gagal menghapus pengurus: ' + err.message);
@@ -116,9 +119,9 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
 
     const newItem: RTPengurus = {
       id: generateUUID(),
-      jabatan: newPJabatan,
-      nama: newPName,
-      phone: newPPhone,
+      jabatan: newPJabatan.trim(),
+      nama: newPName.trim(),
+      phone: newPPhone.trim(),
       foto_url: newPFoto.trim() || undefined
     };
 
@@ -141,269 +144,221 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
     }
   };
 
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedPengurus = pengurusList.slice(startIndex, startIndex + itemsPerPage);
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in">
-      {/* Form Input Aparatur Baru */}
-      <form onSubmit={handleAddPengurus} className="lg:col-span-4 p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 space-y-6 shadow-md">
-        <div className="border-b border-slate-100 pb-3">
-          <h3 className="text-base font-black text-slate-900">Tambah Aparatur RT</h3>
-          <p className="text-xs text-slate-505 font-semibold mt-1">Masukkan data pengurus atau aparatur RT baru di sini.</p>
-        </div>
-
-        <div className="space-y-4 text-xs font-bold text-slate-700">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* ADD PENGURUS FORM */}
+        <div className="lg:col-span-5 bg-white p-6 sm:p-7 rounded-3xl border-2 border-slate-200 shadow-sm space-y-5">
           <div>
-            <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Nama Lengkap</label>
-            <input
-              type="text"
-              value={newPName}
-              onChange={(e) => setNewPName(e.target.value)}
-              placeholder="Contoh: Bapak H. Ahmad Sujono"
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-805 focus:outline-none focus:border-[#85A389] focus:bg-white transition-all disabled:opacity-60"
-              required
-              disabled={loading}
-            />
+            <h3 className="text-base font-black text-slate-900">Tambah Aparatur RT</h3>
+            <p className="text-xs text-slate-500 font-semibold mt-0.5">Masukkan data pengurus atau aparatur RT baru di sini.</p>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Jabatan / Peran</label>
-            <input
-              type="text"
-              value={newPJabatan}
-              onChange={(e) => setNewPJabatan(e.target.value)}
-              placeholder="Contoh: Ketua RT 35, Sekretaris RT"
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-805 focus:outline-none focus:border-[#85A389] focus:bg-white transition-all disabled:opacity-60"
-              required
-              disabled={loading}
-            />
-          </div>
+          <form onSubmit={handleAddPengurus} className="space-y-4">
+            <div>
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">Nama Lengkap</label>
+              <input
+                type="text"
+                required
+                placeholder="Contoh: Bapak H. Ahmad Sujono"
+                value={newPName}
+                onChange={(e) => setNewPName(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Nomor WhatsApp</label>
-            <input
-              type="text"
-              value={newPPhone}
-              onChange={(e) => setNewPPhone(e.target.value)}
-              placeholder="Contoh: 081234567890"
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-805 focus:outline-none focus:border-[#85A389] focus:bg-white transition-all disabled:opacity-60"
-              required
-              disabled={loading}
-            />
-          </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">Jabatan / Peran</label>
+              <input
+                type="text"
+                required
+                placeholder="Contoh: Ketua RT 35, Sekretaris RT"
+                value={newPJabatan}
+                onChange={(e) => setNewPJabatan(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider">Unggah Foto (HP / Laptop)</label>
-            <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200">
-              {newPFoto && (
-                <img src={newPFoto} alt="Preview" className="w-12 h-12 rounded-xl object-cover" />
-              )}
-              <label className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs shadow-sm ${loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}>
-                <Upload className="w-4 h-4 text-slate-500" />
-                <span>Pilih File</span>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">Nomor WhatsApp</label>
+              <input
+                type="text"
+                required
+                placeholder="Contoh: 081234567890"
+                value={newPPhone}
+                onChange={(e) => setNewPPhone(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-800"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">Unggah Foto (HP / Laptop)</label>
+              <div className="relative border-2 border-dashed border-slate-300 rounded-2xl p-4 text-center hover:bg-slate-50 transition-colors">
                 <input
                   type="file"
                   accept="image/*"
-                  className="hidden"
                   onChange={(e) => handleImageUpload(e, setNewPFoto)}
-                  disabled={loading}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                 />
-              </label>
+                <div className="flex flex-col items-center justify-center space-y-2">
+                  {newPFoto ? (
+                    <img src={newPFoto} alt="Preview" className="w-16 h-16 rounded-full object-cover border-2 border-[#85A389]" />
+                  ) : (
+                    <div className="px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 flex items-center space-x-1.5">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Pilih File</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
+
+            <button
+              type="submit"
+              disabled={loading || isAdding}
+              className="w-full py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-60 cursor-pointer active:scale-98"
+            >
+              {isAdding ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Menambahkan...</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 text-emerald-400" />
+                  <span>+ Tambah Aparatur</span>
+                </>
+              )}
+            </button>
+          </form>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow disabled:opacity-60"
-        >
-          {loading ? (
-            <span className="flex items-center space-x-1.5">
-              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Menyimpan...</span>
-            </span>
-          ) : (
-            <>
-              <Plus className="w-4 h-4" />
-              <span>Tambah Aparatur</span>
-            </>
-          )}
-        </button>
-      </form>
-
-      {/* List Aparatur RT */}
-      <div className="lg:col-span-8 space-y-4">
-        <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-md">
-          <h3 className="text-base font-black text-slate-900 pb-3 border-b border-slate-100 mb-4">
-            Daftar Aparatur RT Aktif ({pengurusList.length} orang)
-          </h3>
+        {/* LIST PENGURUS */}
+        <div className="lg:col-span-7 bg-white p-6 sm:p-7 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 className="text-base font-black text-slate-900">
+              Daftar Aparatur RT Aktif ({pengurusList.length} orang)
+            </h3>
+          </div>
 
           {pengurusList.length === 0 ? (
-            <div className="text-center py-12 text-xs font-semibold text-slate-400">
-              Belum ada aparatur RT terdaftar. Masukkan data di sebelah kiri untuk menambahkan.
+            <div className="py-16 text-center text-slate-400 font-bold text-xs space-y-2">
+              <UserCheck className="w-8 h-8 text-slate-300 mx-auto" />
+              <p>Belum ada aparatur RT terdaftar. Masukkan data di sebelah kiri untuk menambahkan.</p>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
-                {/* Skeleton Loader at top only when adding a new officer */}
-                {isAdding && (
-                  <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-5 animate-pulse">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-200 shrink-0" />
-                    <div className="space-y-2 flex-grow">
-                      <div className="h-3.5 bg-slate-200 rounded w-1/3" />
-                      <div className="h-4.5 bg-slate-200 rounded w-2/3" />
-                      <div className="h-3.5 bg-slate-200 rounded w-1/2" />
-                    </div>
-                  </div>
-                )}
-
-                {pengurusList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((p) => {
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                {paginatedPengurus.map((p) => {
                   const isEditing = editingPengurusId === p.id;
-                  const isSavingThis = isEditing && loading;
-                  const isDeletingThis = deletingId === p.id && loading;
-
-                  if (isSavingThis || isDeletingThis) {
-                    return (
-                      <div key={p.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-5 animate-pulse min-h-[160px]">
-                        <div className="w-16 h-16 rounded-2xl bg-slate-200 shrink-0" />
-                        <div className="space-y-2 flex-grow">
-                          <div className="h-3.5 bg-slate-200 rounded w-1/3" />
-                          <div className="h-4.5 bg-slate-250 rounded w-2/3" />
-                          <div className="h-3.5 bg-slate-200 rounded w-1/2" />
-                        </div>
-                      </div>
-                    );
-                  }
-
                   return (
-                    <div key={p.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-5 hover:border-[#85A389]/30 transition-all duration-200">
-                      {isEditing ? (
-                        <div className="space-y-4">
-                          <div className="space-y-3.5 text-xs font-bold text-slate-700">
-                            <div>
-                              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Jabatan / Peran</label>
-                              <input
-                                type="text"
-                                value={editPJabatan}
-                                onChange={(e) => setEditPJabatan(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white disabled:opacity-60"
-                                required
-                                disabled={loading}
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Nama Pengurus</label>
+                    <div
+                      key={p.id}
+                      className="p-5 rounded-2xl border-2 border-slate-200 bg-slate-50/50 hover:bg-white hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-3 relative group"
+                    >
+                      <div className="flex items-start space-x-3.5">
+                        <div className="relative shrink-0">
+                          <img
+                            src={isEditing ? (editPFoto || '/logo.png') : (p.foto_url || '/logo.png')}
+                            alt={p.nama}
+                            className="w-14 h-14 rounded-full object-cover border-2 border-slate-200 shadow-sm bg-white"
+                          />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          {isEditing ? (
+                            <div className="space-y-2">
                               <input
                                 type="text"
                                 value={editPName}
                                 onChange={(e) => setEditPName(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white disabled:opacity-60"
-                                required
-                                disabled={loading}
+                                className="w-full px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-300 bg-white"
+                                placeholder="Nama Lengkap"
                               />
-                            </div>
-
-                            <div>
-                              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider mb-1.5">Nomor WhatsApp</label>
+                              <input
+                                type="text"
+                                value={editPJabatan}
+                                onChange={(e) => setEditPJabatan(e.target.value)}
+                                className="w-full px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-300 bg-white"
+                                placeholder="Jabatan"
+                              />
                               <input
                                 type="text"
                                 value={editPPhone}
                                 onChange={(e) => setEditPPhone(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-sm font-black text-slate-800 focus:outline-none focus:border-[#85A389] focus:bg-white disabled:opacity-60"
-                                required
-                                disabled={loading}
+                                className="w-full px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-300 bg-white"
+                                placeholder="WhatsApp"
                               />
-                            </div>
-
-                            <div className="space-y-2">
-                              <label className="block text-xs font-bold text-slate-505 uppercase tracking-wider">Unggah Foto (HP / Laptop)</label>
-                              <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200">
-                                {editPFoto && (
-                                  <img src={editPFoto} alt="Preview" className="w-12 h-12 rounded-xl object-cover" />
-                                )}
-                                <label className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs shadow-sm ${loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}>
-                                  <Upload className="w-4 h-4 text-slate-500" />
-                                  <span>Pilih File Gambar</span>
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={(e) => handleImageUpload(e, setEditPFoto)}
-                                    disabled={loading}
-                                  />
-                                </label>
+                              <div className="relative border border-dashed border-slate-300 rounded-lg p-1.5 text-center bg-white">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleImageUpload(e, setEditPFoto)}
+                                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                />
+                                <span className="text-[10px] text-slate-500 font-bold">Ganti Foto</span>
                               </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div>
+                              <span className="inline-block px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-wider mb-1">
+                                {p.jabatan}
+                              </span>
+                              <h4 className="text-sm font-black text-slate-900 truncate">{p.nama}</h4>
+                              <p className="text-xs text-slate-500 font-semibold flex items-center space-x-1 mt-0.5">
+                                <Smartphone className="w-3.5 h-3.5 text-slate-400" />
+                                <span>{p.phone}</span>
+                              </p>
+                            </div>
+                          )}
                         </div>
-                      ) : (
-                        <div className="flex items-center space-x-5">
-                          <img
-                            src={p.foto_url || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23CBD5E1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'}
-                            alt={p.nama}
-                            className="w-16 h-16 rounded-2xl object-cover border-2 border-[#85A389]/20 shadow shrink-0 bg-slate-100"
-                          />
-                          <div className="space-y-1.5 min-w-0">
-                            <span className="text-[9px] font-black text-[#5F8D4E] px-2.5 py-0.5 rounded-full bg-[#85A389]/10 border border-[#85A389]/25 uppercase tracking-wider">
-                              {p.jabatan}
-                            </span>
-                            <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight pt-1 truncate">{p.nama}</h4>
-                            <p className="text-xs text-slate-500 font-bold flex items-center space-x-1.5">
-                              <Smartphone className="w-4 h-4 text-[#85A389]" />
-                              <span>{p.phone}</span>
-                            </p>
-                          </div>
-                        </div>
-                      )}
+                      </div>
 
-                      <div className="flex space-x-2 pt-4 border-t border-slate-100">
+                      {/* Action buttons */}
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-end space-x-2">
                         {isEditing ? (
-                          <>
-                            <button
-                              type="button"
-                              disabled={loading}
-                              onClick={() => handleSavePengurus(p.id)}
-                              className="flex-grow py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-sm disabled:opacity-60"
-                            >
-                              {loading ? (
-                                <span className="flex items-center space-x-1.5">
-                                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                  <span>Menyimpan...</span>
-                                </span>
-                              ) : (
-                                <>
-                                  <Save className="w-4 h-4" />
-                                  <span>Simpan</span>
-                                </>
-                              )}
-                            </button>
+                          <div className="flex space-x-2 w-full">
                             <button
                               type="button"
                               disabled={loading}
                               onClick={() => setEditingPengurusId(null)}
-                              className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold disabled:opacity-60"
+                              className="flex-1 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold"
                             >
                               Batal
                             </button>
-                          </>
+                            <button
+                              type="button"
+                              disabled={loading}
+                              onClick={() => handleSavePengurus(p.id)}
+                              className="flex-1 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-black flex items-center justify-center space-x-1"
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                              <span>Simpan</span>
+                            </button>
+                          </div>
                         ) : (
-                          <div className="flex w-full space-x-2">
+                          <div className="flex space-x-2 w-full">
                             <button
                               type="button"
                               disabled={loading}
                               onClick={() => startEditPengurus(p)}
-                              className="flex-grow py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-855 text-xs font-bold border-2 border-slate-200 flex items-center justify-center space-x-2 shadow-sm disabled:opacity-60"
+                              className="flex-grow py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center space-x-1.5 transition-all"
                             >
-                              <Edit className="w-4 h-4 text-[#85A389]" />
-                              <span>Edit Biodata</span>
+                              <Edit className="w-3.5 h-3.5 text-slate-600" />
+                              <span>Edit</span>
                             </button>
                             <button
                               type="button"
                               disabled={loading}
-                              onClick={() => handleDeletePengurus(p.id)}
-                              className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border-2 border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
+                              onClick={() => setDeleteTarget(p)}
+                              className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center transition-all cursor-pointer"
                               title="Hapus Pengurus"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         )}
@@ -459,6 +414,67 @@ export const PengurusTab: React.FC<PengurusTabProps> = ({
           )}
         </div>
       </div>
+
+      {/* DELETE CONFIRMATION MODAL POPUP */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
+          <div className="absolute inset-0" onClick={() => !loading && setDeleteTarget(null)} />
+          
+          <div 
+            className="relative w-full max-w-md bg-white rounded-3xl sm:rounded-[32px] shadow-2xl border border-rose-150 p-6 sm:p-8 space-y-6 z-10 animate-scale-up text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Warning Icon Badge */}
+            <div className="w-16 h-16 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-sm">
+              <Trash2 className="w-8 h-8 animate-bounce" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                Konfirmasi Hapus Data
+              </span>
+              <h4 className="text-xl font-black text-slate-900 leading-snug pt-1">
+                Hapus Aparatur RT?
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-500 font-semibold leading-relaxed px-2">
+                Apakah Anda yakin ingin menghapus data aparatur <span className="text-slate-900 font-black">"{deleteTarget.nama}"</span> ({deleteTarget.jabatan})? Data yang dihapus tidak dapat dipulihkan.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => setDeleteTarget(null)}
+                className="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={confirmDeleteAction}
+                className="w-full py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-lg shadow-rose-600/25 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Ya, Hapus</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
+export default PengurusTab;

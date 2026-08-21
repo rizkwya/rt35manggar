@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Clock, Trash2, BookOpen, Edit } from 'lucide-react';
+import { Plus, Clock, Trash2, BookOpen, Edit, AlertTriangle, Loader2 } from 'lucide-react';
 import { NewsPost, UserProfile } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
 import { TiptapEditor } from './TiptapEditor';
@@ -41,6 +41,8 @@ export const NewsTab: React.FC<NewsTabProps> = ({
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [deletingNewsId, setDeletingNewsId] = useState<string | null>(null);
+  const [deleteTargetNews, setDeleteTargetNews] = useState<NewsPost | null>(null);
+  
   const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState<string>('Kegiatan Utama');
@@ -95,7 +97,7 @@ export const NewsTab: React.FC<NewsTabProps> = ({
         const existing = newsList.find(n => n.id === editingNewsId);
         const updatedItem: NewsPost = {
           id: editingNewsId,
-          title: newTitle,
+          title: newTitle.trim(),
           slug: existing && existing.title === newTitle ? existing.slug : `${slugify(newTitle)}-${Date.now()}`,
           summary: computedSummary,
           content: newContent,
@@ -112,7 +114,7 @@ export const NewsTab: React.FC<NewsTabProps> = ({
       } else {
         const newItem: NewsPost = {
           id: generateUUID(),
-          title: newTitle,
+          title: newTitle.trim(),
           slug: `${slugify(newTitle)}-${Date.now()}`,
           summary: computedSummary,
           content: newContent,
@@ -160,14 +162,15 @@ export const NewsTab: React.FC<NewsTabProps> = ({
     setNewImageUrl('');
   };
 
-  const handleDeleteNews = async (id: string) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus berita ini?')) return;
+  const confirmDeleteNewsAction = async () => {
+    if (!deleteTargetNews) return;
     setLoading(true);
-    setDeletingNewsId(id);
+    setDeletingNewsId(deleteTargetNews.id);
     try {
-      const updatedList = await SupabaseService.deleteNews(id);
+      const updatedList = await SupabaseService.deleteNews(deleteTargetNews.id);
       onUpdateNews(updatedList);
-      showSuccess('Berita berhasil dihapus!');
+      showSuccess(`Berita "${deleteTargetNews.title}" berhasil dihapus!`);
+      setDeleteTargetNews(null);
     } catch (err: any) {
       console.error(err);
       alert('Gagal menghapus berita: ' + (err.message || err));
@@ -218,9 +221,8 @@ export const NewsTab: React.FC<NewsTabProps> = ({
                 required
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="cth: RT 35 Meraih Penghargaan Kebersihan"
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-slate-800 transition-all disabled:opacity-60"
-                disabled={loading}
+                placeholder="cth: RT 35 Raih Penghargaan Kebersihan"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-800"
               />
             </div>
 
@@ -229,8 +231,7 @@ export const NewsTab: React.FC<NewsTabProps> = ({
               <select
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-slate-800 transition-all disabled:opacity-60"
-                disabled={loading}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-800"
               >
                 <option value="Kegiatan Utama">Kegiatan Utama</option>
                 <option value="Penghargaan">Penghargaan</option>
@@ -242,159 +243,137 @@ export const NewsTab: React.FC<NewsTabProps> = ({
 
             <div className="space-y-1">
               <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Cover Gambar Halaman</label>
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  placeholder="URL Cover (cth: https://images.unsplash.com/...)"
-                  value={newImageUrl}
-                  onChange={(e) => setNewImageUrl(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-slate-800 transition-all disabled:opacity-60"
-                  disabled={loading}
-                />
-                <div className="flex items-center space-x-2">
-                  <label className={`inline-flex items-center justify-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-808 text-[10px] font-extrabold rounded-lg transition-colors border border-slate-200 ${loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}>
-                    <span>Pilih Berkas Foto</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleNewsImageUpload}
-                      className="hidden"
-                      disabled={uploadingNewsImg || loading}
-                    />
-                  </label>
-                  {uploadingNewsImg && <span className="text-[10px] text-slate-555 animate-pulse font-bold">Mengunggah...</span>}
-                </div>
+              <input
+                type="text"
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                placeholder="URL Cover (cth: https://images.unsplash.com/...)"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-800"
+              />
+              <div className="flex items-center space-x-2 pt-1">
+                <label className="cursor-pointer px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center space-x-1">
+                  <span>{uploadingNewsImg ? 'Mengunggah...' : 'Pilih Berkas Foto'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleNewsImageUpload}
+                    disabled={uploadingNewsImg}
+                    className="hidden"
+                  />
+                </label>
+                {newImageUrl && (
+                  <span className="text-[10px] text-emerald-600 font-bold">✓ Foto terlampir</span>
+                )}
               </div>
             </div>
 
             <div className="space-y-1">
               <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Isi Lengkap Berita (Mendukung Rich Text)</label>
-              <div className={loading ? 'opacity-65 pointer-events-none' : ''}>
-                <TiptapEditor
-                  content={newContent}
-                  onChange={setNewContent}
-                  placeholder="Tuliskan cerita lengkap berita di sini..."
-                />
-              </div>
+              <TiptapEditor 
+                content={newContent} 
+                onChange={(html) => setNewContent(html)} 
+                placeholder="Tulis liputan berita secara mendalam..."
+              />
             </div>
 
             <button
               type="submit"
-              disabled={loading || uploadingNewsImg}
-              className="w-full py-3 bg-slate-900 hover:bg-slate-850 disabled:opacity-60 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-1.5"
+              disabled={loading || isAdding}
+              className="w-full py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60"
             >
-              {loading && !editingNewsId ? (
+              {isAdding ? (
                 <>
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Menerbitkan...</span>
-                </>
-              ) : loading && editingNewsId ? (
-                <>
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Menyimpan...</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Menerbitkan Berita...</span>
                 </>
               ) : (
-                <span>{editingNewsId ? 'Simpan Perubahan' : 'Terbitkan Berita'}</span>
+                <span>{editingNewsId ? 'Simpan Perubahan Berita' : 'Terbitkan Berita'}</span>
               )}
             </button>
           </form>
         </div>
 
-        {/* LIST VIEW PANEL */}
-        <div className="xl:col-span-2 space-y-6">
-          <div className="p-4.5 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <BookOpen className="w-4 h-4 text-slate-550" />
-              <span className="text-sm font-black text-slate-800">Daftar Berita Aktif</span>
-            </div>
-            <span className="text-xs px-3 py-1 rounded-full bg-slate-100 font-black text-slate-650">{newsList.length} Berita</span>
-          </div>
+        {/* LIST PANEL */}
+        <div className="xl:col-span-2 space-y-4">
+          <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm space-y-4">
+            <h3 className="text-sm font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-slate-500" />
+                <span>Daftar Berita Aktif</span>
+              </div>
+              <span className="text-xs text-slate-500 font-bold">{newsList.length} Berita</span>
+            </h3>
 
-          <div className="space-y-6">
-            {newsList.length === 0 && !isAdding ? (
-              <div className="bg-white p-8 border border-slate-200 rounded-3xl text-center text-xs text-slate-400 font-bold">
+            {newsList.length === 0 ? (
+              <div className="text-center py-16 text-slate-400 font-semibold text-xs">
                 Belum ada berita yang diterbitkan.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Skeleton Loader at top only when adding a new news post */}
-                {isAdding && (
-                  <div className="p-5 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col justify-between space-y-4 animate-pulse min-h-[180px]">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="h-4.5 bg-slate-200 rounded w-1/4" />
-                        <div className="h-3.5 bg-slate-200 rounded w-1/5" />
-                      </div>
-                      <div className="h-4.5 bg-slate-200 rounded w-3/4" />
-                      <div className="h-10 bg-slate-100 rounded w-full" />
-                    </div>
-                  </div>
-                )}
-
+              <div className="space-y-3">
                 {paginatedNews.map((item) => {
-                  const isSavingThis = editingNewsId === item.id && loading;
-                  const isDeletingThis = deletingNewsId === item.id && loading;
-
-                  if (isSavingThis || isDeletingThis) {
-                    return (
-                      <div key={item.id} className="p-5 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col justify-between space-y-4 animate-pulse min-h-[180px]">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="h-4.5 bg-slate-200 rounded w-1/4" />
-                            <div className="h-3.5 bg-slate-250 rounded w-1/5" />
-                          </div>
-                          <div className="h-4.5 bg-slate-200 rounded w-3/4" />
-                          <div className="h-10 bg-slate-250 rounded w-full" />
-                        </div>
-                      </div>
-                    );
-                  }
-
+                  const isBeingDeleted = deletingNewsId === item.id;
                   return (
-                    <div key={item.id} className="p-5 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col justify-between space-y-4 hover:border-slate-350 transition-all duration-200">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[9px] uppercase font-black px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                            {item.category}
-                          </span>
-                          <div className="flex items-center text-[10px] text-slate-400 font-bold space-x-1">
-                            <Clock className="w-3 h-3" />
-                            <span>{new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
-                          </div>
-                        </div>
-
-                        <h4 className="text-sm font-black text-slate-900 line-clamp-1">{item.title}</h4>
-                        <p className="text-xs text-slate-550 leading-relaxed font-semibold line-clamp-2">{item.summary}</p>
-                        
-                        {item.image_url && (
-                          <div className="w-full h-24 rounded-lg overflow-hidden border border-slate-100 bg-slate-50 mt-1">
-                            <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+                    <div
+                      key={item.id}
+                      className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+                        editingNewsId === item.id 
+                          ? 'border-slate-900 bg-slate-50/80 shadow-sm' 
+                          : 'border-slate-200 hover:border-slate-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3.5 min-w-0">
+                        {item.image_url ? (
+                          <img
+                            src={item.image_url}
+                            alt={item.title}
+                            className="w-14 h-14 rounded-xl object-cover border border-slate-100 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200 shrink-0">
+                            <BookOpen className="w-6 h-6 text-slate-400" />
                           </div>
                         )}
+                        <div className="min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-[9px] font-black uppercase text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                              {item.category}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                          <h4 className="text-xs sm:text-sm font-black text-slate-900 mt-1 truncate">
+                            {item.title}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 font-medium line-clamp-1">
+                            {item.summary}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-555">
-                        <span>Oleh: <strong className="text-slate-700 font-bold">{item.author_name}</strong></span>
-                        <div className="flex items-center space-x-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleStartEdit(item)}
-                            className="p-1.5 rounded-lg bg-blue-50 text-blue-605 hover:bg-blue-100 border border-blue-100/50 transition-colors"
-                            title="Edit berita"
-                            disabled={loading}
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteNews(item.id)}
-                            className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100/50 transition-colors"
-                            title="Hapus berita"
-                            disabled={loading}
-                          >
+                      <div className="flex items-center space-x-2 shrink-0 self-end sm:self-center">
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(item)}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center space-x-1 transition-colors"
+                        >
+                          <Edit className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTargetNews(item)}
+                          className="p-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                          title="Hapus berita"
+                          disabled={loading || isBeingDeleted}
+                        >
+                          {isBeingDeleted ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
                             <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                          )}
+                        </button>
                       </div>
                     </div>
                   );
@@ -449,6 +428,67 @@ export const NewsTab: React.FC<NewsTabProps> = ({
           </div>
         </div>
       </div>
+
+      {/* DELETE CONFIRMATION MODAL POPUP */}
+      {deleteTargetNews && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
+          <div className="absolute inset-0" onClick={() => !loading && setDeleteTargetNews(null)} />
+          
+          <div 
+            className="relative w-full max-w-md bg-white rounded-3xl sm:rounded-[32px] shadow-2xl border border-rose-150 p-6 sm:p-8 space-y-6 z-10 animate-scale-up text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Warning Icon Badge */}
+            <div className="w-16 h-16 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-sm">
+              <Trash2 className="w-8 h-8 animate-bounce" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                Konfirmasi Hapus Berita
+              </span>
+              <h4 className="text-xl font-black text-slate-900 leading-snug pt-1">
+                Hapus Berita Ini?
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-500 font-semibold leading-relaxed px-2">
+                Apakah Anda yakin ingin menghapus berita <span className="text-slate-900 font-black">"{deleteTargetNews.title}"</span>? Data yang dihapus tidak dapat dipulihkan.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => setDeleteTargetNews(null)}
+                className="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={confirmDeleteNewsAction}
+                className="w-full py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-lg shadow-rose-600/25 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Ya, Hapus</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
+export default NewsTab;

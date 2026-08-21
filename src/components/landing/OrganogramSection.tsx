@@ -12,10 +12,16 @@ export const OrganogramSection: React.FC<OrganogramSectionProps> = ({ pengurusLi
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (initialPengurusList !== undefined) {
+      setPengurusList(initialPengurusList);
+    }
+  }, [initialPengurusList]);
+
+  useEffect(() => {
     const loadLivePengurus = async () => {
       try {
         const liveData = await SupabaseService.fetchPengurus();
-        if (liveData && liveData.length > 0) {
+        if (liveData) {
           setPengurusList(liveData);
         }
       } catch (err) {
