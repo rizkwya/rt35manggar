@@ -404,7 +404,7 @@ export const SupabaseService = {
   async fetchProker(): Promise<ProkerItem[]> {
     // 1. Try dedicated table 'proker'
     try {
-      const { data, error } = await supabase.from('proker').select('*');
+      const { data, error } = await supabase.from('proker').select('*').order('created_at', { ascending: true });
       if (!error && data && data.length > 0) {
         return data as ProkerItem[];
       }
@@ -446,7 +446,7 @@ export const SupabaseService = {
 
   async addProker(item: ProkerItem): Promise<ProkerItem[]> {
     const currentList = await this.fetchProker();
-    const updatedList = [item, ...currentList.filter(p => p.id !== item.id)];
+    const updatedList = [...currentList.filter(p => p.id !== item.id), item];
 
     try {
       if (typeof localStorage !== 'undefined') {

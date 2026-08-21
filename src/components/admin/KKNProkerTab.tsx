@@ -199,7 +199,9 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
 
     setLoading(true);
     try {
+      const existing = localProkerList.find(p => p.id === id);
       const updatedItem: ProkerItem = {
+        ...existing,
         id,
         title: editTitle.trim(),
         category: editCategory.trim(),
@@ -211,9 +213,20 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
         image_url: editImageUrl.trim() || undefined
       };
 
+      // Optimistic in-place update (stays strictly at its current index)
+      const idx = localProkerList.findIndex(p => p.id === id);
+      let localUpdated = [...localProkerList];
+      if (idx !== -1) {
+        localUpdated[idx] = updatedItem;
+      }
+      setLocalProkerList(localUpdated);
+      onUpdateProkerList(localUpdated);
+
       const updated = await SupabaseService.updateProker(updatedItem);
-      setLocalProkerList(updated);
-      onUpdateProkerList(updated);
+      if (updated && updated.length > 0) {
+        setLocalProkerList(updated);
+        onUpdateProkerList(updated);
+      }
       showSuccess('Perubahan program kerja berhasil disimpan!');
       setEditingProkerId(null);
     } catch (err: any) {
