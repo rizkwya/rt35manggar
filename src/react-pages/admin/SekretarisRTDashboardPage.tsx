@@ -1016,27 +1016,70 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                       className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 transition-all resize-none"
                     />
                   </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <label className="block">Unggah Foto Avatar</label>
+                  {/* PRESET CHARACTER CUTOUT SELECTOR */}
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="block text-xs font-black text-slate-700 uppercase tracking-wider">
+                      Pilih Pose Karakter 3D Resmi (Transparan) atau Unggah Foto Sendiri
+                    </label>
+                    
+                    {/* 8 Preset Cutout Thumbnails */}
+                    <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => {
+                        const url = `/kkn_member_${num}.png`;
+                        const isSelected = newKAvatar === url || (!newKAvatar && num === ((kknTeam.length % 8) + 1));
+                        return (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => setNewKAvatar(url)}
+                            className={`relative aspect-[3/4] rounded-xl flex items-center justify-center p-1 transition-all group overflow-hidden ${
+                              isSelected
+                                ? 'bg-white border-2 border-[#0b5665] shadow-md ring-2 ring-[#0b5665]/20 scale-105'
+                                : 'bg-white/60 border border-slate-200 hover:bg-white hover:border-slate-300 hover:scale-102'
+                            }`}
+                            title={`Karakter ${num}`}
+                          >
+                            <img
+                              src={url}
+                              alt={`Karakter ${num}`}
+                              className="w-full h-full object-contain filter drop-shadow-sm"
+                            />
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#0b5665] text-white flex items-center justify-center text-[9px] font-black shadow">
+                                ✓
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Custom Upload Alternative */}
                     <div className="flex items-center space-x-3 p-3 rounded-xl bg-white border border-dashed border-slate-200">
-                      <img 
-                        src={newKAvatar || '/default_avatar.svg'} 
-                        alt="Preview" 
-                        className="w-12 h-12 rounded-full object-cover border border-slate-200 bg-slate-50 shadow-inner" 
-                      />
-                      <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer">
-                        <Upload className="w-4 h-4 text-slate-500" />
-                        <span>Pilih Avatar</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleImageUpload(e, setNewKAvatar)}
+                      <div className="w-12 h-14 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-1 shrink-0">
+                        <img 
+                          src={newKAvatar || `/kkn_member_${(kknTeam.length % 8) + 1}.png`} 
+                          alt="Preview" 
+                          className="w-full h-full object-contain" 
                         />
-                      </label>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[11px] font-bold text-slate-500 mb-1">Atau unggah foto PNG transparan Anda sendiri:</p>
+                        <label className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer transition-all">
+                          <Upload className="w-4 h-4 text-slate-500" />
+                          <span>Pilih Berkas Foto</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImageUpload(e, setNewKAvatar)}
+                          />
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
+
                 <div className="flex justify-end space-x-2 pt-2">
                   <button
                     type="button"
@@ -1056,7 +1099,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                   <button
                     type="button"
                     onClick={handleCreateKKN}
-                    className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm"
+                    className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm active:scale-98"
                   >
                     Simpan Anggota
                   </button>
@@ -1066,7 +1109,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
 
             {/* KKN Team Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {kknTeam.map((m) => {
+              {kknTeam.map((m, mIdx) => {
                 const isEditing = editingKKNId === m.id;
                 return (
                   <div key={m.id} className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col justify-between space-y-6 hover:border-[#85A389]/30 transition-all">
@@ -1118,17 +1161,43 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                             className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-[#85A389] transition-all resize-none"
                           />
                         </div>
+
+                        {/* EDIT PRESET SELECTOR */}
                         <div className="space-y-2">
-                          <label className="block text-xs font-bold text-slate-550">Unggah Foto Avatar</label>
+                          <label className="block text-xs font-bold text-slate-700">Pilih Karakter 3D Resmi</label>
+                          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => {
+                              const url = `/kkn_member_${num}.png`;
+                              const isSelected = editKAvatar === url;
+                              return (
+                                <button
+                                  key={num}
+                                  type="button"
+                                  onClick={() => setEditKAvatar(url)}
+                                  className={`aspect-[3/4] rounded-lg p-1 transition-all overflow-hidden flex items-center justify-center ${
+                                    isSelected
+                                      ? 'bg-white border-2 border-[#0b5665] shadow-sm ring-2 ring-[#0b5665]/20 scale-105'
+                                      : 'bg-white/60 border border-slate-200 hover:bg-white'
+                                  }`}
+                                  title={`Karakter ${num}`}
+                                >
+                                  <img src={url} alt={`Karakter ${num}`} className="w-full h-full object-contain" />
+                                </button>
+                              );
+                            })}
+                          </div>
+
                           <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border border-dashed border-slate-200">
-                            <img 
-                              src={editKAvatar || '/default_avatar.svg'} 
-                              alt="Preview" 
-                              className="w-10 h-10 rounded-full object-cover border border-slate-200 bg-white shadow-sm" 
-                            />
+                            <div className="w-10 h-12 rounded-lg bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0">
+                              <img 
+                                src={editKAvatar || `/kkn_member_${(mIdx % 8) + 1}.png`} 
+                                alt="Preview" 
+                                className="w-full h-full object-contain" 
+                              />
+                            </div>
                             <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer">
                               <Upload className="w-4 h-4 text-slate-500" />
-                              <span>Pilih Avatar</span>
+                              <span>Unggah Custom</span>
                               <input
                                 type="file"
                                 accept="image/*"
@@ -1142,11 +1211,13 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                     ) : (
                       <div className="space-y-4">
                         <div className="flex items-center space-x-4">
-                          <img
-                            src={m.avatar_url || '/default_avatar.svg'}
-                            alt={m.name}
-                            className="w-14 h-14 rounded-full object-cover border-2 border-[#85A389]/25 shadow-sm bg-slate-50"
-                          />
+                          <div className="w-14 h-16 rounded-2xl border border-slate-200 bg-slate-50 shadow-sm flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                            <img
+                              src={m.avatar_url || `/kkn_member_${(mIdx % 8) + 1}.png`}
+                              alt={m.name}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
                           <div className="min-w-0">
                             <span className="text-[9px] font-black text-[#5F8D4E] bg-[#85A389]/10 px-2 py-0.5 rounded border border-[#85A389]/20 uppercase tracking-wider">
                               {m.role_kkn || 'Anggota'}
