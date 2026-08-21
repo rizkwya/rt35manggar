@@ -1183,7 +1183,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
             )}
 
             {/* KKN Team Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
               {paginatedKknTeam.map((m, mIdx) => {
                 const isEditing = editingKKNId === m.id;
                 const isThisSaving = actionLoadingId === `save_kkn_${m.id}`;
@@ -1191,65 +1191,86 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                 const globalIndex = startKknIndex + mIdx;
 
                 return (
-                  <div key={m.id} className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col justify-between space-y-6 hover:border-[#85A389]/30 transition-all">
+                  <div 
+                    key={m.id} 
+                    className={`p-5 sm:p-6 bg-white rounded-3xl transition-all ${
+                      isEditing 
+                        ? 'border-2 border-slate-800 shadow-xl ring-4 ring-slate-900/5 z-10' 
+                        : 'border border-slate-200 shadow-sm hover:border-[#85A389]/40 hover:shadow-md'
+                    } flex flex-col justify-between space-y-5`}
+                  >
                     
                     {isEditing ? (
-                      <div className="space-y-3.5 text-xs font-bold text-slate-700">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-550 mb-1">Nama Mahasiswa</label>
-                          <input
-                            type="text"
-                            value={editKName}
-                            disabled={!!actionLoadingId}
-                            onChange={(e) => setEditKName(e.target.value)}
-                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold disabled:bg-slate-100"
-                          />
+                      <div className="space-y-4 text-xs font-bold text-slate-700 animate-fade-in">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-slate-800">
+                            Edit Anggota: <strong className="text-[#0b5665]">{m.name}</strong>
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-bold">NIM: {m.nim}</span>
                         </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-550 mb-1">NIM</label>
-                          <input
-                            type="text"
-                            value={editKNim}
-                            disabled={!!actionLoadingId}
-                            onChange={(e) => setEditKNim(e.target.value)}
-                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold disabled:bg-slate-100"
-                          />
+
+                        {/* 2-Column Inputs */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-600 mb-1">Nama Mahasiswa <span className="text-rose-500">*</span></label>
+                            <input
+                              type="text"
+                              value={editKName}
+                              disabled={!!actionLoadingId}
+                              onChange={(e) => setEditKName(e.target.value)}
+                              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 disabled:bg-slate-100"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-600 mb-1">NIM <span className="text-rose-500">*</span></label>
+                            <input
+                              type="text"
+                              value={editKNim}
+                              disabled={!!actionLoadingId}
+                              onChange={(e) => setEditKNim(e.target.value)}
+                              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 disabled:bg-slate-100"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-600 mb-1">Program Studi</label>
+                            <input
+                              type="text"
+                              value={editKProdi}
+                              disabled={!!actionLoadingId}
+                              onChange={(e) => setEditKProdi(e.target.value)}
+                              placeholder="S1 Sistem Informasi"
+                              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 disabled:bg-slate-100"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-600 mb-1">Peran di Kelompok</label>
+                            <input
+                              type="text"
+                              value={editKRole}
+                              disabled={!!actionLoadingId}
+                              onChange={(e) => setEditKRole(e.target.value)}
+                              placeholder="Ketua, Bendahara, dll."
+                              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 disabled:bg-slate-100"
+                            />
+                          </div>
                         </div>
+
                         <div>
-                          <label className="block text-xs font-bold text-slate-550 mb-1">Program Studi</label>
-                          <input
-                            type="text"
-                            value={editKProdi}
-                            disabled={!!actionLoadingId}
-                            onChange={(e) => setEditKProdi(e.target.value)}
-                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold disabled:bg-slate-100"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-550 mb-1">Peran di Kelompok</label>
-                          <input
-                            type="text"
-                            value={editKRole}
-                            disabled={!!actionLoadingId}
-                            onChange={(e) => setEditKRole(e.target.value)}
-                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold disabled:bg-slate-100"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-555 mb-1">Deskripsi Peran (Tugas/Kontribusi)</label>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Deskripsi Peran (Tugas/Kontribusi)</label>
                           <textarea
-                            rows={3}
+                            rows={2}
                             value={editKDesc}
                             disabled={!!actionLoadingId}
                             onChange={(e) => setEditKDesc(e.target.value)}
-                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-[#85A389] transition-all resize-none disabled:bg-slate-100"
+                            placeholder="Deskripsi tugas mahasiswa di kelompok..."
+                            className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 transition-all resize-none disabled:bg-slate-100"
                           />
                         </div>
 
                         {/* EDIT PRESET SELECTOR */}
-                        <div className="space-y-2">
-                          <label className="block text-xs font-bold text-slate-700">Pilih Karakter 3D Resmi</label>
-                          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <div className="space-y-2 pt-1 border-t border-slate-100">
+                          <label className="block text-[11px] font-bold text-slate-600">Pilih Karakter 3D Resmi (Transparan):</label>
+                          <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
                             {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => {
                               const url = `/kkn_member_${num}.png`;
                               const isSelected = editKAvatar === url;
@@ -1272,7 +1293,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                             })}
                           </div>
 
-                          <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border border-dashed border-slate-200">
+                          <div className="flex items-center space-x-3 p-2.5 rounded-xl bg-slate-50 border border-dashed border-slate-200">
                             <div className="w-10 h-12 rounded-lg bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0">
                               <img 
                                 src={editKAvatar || `/kkn_member_${(globalIndex % 8) + 1}.png`} 
@@ -1280,9 +1301,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                                 className="w-full h-full object-contain" 
                               />
                             </div>
-                            <label className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer ${actionLoadingId ? 'opacity-50 pointer-events-none' : ''}`}>
-                              <Upload className="w-4 h-4 text-slate-500" />
-                              <span>Unggah Custom</span>
+                            <label className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer ${actionLoadingId ? 'opacity-50 pointer-events-none' : ''}`}>
+                              <Upload className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Unggah Sendiri</span>
                               <input
                                 type="file"
                                 accept="image/*"
@@ -1309,10 +1330,10 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                               {m.role_kkn || 'Anggota'}
                             </span>
                             <h4 className="text-sm font-black text-slate-900 leading-tight pt-1 truncate">{m.name}</h4>
-                            <p className="text-[10px] text-slate-400 font-bold mt-0.5">NIM: {m.nim} • {m.prodi}</p>
+                            <p className="text-[10px] text-slate-400 font-bold mt-0.5 truncate">NIM: {m.nim} • {m.prodi}</p>
                           </div>
                         </div>
-                        <div className="text-xs text-slate-500 font-bold line-clamp-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 min-h-[72px] leading-relaxed">
+                        <div className="text-xs text-slate-500 font-bold line-clamp-3 bg-slate-50 p-3 rounded-2xl border border-slate-100 min-h-[64px] leading-relaxed">
                           {m.description || 'Tidak ada deskripsi tugas.'}
                         </div>
                       </div>
