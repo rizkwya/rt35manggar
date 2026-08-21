@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   MessageSquare, 
   Shield, 
@@ -544,10 +545,10 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
       </div>
 
       {/* 5. DETAIL POPUP MODAL (MODERN, RESPONSIVE, STANDARD INTERNASIONAL) */}
-      {selectedMessage && (
+      {typeof document !== 'undefined' && selectedMessage && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setSelectedMessage(null); }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 backdrop-blur-md animate-fade-in overflow-y-auto overscroll-contain touch-none select-none"
+          className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in overflow-y-auto overscroll-contain touch-none select-none"
         >
           <div 
             className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-lg sm:max-w-xl w-full shadow-2xl space-y-6 relative overflow-hidden animate-scale-up max-h-[90vh] flex flex-col justify-between touch-auto"
@@ -715,14 +716,15 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 6. DELETE CONFIRMATION MODAL */}
-      {deleteTargetId && (
+      {typeof document !== 'undefined' && deleteTargetId && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setDeleteTargetId(null); }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-fade-in overflow-y-auto overscroll-contain touch-none select-none"
+          className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in overflow-y-auto overscroll-contain touch-none select-none"
         >
           <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-6 animate-scale-up touch-auto">
             <div className="w-14 h-14 rounded-full bg-rose-50 border-4 border-rose-100 mx-auto flex items-center justify-center text-rose-600">
@@ -753,7 +755,8 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

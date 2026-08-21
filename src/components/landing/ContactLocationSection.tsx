@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   MapPin, 
   Phone, 
@@ -659,10 +660,10 @@ export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({
       </div>
 
       {/* POPUP MODAL: PENGIRIMAN BERHASIL (STANDARD INTERNASIONAL & RESPONSIVE) */}
-      {showSuccessModal && (
+      {typeof document !== 'undefined' && showSuccessModal && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setShowSuccessModal(false); }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 backdrop-blur-md animate-fade-in overflow-y-auto overscroll-contain touch-none select-none"
+          className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in overflow-y-auto overscroll-contain touch-none select-none"
         >
           <div 
             className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative overflow-hidden animate-scale-up touch-auto"
@@ -736,7 +737,8 @@ export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </section>
