@@ -290,7 +290,7 @@ export const SupabaseService = {
           nim: d.nim,
           prodi: d.prodi || 'S1 Sistem Informasi',
           role_kkn: d.role_kkn || 'Mahasiswa KKN',
-          avatar_url: d.avatar_url || '/kkn_member_1.png',
+          avatar_url: d.avatar_url || '/default_avatar.svg',
           email: d.email,
           description: d.phone || 'Bertanggung jawab penuh atas kelancaran program kerja pengabdian masyarakat di RT 35 Manggar, berkolaborasi aktif dengan warga sekitar untuk menciptakan solusi berbasis digital dan pemberdayaan berkelanjutan.',
         }));
@@ -321,82 +321,97 @@ export const SupabaseService = {
   },
 
   async updateKKNTeamMember(member: TeamMember): Promise<TeamMember[]> {
-    // 1. Update in-memory store
-    if (!localKknTeamStore) {
-      localKknTeamStore = [...INITIAL_KKN_TEAM];
-    }
-    const idx = localKknTeamStore.findIndex((m) => m.id === member.id || m.nim === member.nim);
-    if (idx !== -1) {
-      localKknTeamStore[idx] = { ...member };
-    } else {
-      localKknTeamStore.push({ ...member });
-    }
-
     try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
+      // 1. Ensure local store is initialized as array
+      if (!Array.isArray(localKknTeamStore) || localKknTeamStore.length === 0) {
+        try {
+          const loaded = await this.fetchKKNTeam();
+          localKknTeamStore = Array.isArray(loaded) ? loaded : [...INITIAL_KKN_TEAM];
+        } catch (e) {
+          localKknTeamStore = [...INITIAL_KKN_TEAM];
+        }
       }
-    } catch (e) {}
 
-    // 2. Persist to rt_settings (JSON store in Supabase)
-    try {
-      const currentSettings = await this.fetchSettings();
-      currentSettings.kkn_team_list = [...localKknTeamStore];
-      await this.updateSettings(currentSettings);
-    } catch (e) {
-      console.warn('Failed saving KKN team to rt_settings:', e);
-    }
-
-    // 3. Also update public.users table in Supabase
-    try {
-      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(member.id);
-      const dbObj: any = {
-        full_name: member.name,
-        nim: member.nim || `NIM-${Date.now()}`,
-        prodi: member.prodi || 'S1 Sistem Informasi',
-        role: 'mahasiswa',
-        role_kkn: member.role_kkn || 'Mahasiswa KKN',
-        avatar_url: member.avatar_url || '/kkn_member_1.png',
-        email: member.email || `${member.nim || Date.now()}@fasilkom.ac.id`,
-        phone: member.description || '',
-      };
-      if (isValidUUID) {
-        dbObj.id = member.id;
+      const idx = localKknTeamStore.findIndex((m) => m.id === member.id || m.nim === member.nim);
+      if (idx !== -1) {
+        localKknTeamStore[idx] = { ...member };
+      } else {
+        localKknTeamStore.push({ ...member });
       }
-      await supabase.from('users').upsert([dbObj]);
-    } catch (e) {
-      console.warn('Failed upserting KKN member to users table:', e);
-    }
 
-    return [...localKknTeamStore];
-  },
-
-  async deleteKKNTeamMember(id: string): Promise<TeamMember[]> {
-    if (localKknTeamStore) {
-      localKknTeamStore = localKknTeamStore.filter((m) => m.id !== id);
       try {
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
         }
       } catch (e) {}
-    }
 
-    // Persist deletion to rt_settings
-    try {
-      const currentSettings = await this.fetchSettings();
-      currentSettings.kkn_team_list = localKknTeamStore ? [...localKknTeamStore] : [];
-      await this.updateSettings(currentSettings);
-    } catch (e) {
-      console.warn('Failed updating settings after KKN member deletion:', e);
-    }
-
-    try {
-      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-      if (isValidUUID) {
-        await supabase.from('users').delete().eq('id', id);
+      // 2. Persist to rt_settings (JSON store in Supabase)
+      try {
+        const currentSettings = await this.fetchSettings();
+        currentSettings.kkn_team_list = Array.isArray(localKknTeamStore) ? [...localKknTeamStore] : [];
+        await this.updateSettings(currentSettings);
+      } catch (e) {
+        console.warn('Failed saving KKN team to rt_settings:', e);
       }
-    } catch (e) {
-      console.warn('KKN Team delete error from users table:', e);
+
+      // 3. Also update public.users table in Supabase
+      try {
+        const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(member.id);
+        const dbObj: any = {
+          full_name: member.name,
+          nim: member.nim || `NIM-${Date.now()}`,
+          prodi: member.prodi || 'S1 Sistem Informasi',
+          role: 'mahasiswa',
+          role_kkn: member.role_kkn || 'Mahasiswa KKN',
+          avatar_url: member.avatar_url || '/default_avatar.svg',
+          email: member.email || `${member.nim || Date.now()}@fasilkom.ac.id`,
+          phone: member.description || '',
+        };
+        if (isValidUUID) {
+          dbObj.id = member.id;
+        }
+        await supabase.from('users').upsert([dbObj]);
+      } catch (e) {
+        console.warn('Failed upserting KKN member to users table:', e);
+      }
+
+      return Array.isArray(localKknTeamStore) ? [...localKknTeamStore] : [...INITIAL_KKN_TEAM];
+    } catch (err) {
+      console.warn('updateKKNTeamMember exception caught safely:', err);
+      return Array.isArray(localKknTeamStore) ? [...localKknTeamStore] : [...INITIAL_KKN_TEAM];
+    }
+  },
+
+  async deleteKKNTeamMember(id: string): Promise<TeamMember[]> {
+    try {
+      if (Array.isArray(localKknTeamStore)) {
+        localKknTeamStore = localKknTeamStore.filter((m) => m.id !== id);
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
+          }
+        } catch (e) {}
+      }
+
+      // Persist deletion to rt_settings
+      try {
+        const currentSettings = await this.fetchSettings();
+        currentSettings.kkn_team_list = Array.isArray(localKknTeamStore) ? [...localKknTeamStore] : [];
+        await this.updateSettings(currentSettings);
+      } catch (e) {
+        console.warn('Failed updating settings after KKN member deletion:', e);
+      }
+
+      try {
+        const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        if (isValidUUID) {
+          await supabase.from('users').delete().eq('id', id);
+        }
+      } catch (e) {
+        console.warn('KKN Team delete error from users table:', e);
+      }
+    } catch (err) {
+      console.warn('deleteKKNTeamMember exception caught safely:', err);
     }
     return this.fetchKKNTeam(true);
   },

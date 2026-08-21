@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Soft 3D Glow & Shadow Filter -->
+    <filter id="soft3d" x="-20%" y="-20%" width="140%" height="140%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.15" />
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0b5665" flood-opacity="0.12" />
+    </filter>
+
+    <!-- Head & Face 3D Spherical Gradient -->
+    <radialGradient id="head3D" cx="38%" cy="32%" r="65%" fx="35%" fy="28%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="45%" stop-color="#e2e8f0" />
+      <stop offset="85%" stop-color="#94a3b8" />
+      <stop offset="100%" stop-color="#64748b" />
+    </radialGradient>
+
+    <!-- Body & Shoulders 3D Volumetric Gradient -->
+    <radialGradient id="body3D" cx="45%" cy="30%" r="70%" fx="42%" fy="25%">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="40%" stop-color="#cbd5e1" />
+      <stop offset="80%" stop-color="#64748b" />
+      <stop offset="100%" stop-color="#334155" />
+    </radialGradient>
+
+    <!-- Sleek Collar/Neck Accent -->
+    <linearGradient id="collarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b5665" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.8" />
+    </linearGradient>
+
+    <!-- Highlights -->
+    <linearGradient id="specularGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.7" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <g filter="url(#soft3d)">
+    <!-- 3D Torso / Shoulders -->
+    <path 
+      d="M 120 440 C 120 340, 180 300, 256 300 C 332 300, 392 340, 392 440 C 392 460, 375 476, 350 476 L 162 476 C 137 476, 120 460, 120 440 Z" 
+      fill="url(#body3D)" 
+    />
+    
+    <!-- Torso Specular Highlight -->
+    <path 
+      d="M 160 440 C 160 360, 205 325, 256 325 C 307 325, 352 360, 352 440 Z" 
+      fill="url(#specularGlow)" 
+      opacity="0.4"
+    />
+
+    <!-- Neck / Collar -->
+    <path 
+      d="M 226 270 L 286 270 L 296 320 L 216 320 Z" 
+      fill="url(#collarGrad)" 
+      opacity="0.85"
+    />
+
+    <!-- 3D Head Sphere -->
+    <circle cx="256" cy="190" r="95" fill="url(#head3D)" />
+
+    <!-- Head Light Reflection Sphere (Soft Gloss) -->
+    <ellipse cx="230" cy="155" rx="42" ry="28" fill="url(#specularGlow)" transform="rotate(-20 230 155)" />
+  </g>
+</svg>

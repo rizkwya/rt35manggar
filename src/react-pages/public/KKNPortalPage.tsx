@@ -519,9 +519,9 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
               const leftMember = localKknTeam[leftIdx];
               const rightMember = localKknTeam[rightIdx];
  
-              const leftCutout = leftMember.avatar_url || `/kkn_member_${(leftIdx % 8) + 1}.png`;
-              const activeCutout = activeMember.avatar_url || `/kkn_member_${(activeIdx % 8) + 1}.png`;
-              const rightCutout = rightMember.avatar_url || `/kkn_member_${(rightIdx % 8) + 1}.png`;
+              const leftCutout = leftMember.avatar_url || '/default_avatar.svg';
+              const activeCutout = activeMember.avatar_url || '/default_avatar.svg';
+              const rightCutout = rightMember.avatar_url || '/default_avatar.svg';
  
               return (
                 <div className="w-full flex flex-col items-center py-6 space-y-8 animate-fade-in relative z-10">

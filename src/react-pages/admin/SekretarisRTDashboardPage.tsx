@@ -281,12 +281,14 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
         nim: editKNim,
         prodi: editKProdi,
         role_kkn: editKRole,
-        avatar_url: editKAvatar,
+        avatar_url: editKAvatar || target.avatar_url || '/default_avatar.svg',
         description: editKDesc
       };
 
       const res = await SupabaseService.updateKKNTeamMember(updatedMember);
-      onUpdateKknTeam(res);
+      if (Array.isArray(res)) {
+        onUpdateKknTeam(res);
+      }
       setEditingKKNId(null);
       showSuccess('Data tim mahasiswa KKN Kelompok 7 berhasil disimpan!');
     } catch (err: any) {
@@ -305,17 +307,19 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
     setLoading(true);
     try {
       const newMember: TeamMember = {
-        id: `mock-id-${Date.now()}`,
+        id: `kkn-${Date.now()}`,
         name: newKName,
         nim: newKNim,
         prodi: newKProdi || 'S1 Sistem Informasi',
         role_kkn: newKRole || 'Mahasiswa KKN',
-        avatar_url: newKAvatar || '/kkn_member_1.png',
+        avatar_url: newKAvatar || '/default_avatar.svg',
         description: newKDesc
       };
 
       const res = await SupabaseService.updateKKNTeamMember(newMember);
-      onUpdateKknTeam(res);
+      if (Array.isArray(res)) {
+        onUpdateKknTeam(res);
+      }
       
       // Reset form
       setNewKName('');
@@ -1015,11 +1019,11 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                   <div className="md:col-span-2 space-y-2">
                     <label className="block">Unggah Foto Avatar</label>
                     <div className="flex items-center space-x-3 p-3 rounded-xl bg-white border border-dashed border-slate-200">
-                      {newKAvatar ? (
-                        <img src={newKAvatar} alt="Preview" className="w-10 h-10 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-400">?</div>
-                      )}
+                      <img 
+                        src={newKAvatar || '/default_avatar.svg'} 
+                        alt="Preview" 
+                        className="w-12 h-12 rounded-full object-cover border border-slate-200 bg-slate-50 shadow-inner" 
+                      />
                       <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer">
                         <Upload className="w-4 h-4 text-slate-500" />
                         <span>Pilih Avatar</span>
@@ -1117,9 +1121,11 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                         <div className="space-y-2">
                           <label className="block text-xs font-bold text-slate-550">Unggah Foto Avatar</label>
                           <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border border-dashed border-slate-200">
-                            {editKAvatar && (
-                              <img src={editKAvatar} alt="Preview" className="w-10 h-10 rounded-full object-cover" />
-                            )}
+                            <img 
+                              src={editKAvatar || '/default_avatar.svg'} 
+                              alt="Preview" 
+                              className="w-10 h-10 rounded-full object-cover border border-slate-200 bg-white shadow-sm" 
+                            />
                             <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer">
                               <Upload className="w-4 h-4 text-slate-500" />
                               <span>Pilih Avatar</span>
@@ -1137,9 +1143,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                       <div className="space-y-4">
                         <div className="flex items-center space-x-4">
                           <img
-                            src={m.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
+                            src={m.avatar_url || '/default_avatar.svg'}
                             alt={m.name}
-                            className="w-14 h-14 rounded-full object-cover border-2 border-[#85A389]/25 shadow-sm"
+                            className="w-14 h-14 rounded-full object-cover border-2 border-[#85A389]/25 shadow-sm bg-slate-50"
                           />
                           <div className="min-w-0">
                             <span className="text-[9px] font-black text-[#5F8D4E] bg-[#85A389]/10 px-2 py-0.5 rounded border border-[#85A389]/20 uppercase tracking-wider">
