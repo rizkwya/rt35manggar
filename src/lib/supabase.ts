@@ -525,6 +525,14 @@ export const SupabaseService = {
             emergency_description = firstRow.emergency_description;
           }
         }
+          let active_dev_broadcast: any = null;
+          try {
+            if (firstRow.emergency_description) {
+              const extraObj = JSON.parse(firstRow.emergency_description);
+              active_dev_broadcast = extraObj.active_dev_broadcast || null;
+            }
+          } catch (e) {}
+
           return {
             ...firstRow,
             emergency_title,
@@ -541,8 +549,9 @@ export const SupabaseService = {
             boundary_west,
             kk_list,
             messages_list,
-            kkn_team_list
-          } as RTSettings;
+            kkn_team_list,
+            active_dev_broadcast
+          } as any;
       }
     } catch (e) {
       console.error('Settings query error:', e);
@@ -576,7 +585,8 @@ export const SupabaseService = {
       boundary_west: settings.boundary_west || '',
       kk_list: settings.kk_list || [],
       messages_list: settings.messages_list || [],
-      kkn_team_list: settings.kkn_team_list || []
+      kkn_team_list: settings.kkn_team_list || [],
+      active_dev_broadcast: (settings as any).active_dev_broadcast || null
     };
     const dbObj: any = {
       portal_name: settings.portal_name,

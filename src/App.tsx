@@ -188,6 +188,25 @@ export const App = () => {
                 emergency_description = row.emergency_description;
               }
             }
+
+            // Sync incoming broadcast from settings realtime update
+            let activeBc: any = null;
+            try {
+              if (row.emergency_description) {
+                const parsed = JSON.parse(row.emergency_description);
+                activeBc = parsed.active_dev_broadcast || null;
+              }
+            } catch (e) {}
+
+            if (activeBc && activeBc.is_active !== false) {
+              const lastDismissed = localStorage.getItem('rt35_last_dismissed_broadcast');
+              if (lastDismissed !== activeBc.id) {
+                setIncomingBroadcast(activeBc);
+              }
+            } else if (!activeBc) {
+              setIncomingBroadcast(null);
+            }
+
             setSettings({
               ...row,
               emergency_title,
@@ -347,7 +366,16 @@ export const App = () => {
           SupabaseService.fetchDemographics(),
           SupabaseService.fetchKKNTeam(true),
         ]);
-        if (settingsData) setSettings(settingsData);
+        if (settingsData) {
+          setSettings(settingsData);
+          const activeBc = (settingsData as any).active_dev_broadcast;
+          if (activeBc && activeBc.is_active !== false) {
+            const lastDismissed = localStorage.getItem('rt35_last_dismissed_broadcast');
+            if (lastDismissed !== activeBc.id) {
+              setIncomingBroadcast(activeBc);
+            }
+          }
+        }
         if (newsData) setNewsList(newsData);
         if (announceData) setAnnouncements(announceData);
         if (demoData) setDemographics(demoData);
