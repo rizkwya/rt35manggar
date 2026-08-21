@@ -63,6 +63,21 @@ export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({
       }
     }
   }, [defaultFormTab, onClearDefaultFormTab]);
+
+  // Lock background scroll when success modal is open
+  React.useEffect(() => {
+    if (showSuccessModal) {
+      const originalOverflow = document.body.style.overflow;
+      const originalTouch = document.body.style.touchAction;
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.touchAction = originalTouch;
+      };
+    }
+  }, [showSuccessModal]);
   
   // Shared Form fields
   const [name, setName] = useState('');
@@ -645,9 +660,12 @@ export const ContactLocationSection: React.FC<ContactLocationSectionProps> = ({
 
       {/* POPUP MODAL: PENGIRIMAN BERHASIL (STANDARD INTERNASIONAL & RESPONSIVE) */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowSuccessModal(false); }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 backdrop-blur-md animate-fade-in overflow-y-auto overscroll-contain touch-none select-none"
+        >
           <div 
-            className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative overflow-hidden animate-scale-up"
+            className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 text-center relative overflow-hidden animate-scale-up touch-auto"
             role="dialog"
             aria-modal="true"
           >

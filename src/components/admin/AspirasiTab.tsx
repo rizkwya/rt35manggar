@@ -47,6 +47,21 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
   const [selectedMessage, setSelectedMessage] = useState<RTMessage | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
+  // Lock background scrolling when any modal is open
+  React.useEffect(() => {
+    if (selectedMessage || deleteTargetId) {
+      const originalOverflow = document.body.style.overflow;
+      const originalTouch = document.body.style.touchAction;
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.touchAction = originalTouch;
+      };
+    }
+  }, [selectedMessage, deleteTargetId]);
+
   const messagesList = settings?.messages_list || [];
 
   // Filter messages based on sub-tab
@@ -530,12 +545,22 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
 
       {/* 5. DETAIL POPUP MODAL (MODERN, RESPONSIVE, STANDARD INTERNASIONAL) */}
       {selectedMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setSelectedMessage(null); }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 backdrop-blur-md animate-fade-in overflow-y-auto overscroll-contain touch-none select-none"
+        >
           <div 
-            className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 relative overflow-hidden animate-scale-up max-h-[90vh] flex flex-col justify-between"
+            className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-lg sm:max-w-xl w-full shadow-2xl space-y-6 relative overflow-hidden animate-scale-up max-h-[90vh] flex flex-col justify-between touch-auto"
             role="dialog"
             aria-modal="true"
           >
+            {/* Top decorative accent bar */}
+            <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${
+              selectedMessage.type === 'aspirasi' 
+                ? 'from-emerald-500 via-[#0b5665] to-teal-400' 
+                : 'from-amber-500 via-orange-500 to-emerald-500'
+            }`} />
+
             {/* Header with Close */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center space-x-3">
@@ -558,6 +583,7 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
                 type="button"
                 onClick={() => setSelectedMessage(null)}
                 className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
+                aria-label="Tutup popup"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -652,7 +678,7 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
                   href={formatWhatsAppLink(selectedMessage.phone)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-all flex items-center space-x-1.5 shadow-sm"
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-all flex items-center space-x-1.5 shadow-sm active:scale-98"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Balas via WhatsApp</span>
@@ -664,7 +690,7 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
                   <button
                     type="button"
                     onClick={() => handleUpdateStatus(selectedMessage.id, selectedMessage.status === 'pending' ? 'read' : 'resolved')}
-                    className="px-4 py-2.5 rounded-xl bg-[#0b5665] hover:bg-[#08424e] text-white text-xs font-black transition-all shadow-sm"
+                    className="px-4 py-2.5 rounded-xl bg-[#0b5665] hover:bg-[#08424e] text-white text-xs font-black transition-all shadow-sm active:scale-98"
                   >
                     {selectedMessage.status === 'pending' ? 'Tandai Dibaca' : 'Tandai Selesai'}
                   </button>
@@ -672,7 +698,7 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
                   <button
                     type="button"
                     onClick={() => handleUpdateStatus(selectedMessage.id, 'pending')}
-                    className="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black transition-all"
+                    className="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black transition-all active:scale-98"
                   >
                     Kembalikan ke Pending
                   </button>
@@ -694,8 +720,11 @@ export const AspirasiTab: React.FC<AspirasiTabProps> = ({
 
       {/* 6. DELETE CONFIRMATION MODAL */}
       {deleteTargetId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-6 animate-scale-up">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setDeleteTargetId(null); }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-fade-in overflow-y-auto overscroll-contain touch-none select-none"
+        >
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-6 animate-scale-up touch-auto">
             <div className="w-14 h-14 rounded-full bg-rose-50 border-4 border-rose-100 mx-auto flex items-center justify-center text-rose-600">
               <AlertTriangle className="w-7 h-7" />
             </div>
