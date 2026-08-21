@@ -622,6 +622,7 @@ export const SupabaseService = {
         let boundary_south = '';
         let boundary_east = '';
         let boundary_west = '';
+        let kkn_posko_location = '';
         let kk_list: any[] = [];
         let messages_list: any[] = [];
         let kkn_team_list: any[] = [];
@@ -642,6 +643,7 @@ export const SupabaseService = {
             if (extra.boundary_south) boundary_south = extra.boundary_south;
             if (extra.boundary_east) boundary_east = extra.boundary_east;
             if (extra.boundary_west) boundary_west = extra.boundary_west;
+            if (extra.kkn_posko_location) kkn_posko_location = extra.kkn_posko_location;
             if (extra.kk_list) kk_list = extra.kk_list;
             if (extra.messages_list) messages_list = extra.messages_list;
             if (extra.kkn_team_list) kkn_team_list = extra.kkn_team_list;
@@ -673,6 +675,7 @@ export const SupabaseService = {
             boundary_south,
             boundary_east,
             boundary_west,
+            kkn_posko_location,
             kk_list,
             messages_list,
             kkn_team_list,
@@ -710,6 +713,7 @@ export const SupabaseService = {
       boundary_south: settings.boundary_south || '',
       boundary_east: settings.boundary_east || '',
       boundary_west: settings.boundary_west || '',
+      kkn_posko_location: settings.kkn_posko_location || '',
       kk_list: settings.kk_list || [],
       messages_list: settings.messages_list || [],
       kkn_team_list: settings.kkn_team_list || [],

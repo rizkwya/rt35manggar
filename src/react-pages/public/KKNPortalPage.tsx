@@ -13,6 +13,7 @@ interface KKNPortalPageProps {
 export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initialProker, kknTeam: initialTeam, settings, onBackToHome }) => {
   const [localKknTeam, setLocalKknTeam] = React.useState<TeamMember[]>([]);
   const [localProkerList, setLocalProkerList] = React.useState<ProkerItem[]>([]);
+  const [localSettings, setLocalSettings] = React.useState<RTSettings | undefined>(settings);
   const [isLoading, setIsLoading] = React.useState(true);
   const [selectedProker, setSelectedProker] = React.useState<ProkerItem | null>(null);
   const [activeIdx, setActiveIdx] = React.useState(0);
@@ -91,12 +92,14 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
     const fetchFreshData = async () => {
       setIsLoading(true);
       try {
-        const [freshTeam, freshProker] = await Promise.all([
+        const [freshTeam, freshProker, freshSettings] = await Promise.all([
           SupabaseService.fetchKKNTeam(true),
           SupabaseService.fetchProker(),
+          SupabaseService.fetchSettings()
         ]);
         if (freshTeam) setLocalKknTeam(freshTeam);
         if (freshProker) setLocalProkerList(freshProker);
+        if (freshSettings) setLocalSettings(freshSettings);
       } catch (err) {
         console.warn('Failed to fetch fresh data on mount:', err);
       } finally {
@@ -129,9 +132,22 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
       )
       .subscribe();
 
+    const settingsChannel = supabase
+      .channel('realtime-settings-kkn-portal-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rt_settings' },
+        async () => {
+          const updated = await SupabaseService.fetchSettings();
+          if (updated) setLocalSettings(updated);
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(teamChannel);
       supabase.removeChannel(prokerChannel);
+      supabase.removeChannel(settingsChannel);
     };
   }, []);
 
@@ -442,7 +458,9 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
             </div>
             <div>
               <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Lokasi Posko</p>
-              <h4 className="text-sm sm:text-base font-black text-slate-800">RT 35 Kel. Manggar</h4>
+              <h4 className="text-sm sm:text-base font-black text-slate-800">
+                {localSettings?.kkn_posko_location || settings?.kkn_posko_location || 'RT 35 Kel. Manggar'}
+              </h4>
             </div>
           </div>
 
