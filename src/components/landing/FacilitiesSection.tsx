@@ -82,15 +82,16 @@ export const FacilitiesSection: React.FC = () => {
               <div>
                 {/* Cover Image */}
                 {f.image_url ? (
-                  <div className="h-52 w-full overflow-hidden relative bg-slate-50 border-b border-slate-200">
+                  <div className="w-full aspect-[16/10] sm:aspect-[16/9] max-h-[220px] overflow-hidden relative bg-slate-50 border-b border-slate-200 shrink-0">
                     <img 
                       src={f.image_url} 
                       alt={f.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
                     />
                   </div>
                 ) : (
-                  <div className="h-52 w-full bg-slate-100 flex items-center justify-center relative border-b border-slate-200">
+                  <div className="w-full aspect-[16/10] sm:aspect-[16/9] max-h-[220px] bg-slate-100 flex items-center justify-center relative border-b border-slate-200 shrink-0">
                     <Landmark className="w-10 h-10 text-[#0b5665] opacity-40 group-hover:scale-110 transition-transform duration-500" />
                   </div>
                 )}

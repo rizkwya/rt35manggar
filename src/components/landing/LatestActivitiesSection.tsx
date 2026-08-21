@@ -64,20 +64,21 @@ export const LatestActivitiesSection: React.FC<LatestActivitiesSectionProps> = (
               <div
                 key={idx}
                 onClick={() => navigateTo(`/page/kegiatan-warga?slug=${generateSlug(item.title)}`)}
-                className="premium-card overflow-hidden cursor-pointer group hover:border-[#0b5665]/45 min-w-[280px] sm:min-w-[320px] md:min-w-0 flex-shrink-0 snap-start"
+                className="premium-card overflow-hidden cursor-pointer group hover:border-[#0b5665]/45 w-[85vw] max-w-[340px] sm:w-auto sm:min-w-[320px] md:min-w-0 flex-shrink-0 snap-start flex flex-col justify-between"
               >
                 <div>
-                  {/* Image */}
+                  {/* Image with explicit aspect ratio to prevent Safari elongation */}
                   {item.image_url ? (
-                    <div className="h-52 w-full overflow-hidden relative bg-slate-50 border-b border-slate-200">
+                    <div className="w-full aspect-[16/10] sm:aspect-[16/9] max-h-[220px] overflow-hidden relative bg-slate-50 border-b border-slate-200 shrink-0">
                       <img 
                         src={item.image_url} 
                         alt={item.title} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
                       />
                     </div>
                   ) : (
-                    <div className="h-52 w-full bg-slate-100 flex items-center justify-center relative border-b border-slate-200">
+                    <div className="w-full aspect-[16/10] sm:aspect-[16/9] max-h-[220px] bg-slate-100 flex items-center justify-center relative border-b border-slate-200 shrink-0">
                       <BookOpen className="w-10 h-10 text-[#0b5665] opacity-40 group-hover:scale-110 transition-transform duration-500" />
                     </div>
                   )}
