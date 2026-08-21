@@ -20,7 +20,8 @@ import {
   Newspaper,
   MessageSquare,
   Menu,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { RTDemographics, RTAnnouncement, UserProfile, RTPengurus, TeamMember, ProkerItem, RTSettings, NavigationItem, NewsPost, RTFacility } from '../../types/database';
 import { SupabaseService } from '../../lib/supabase';
@@ -219,6 +220,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   const [newKAvatar, setNewKAvatar] = useState('');
   const [newKDesc, setNewKDesc] = useState('');
 
+  // Action Loading Buffer State for All Buttons
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
   // Edit states for Proker
   const [editingProkerId, setEditingProkerId] = useState<string | null>(null);
   const [editPrTitle, setEditPrTitle] = useState('');
@@ -259,6 +263,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
 
   // KKN TEAM ACTIONS
   const startEditKKN = (m: TeamMember) => {
+    if (actionLoadingId) return;
     setEditingKKNId(m.id);
     setEditKName(m.name);
     setEditKNim(m.nim);
@@ -269,8 +274,12 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   };
 
   const handleSaveKKN = async (mId: string) => {
-    if (!editKName.trim() || !editKNim.trim()) return;
-    setLoading(true);
+    if (!editKName.trim() || !editKNim.trim()) {
+      alert('Nama dan NIM wajib diisi!');
+      return;
+    }
+    if (actionLoadingId) return;
+    setActionLoadingId(`save_kkn_${mId}`);
     try {
       const target = kknTeam.find((m) => m.id === mId);
       if (!target) return;
@@ -281,7 +290,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
         nim: editKNim,
         prodi: editKProdi,
         role_kkn: editKRole,
-        avatar_url: editKAvatar || target.avatar_url || '/default_avatar.svg',
+        avatar_url: editKAvatar || target.avatar_url || `/kkn_member_1.png`,
         description: editKDesc
       };
 
@@ -295,7 +304,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       console.error('Error saving KKN member:', err);
       alert('Gagal menyimpan perubahan tim KKN: ' + err.message);
     } finally {
-      setLoading(false);
+      setActionLoadingId(null);
     }
   };
 
@@ -304,15 +313,17 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       alert('Nama dan NIM wajib diisi!');
       return;
     }
-    setLoading(true);
+    if (actionLoadingId) return;
+    setActionLoadingId('create_kkn');
     try {
+      const assignedAvatar = newKAvatar || `/kkn_member_${(kknTeam.length % 8) + 1}.png`;
       const newMember: TeamMember = {
         id: `kkn-${Date.now()}`,
         name: newKName,
         nim: newKNim,
         prodi: newKProdi || 'S1 Sistem Informasi',
         role_kkn: newKRole || 'Mahasiswa KKN',
-        avatar_url: newKAvatar || '/default_avatar.svg',
+        avatar_url: assignedAvatar,
         description: newKDesc
       };
 
@@ -335,27 +346,31 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       console.error('Error adding KKN member:', err);
       alert('Gagal menambahkan anggota KKN: ' + err.message);
     } finally {
-      setLoading(false);
+      setActionLoadingId(null);
     }
   };
 
   const handleDeleteKKN = async (mId: string) => {
+    if (actionLoadingId) return;
     if (!confirm('Apakah Anda yakin ingin menghapus data mahasiswa KKN ini?')) return;
-    setLoading(true);
+    setActionLoadingId(`delete_kkn_${mId}`);
     try {
       const res = await SupabaseService.deleteKKNTeamMember(mId);
-      onUpdateKknTeam(res);
+      if (Array.isArray(res)) {
+        onUpdateKknTeam(res);
+      }
       showSuccess('Data mahasiswa KKN berhasil dihapus!');
     } catch (err: any) {
       console.error('Error deleting KKN member:', err);
       alert('Gagal menghapus anggota tim KKN: ' + err.message);
     } finally {
-      setLoading(false);
+      setActionLoadingId(null);
     }
   };
 
   // PROKER ACTIONS
   const startEditProker = (p: ProkerItem) => {
+    if (actionLoadingId) return;
     setEditingProkerId(p.id);
     setEditPrTitle(p.title);
     setEditPrDesc(p.description);
@@ -367,8 +382,12 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   };
 
   const handleSaveProker = async (pId: string) => {
-    if (!editPrTitle.trim()) return;
-    setLoading(true);
+    if (!editPrTitle.trim()) {
+      alert('Judul program kerja wajib diisi!');
+      return;
+    }
+    if (actionLoadingId) return;
+    setActionLoadingId(`save_proker_${pId}`);
     try {
       const target = prokerList.find((p) => p.id === pId);
       if (!target) return;
@@ -392,13 +411,14 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       console.error('Error saving proker:', err);
       alert('Gagal menyimpan program kerja KKN: ' + err.message);
     } finally {
-      setLoading(false);
+      setActionLoadingId(null);
     }
   };
 
   const handleDeleteProker = async (pId: string) => {
+    if (actionLoadingId) return;
     if (!confirm('Apakah Anda yakin ingin menghapus program kerja KKN ini?')) return;
-    setLoading(true);
+    setActionLoadingId(`delete_proker_${pId}`);
     try {
       const res = await SupabaseService.deleteProker(pId);
       onUpdateProkerList(res);
@@ -407,7 +427,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       console.error('Error deleting proker:', err);
       alert('Gagal menghapus program kerja KKN: ' + err.message);
     } finally {
-      setLoading(false);
+      setActionLoadingId(null);
     }
   };
 
@@ -954,8 +974,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
               </div>
               <button
                 type="button"
+                disabled={!!actionLoadingId}
                 onClick={() => setIsAddingKKN(!isAddingKKN)}
-                className="w-full sm:w-auto px-4.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm shrink-0"
+                className="w-full sm:w-auto px-4.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold transition-all shadow-sm shrink-0 active:scale-98"
               >
                 {isAddingKKN ? 'Batal Tambah' : '+ Tambah Anggota'}
               </button>
@@ -971,9 +992,10 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                     <input
                       type="text"
                       value={newKName}
+                      disabled={!!actionLoadingId}
                       onChange={(e) => setNewKName(e.target.value)}
                       placeholder="Masukkan nama lengkap..."
-                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 disabled:bg-slate-100"
                     />
                   </div>
                   <div>
@@ -981,9 +1003,10 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                     <input
                       type="text"
                       value={newKNim}
+                      disabled={!!actionLoadingId}
                       onChange={(e) => setNewKNim(e.target.value)}
                       placeholder="Masukkan NIM..."
-                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 disabled:bg-slate-100"
                     />
                   </div>
                   <div>
@@ -991,9 +1014,10 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                     <input
                       type="text"
                       value={newKProdi}
+                      disabled={!!actionLoadingId}
                       onChange={(e) => setNewKProdi(e.target.value)}
                       placeholder="Contoh: S1 Informatika..."
-                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 disabled:bg-slate-100"
                     />
                   </div>
                   <div>
@@ -1001,9 +1025,10 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                     <input
                       type="text"
                       value={newKRole}
+                      disabled={!!actionLoadingId}
                       onChange={(e) => setNewKRole(e.target.value)}
                       placeholder="Contoh: Ketua Kelompok, Bendahara..."
-                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 disabled:bg-slate-100"
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -1011,9 +1036,10 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                     <textarea
                       rows={3}
                       value={newKDesc}
+                      disabled={!!actionLoadingId}
                       onChange={(e) => setNewKDesc(e.target.value)}
                       placeholder="Jelaskan peran, tugas utama, atau kontribusi mahasiswa di kelompok..."
-                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 transition-all resize-none"
+                      className="w-full px-4.5 py-2.5 rounded-xl bg-white border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-slate-800 transition-all resize-none disabled:bg-slate-100"
                     />
                   </div>
                   {/* PRESET CHARACTER CUTOUT SELECTOR */}
@@ -1031,12 +1057,13 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                           <button
                             key={num}
                             type="button"
+                            disabled={!!actionLoadingId}
                             onClick={() => setNewKAvatar(url)}
                             className={`relative aspect-[3/4] rounded-xl flex items-center justify-center p-1 transition-all group overflow-hidden ${
                               isSelected
                                 ? 'bg-white border-2 border-[#0b5665] shadow-md ring-2 ring-[#0b5665]/20 scale-105'
                                 : 'bg-white/60 border border-slate-200 hover:bg-white hover:border-slate-300 hover:scale-102'
-                            }`}
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
                             title={`Karakter ${num}`}
                           >
                             <img
@@ -1065,12 +1092,13 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                       </div>
                       <div className="flex-1">
                         <p className="text-[11px] font-bold text-slate-500 mb-1">Atau unggah foto PNG transparan Anda sendiri:</p>
-                        <label className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer transition-all">
+                        <label className={`inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer transition-all ${actionLoadingId ? 'opacity-50 pointer-events-none' : ''}`}>
                           <Upload className="w-4 h-4 text-slate-500" />
                           <span>Pilih Berkas Foto</span>
                           <input
                             type="file"
                             accept="image/*"
+                            disabled={!!actionLoadingId}
                             className="hidden"
                             onChange={(e) => handleImageUpload(e, setNewKAvatar)}
                           />
@@ -1083,6 +1111,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                 <div className="flex justify-end space-x-2 pt-2">
                   <button
                     type="button"
+                    disabled={!!actionLoadingId}
                     onClick={() => {
                       setIsAddingKKN(false);
                       setNewKName('');
@@ -1092,16 +1121,24 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                       setNewKAvatar('');
                       setNewKDesc('');
                     }}
-                    className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-750 text-xs font-bold"
+                    className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-750 text-xs font-bold hover:bg-slate-300 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                   >
                     Batal
                   </button>
                   <button
                     type="button"
+                    disabled={!!actionLoadingId}
                     onClick={handleCreateKKN}
-                    className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm active:scale-98"
+                    className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold transition-all shadow-sm active:scale-98 flex items-center justify-center space-x-2 min-w-[140px]"
                   >
-                    Simpan Anggota
+                    {actionLoadingId === 'create_kkn' ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        <span>Menyimpan...</span>
+                      </>
+                    ) : (
+                      <span>Simpan Anggota</span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -1111,6 +1148,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {kknTeam.map((m, mIdx) => {
                 const isEditing = editingKKNId === m.id;
+                const isThisSaving = actionLoadingId === `save_kkn_${m.id}`;
+                const isThisDeleting = actionLoadingId === `delete_kkn_${m.id}`;
+
                 return (
                   <div key={m.id} className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col justify-between space-y-6 hover:border-[#85A389]/30 transition-all">
                     
@@ -1121,8 +1161,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                           <input
                             type="text"
                             value={editKName}
+                            disabled={!!actionLoadingId}
                             onChange={(e) => setEditKName(e.target.value)}
-                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
+                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold disabled:bg-slate-100"
                           />
                         </div>
                         <div>
@@ -1130,8 +1171,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                           <input
                             type="text"
                             value={editKNim}
+                            disabled={!!actionLoadingId}
                             onChange={(e) => setEditKNim(e.target.value)}
-                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
+                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold disabled:bg-slate-100"
                           />
                         </div>
                         <div>
@@ -1139,8 +1181,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                           <input
                             type="text"
                             value={editKProdi}
+                            disabled={!!actionLoadingId}
                             onChange={(e) => setEditKProdi(e.target.value)}
-                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
+                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold disabled:bg-slate-100"
                           />
                         </div>
                         <div>
@@ -1148,8 +1191,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                           <input
                             type="text"
                             value={editKRole}
+                            disabled={!!actionLoadingId}
                             onChange={(e) => setEditKRole(e.target.value)}
-                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold"
+                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold disabled:bg-slate-100"
                           />
                         </div>
                         <div>
@@ -1157,8 +1201,9 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                           <textarea
                             rows={3}
                             value={editKDesc}
+                            disabled={!!actionLoadingId}
                             onChange={(e) => setEditKDesc(e.target.value)}
-                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-[#85A389] transition-all resize-none"
+                            className="w-full px-4.5 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 font-semibold text-xs text-slate-800 focus:outline-none focus:border-[#85A389] transition-all resize-none disabled:bg-slate-100"
                           />
                         </div>
 
@@ -1173,12 +1218,13 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                                 <button
                                   key={num}
                                   type="button"
+                                  disabled={!!actionLoadingId}
                                   onClick={() => setEditKAvatar(url)}
                                   className={`aspect-[3/4] rounded-lg p-1 transition-all overflow-hidden flex items-center justify-center ${
                                     isSelected
                                       ? 'bg-white border-2 border-[#0b5665] shadow-sm ring-2 ring-[#0b5665]/20 scale-105'
                                       : 'bg-white/60 border border-slate-200 hover:bg-white'
-                                  }`}
+                                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                                   title={`Karakter ${num}`}
                                 >
                                   <img src={url} alt={`Karakter ${num}`} className="w-full h-full object-contain" />
@@ -1195,12 +1241,13 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                                 className="w-full h-full object-contain" 
                               />
                             </div>
-                            <label className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer">
+                            <label className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white border border-slate-350 hover:bg-slate-100 text-slate-750 font-bold text-xs cursor-pointer ${actionLoadingId ? 'opacity-50 pointer-events-none' : ''}`}>
                               <Upload className="w-4 h-4 text-slate-500" />
                               <span>Unggah Custom</span>
                               <input
                                 type="file"
                                 accept="image/*"
+                                disabled={!!actionLoadingId}
                                 className="hidden"
                                 onChange={(e) => handleImageUpload(e, setEditKAvatar)}
                               />
@@ -1237,16 +1284,27 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                         <>
                           <button
                             type="button"
+                            disabled={!!actionLoadingId}
                             onClick={() => handleSaveKKN(m.id)}
-                            className="flex-grow py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow"
+                            className="flex-grow py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold transition-all flex items-center justify-center space-x-2 shadow"
                           >
-                            <Save className="w-4 h-4" />
-                            <span>Simpan</span>
+                            {isThisSaving ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                                <span>Menyimpan...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Save className="w-4 h-4" />
+                                <span>Simpan</span>
+                              </>
+                            )}
                           </button>
                           <button
                             type="button"
+                            disabled={!!actionLoadingId}
                             onClick={() => setEditingKKNId(null)}
-                            className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold"
+                            className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-300 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                           >
                             Batal
                           </button>
@@ -1255,18 +1313,25 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                         <div className="flex w-full space-x-2">
                           <button
                             type="button"
+                            disabled={!!actionLoadingId}
                             onClick={() => startEditKKN(m)}
-                            className="flex-grow py-2.5 rounded-xl bg-slate-50 hover:bg-slate-105 text-slate-750 text-xs font-bold border-2 border-slate-200 flex items-center justify-center space-x-2 shadow-sm"
+                            className="flex-grow py-2.5 rounded-xl bg-slate-50 hover:bg-slate-105 disabled:opacity-60 disabled:cursor-not-allowed text-slate-750 text-xs font-bold border-2 border-slate-200 flex items-center justify-center space-x-2 shadow-sm transition-all"
                           >
                             <Edit className="w-4 h-4 text-[#85A389]" />
                             <span>Ubah Anggota</span>
                           </button>
                           <button
                             type="button"
+                            disabled={!!actionLoadingId}
                             onClick={() => handleDeleteKKN(m.id)}
-                            className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm"
+                            className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 disabled:opacity-60 disabled:cursor-not-allowed text-rose-600 border border-rose-200 text-xs font-bold flex items-center justify-center shadow-sm transition-all min-w-[40px]"
+                            title="Hapus Anggota"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            {isThisDeleting ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </button>
                         </div>
                       )}
@@ -1291,73 +1356,83 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
                   {prokerList.map((p) => {
                     const isEditing = editingProkerId === p.id;
+                    const isThisSaving = actionLoadingId === `save_proker_${p.id}`;
+                    const isThisDeleting = actionLoadingId === `delete_proker_${p.id}`;
+
                     return (
                       <div key={p.id} className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-150 flex flex-col justify-between space-y-4 hover:border-[#85A389]/25 transition-all">
                         {isEditing ? (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold text-slate-700">
                             <div className="space-y-1">
-                              <label className="block text-[10px] font-black uppercase text-slate-500">Judul Program Kerja</label>
+                              <label className="block text-[10px] font-black uppercase text-slate-550">Judul Program Kerja</label>
                               <input
                                 type="text"
                                 value={editPrTitle}
+                                disabled={!!actionLoadingId}
                                 onChange={(e) => setEditPrTitle(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold"
+                                className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold disabled:bg-slate-100"
                               />
                             </div>
                             <div className="space-y-1">
-                              <label className="block text-[10px] font-black uppercase text-slate-500">Kategori / Sektor</label>
+                              <label className="block text-[10px] font-black uppercase text-slate-550">Kategori / Sektor</label>
                               <input
                                 type="text"
                                 value={editPrCategory}
+                                disabled={!!actionLoadingId}
                                 onChange={(e) => setEditPrCategory(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold"
+                                className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold disabled:bg-slate-100"
                               />
                             </div>
                             <div className="space-y-1 sm:col-span-2">
-                              <label className="block text-[10px] font-black uppercase text-slate-500">Deskripsi / Uraian Rencana Kerja</label>
+                              <label className="block text-[10px] font-black uppercase text-slate-550">Deskripsi / Uraian Rencana Kerja</label>
                               <textarea
                                 rows={2}
                                 value={editPrDesc}
+                                disabled={!!actionLoadingId}
                                 onChange={(e) => setEditPrDesc(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-medium"
+                                className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-medium disabled:bg-slate-100"
                               />
                             </div>
                             <div className="space-y-1">
-                              <label className="block text-[10px] font-black uppercase text-slate-500">Target Tanggal Pelaksanaan</label>
+                              <label className="block text-[10px] font-black uppercase text-slate-550">Target Tanggal Pelaksanaan</label>
                               <input
                                 type="text"
                                 value={editPrTarget}
+                                disabled={!!actionLoadingId}
                                 onChange={(e) => setEditPrTarget(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold"
+                                className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold disabled:bg-slate-100"
                               />
                             </div>
                             <div className="space-y-1">
-                              <label className="block text-[10px] font-black uppercase text-slate-500">PIC Penanggung Jawab</label>
+                              <label className="block text-[10px] font-black uppercase text-slate-550">PIC Penanggung Jawab</label>
                               <input
                                 type="text"
                                 value={editPrPIC}
+                                disabled={!!actionLoadingId}
                                 onChange={(e) => setEditPrPIC(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold"
+                                className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold disabled:bg-slate-100"
                               />
                             </div>
                             <div className="grid grid-cols-2 gap-2 sm:col-span-2">
                               <div className="space-y-1">
-                                <label className="block text-[10px] font-black uppercase text-slate-500">Progres Kerja (% - angka saja)</label>
+                                <label className="block text-[10px] font-black uppercase text-slate-550">Progres Kerja (% - angka saja)</label>
                                 <input
                                   type="number"
                                   min={0}
                                   max={100}
                                   value={editPrProgress}
+                                  disabled={!!actionLoadingId}
                                   onChange={(e) => setEditPrProgress(Number(e.target.value))}
-                                  className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold"
+                                  className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold disabled:bg-slate-100"
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="block text-[10px] font-black uppercase text-slate-500">Status Capaian</label>
+                                <label className="block text-[10px] font-black uppercase text-slate-550">Status Capaian</label>
                                 <select
                                   value={editPrStatus}
+                                  disabled={!!actionLoadingId}
                                   onChange={(e) => setEditPrStatus(e.target.value as any)}
-                                  className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold"
+                                  className="w-full px-3 py-2 rounded-lg bg-white border-2 border-slate-200 font-semibold disabled:bg-slate-100"
                                 >
                                   <option value="Planned">Planned (Direncanakan)</option>
                                   <option value="In Progress">In Progress (Berjalan)</option>
@@ -1408,16 +1483,27 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                             <>
                               <button
                                 type="button"
+                                disabled={!!actionLoadingId}
                                 onClick={() => handleSaveProker(p.id)}
-                                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center space-x-1.5 shadow"
+                                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center space-x-2 shadow transition-all"
                               >
-                                <Save className="w-4 h-4" />
-                                <span>Simpan</span>
+                                {isThisSaving ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                                    <span>Menyimpan...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Save className="w-4 h-4" />
+                                    <span>Simpan</span>
+                                  </>
+                                )}
                               </button>
                               <button
                                 type="button"
+                                disabled={!!actionLoadingId}
                                 onClick={() => setEditingProkerId(null)}
-                                className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold"
+                                className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-300 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                               >
                                 Batal
                               </button>
@@ -1426,18 +1512,25 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
                             <>
                               <button
                                 type="button"
+                                disabled={!!actionLoadingId}
                                 onClick={() => startEditProker(p)}
-                                className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-855 text-xs font-bold border-2 border-slate-200 flex items-center space-x-1.5"
+                                className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 disabled:cursor-not-allowed text-slate-855 text-xs font-bold border-2 border-slate-200 flex items-center space-x-1.5 transition-all"
                               >
                                 <Edit className="w-4 h-4 text-[#85A389]" />
                                 <span>Ubah Proker</span>
                               </button>
                               <button
                                 type="button"
+                                disabled={!!actionLoadingId}
                                 onClick={() => handleDeleteProker(p.id)}
-                                className="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 flex items-center justify-center"
+                                className="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 disabled:opacity-60 disabled:cursor-not-allowed text-rose-600 border border-rose-200 flex items-center justify-center transition-all min-w-[38px]"
+                                title="Hapus Proker"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                {isThisDeleting ? (
+                                  <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
                               </button>
                             </>
                           )}
