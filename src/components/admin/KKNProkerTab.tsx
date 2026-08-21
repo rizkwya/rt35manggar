@@ -39,6 +39,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [uploadingEditImg, setUploadingEditImg] = useState(false);
 
   // Pagination state (Max 3 prokers per page for ultra clean layout)
   const [currentPage, setCurrentPage] = useState(1);
@@ -101,7 +102,12 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadingImg(true);
+    if (isEditMode) {
+      setUploadingEditImg(true);
+    } else {
+      setUploadingImg(true);
+    }
+
     try {
       const url = await SupabaseService.uploadImage(file, 'proker-covers');
       if (isEditMode) {
@@ -122,7 +128,11 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
       };
       reader.readAsDataURL(file);
     } finally {
-      setUploadingImg(false);
+      if (isEditMode) {
+        setUploadingEditImg(false);
+      } else {
+        setUploadingImg(false);
+      }
     }
   };
 
@@ -577,15 +587,41 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
                             />
                           </div>
 
-                          <div>
+                          <div className="sm:col-span-2">
                             <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">Cover / Foto Proker</label>
-                            <input
-                              type="text"
-                              value={editImageUrl}
-                              onChange={(e) => setEditImageUrl(e.target.value)}
-                              placeholder="URL Gambar"
-                              className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold"
-                            />
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                              <input
+                                type="text"
+                                value={editImageUrl}
+                                onChange={(e) => setEditImageUrl(e.target.value)}
+                                placeholder="URL Gambar atau unggah berkas..."
+                                className="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-xs"
+                              />
+                              <label className="cursor-pointer px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs inline-flex items-center justify-center space-x-1.5 shrink-0 transition-all">
+                                <Upload className="w-3.5 h-3.5" />
+                                <span>{uploadingEditImg ? 'Mengunggah...' : 'Unggah Foto'}</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleImageUpload(e, true)}
+                                  disabled={uploadingEditImg}
+                                  className="hidden"
+                                />
+                              </label>
+                            </div>
+                            {editImageUrl && (
+                              <div className="mt-2 relative w-full h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                                <img src={editImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => setEditImageUrl('')}
+                                  className="absolute top-1.5 right-1.5 p-1 bg-black/70 hover:bg-black text-white rounded-full text-xs cursor-pointer shadow-md"
+                                  title="Hapus foto"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
                           </div>
 
                           <div className="sm:col-span-2">
