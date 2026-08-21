@@ -146,23 +146,17 @@ export const DevBroadcastModal: React.FC<DevBroadcastModalProps> = ({ broadcast,
           <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
             
             <div className="flex items-center space-x-3.5">
-              <div className="relative">
-                <img
-                  src={broadcast.author_avatar || '/logo.png'}
-                  alt={broadcast.author_name}
-                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border-2 border-amber-500 shadow-md shrink-0"
-                />
-                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-slate-900 border border-white flex items-center justify-center text-[8px] text-amber-400">
-                  ⚡
-                </div>
-              </div>
+              <img
+                src={broadcast.author_avatar || '/logo.png'}
+                alt={broadcast.author_name}
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border-2 border-amber-500 shadow-md shrink-0"
+              />
               <div className="min-w-0">
                 <p className="text-xs sm:text-sm font-black text-slate-900 truncate">
                   {broadcast.author_name || 'Tim Developer RT 35'}
                 </p>
-                <p className="text-[11px] text-slate-500 font-bold flex items-center space-x-1 mt-0.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span>Developer & System Administrator</span>
+                <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
+                  Developer & System Administrator
                 </p>
               </div>
             </div>
