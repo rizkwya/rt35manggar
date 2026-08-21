@@ -143,6 +143,7 @@ export interface RTSettings {
 
   kk_list?: KKRecord[];
   messages_list?: RTMessage[];
+  kkn_team_list?: TeamMember[];
 
   updated_at?: string;
 }

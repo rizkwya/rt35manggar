@@ -112,7 +112,7 @@ export const App = () => {
           facilitiesData
         ] = await Promise.all([
           safeFetch(() => SupabaseService.fetchProker(), []),
-          safeFetch(() => SupabaseService.fetchKKNTeam(), []),
+          safeFetch(() => SupabaseService.fetchKKNTeam(true), []),
           safeFetch(() => SupabaseService.fetchSettings(), INITIAL_SETTINGS),
           safeFetch(() => SupabaseService.fetchNavItems(), INITIAL_NAV_ITEMS),
           safeFetch(() => SupabaseService.fetchAnnouncements(), []),

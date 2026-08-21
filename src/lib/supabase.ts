@@ -250,72 +250,45 @@ export const SupabaseService = {
     }
   },
 
-  // KKN TEAM MEMBERS CRUD (CORRESPONDING TO PUBLIC.USERS TABLE WITH ROLE = 'mahasiswa')
+  // KKN TEAM MEMBERS CRUD (SYNCED TO BOTH PUBLIC.USERS AND RT_SETTINGS FOR GUARANTEED MULTI-DEVICE ACCESSIBILITY)
   async fetchKKNTeam(bypassCache = false): Promise<TeamMember[]> {
     if (bypassCache) {
       localKknTeamStore = null;
     }
-    // 1. Always load cache first to make changes instantly persistent
-    if (!localKknTeamStore) {
-      try {
-        const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('rt35_kkn_team_cache') : null;
-        if (saved) {
-          localKknTeamStore = JSON.parse(saved);
-        }
-      } catch (e) {
-        console.warn('LocalStorage KKN team load error:', e);
-      }
-    }
-
-    // If cache is loaded, return it immediately so refresh doesn't flash old data
-    if (localKknTeamStore && localKknTeamStore.length > 0) {
-      // Fire-and-forget sync to Supabase database silently in the background
-      supabase
-        .from('users')
-        .select('*')
-        .eq('role', 'mahasiswa')
-        .then(({ data, error }) => {
-          if (data && data.length > 0 && !error) {
-            // Database is the source of truth
-            const mapped = data.map((d) => {
-              const cached = localKknTeamStore?.find((m) => m.nim === d.nim);
-              return {
-                id: d.id,
-                name: d.full_name || cached?.name,
-                nim: d.nim,
-                prodi: d.prodi || cached?.prodi,
-                role_kkn: d.role_kkn || cached?.role_kkn || 'Mahasiswa KKN',
-                avatar_url: d.avatar_url || cached?.avatar_url || '/kkn_member_1.png',
-                email: d.email,
-                description: d.phone || cached?.description || 'Bertanggung jawab penuh atas kelancaran program kerja pengabdian masyarakat di RT 35 Manggar, berkolaborasi aktif dengan warga sekitar untuk menciptakan solusi berbasis digital dan pemberdayaan berkelanjutan.',
-              };
-            });
-            mapped.sort((a, b) => {
-              const idxA = INITIAL_KKN_TEAM.findIndex((init) => init.nim === a.nim);
-              const idxB = INITIAL_KKN_TEAM.findIndex((init) => init.nim === b.nim);
-              if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-              return a.nim.localeCompare(b.nim);
-            });
-            localKknTeamStore = mapped;
-            try { if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore)); } catch (e) {}
-          }
-        });
-
-      return localKknTeamStore;
-    }
 
     try {
-      const { data, error } = await supabase
+      // 1. Try fetching from rt_settings table (accessible to all anon users without RLS restrictions)
+      const { data: settingsData, error: settingsError } = await supabase.from('rt_settings').select('*');
+      if (settingsData && settingsData.length > 0 && !settingsError) {
+        const firstRow = settingsData[0];
+        if (firstRow.emergency_description) {
+          try {
+            const extra = JSON.parse(firstRow.emergency_description);
+            if (extra.kkn_team_list && Array.isArray(extra.kkn_team_list) && extra.kkn_team_list.length > 0) {
+              localKknTeamStore = extra.kkn_team_list;
+              try {
+                if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
+              } catch (e) {}
+              return localKknTeamStore as TeamMember[];
+            }
+          } catch (jsonErr) {
+            console.warn('Failed parsing settings JSON for KKN team:', jsonErr);
+          }
+        }
+      }
+
+      // 2. Fallback / supplementary check to users table
+      const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select('*')
         .eq('role', 'mahasiswa');
       
-      if (data && data.length > 0 && !error) {
-        const mapped = data.map((d) => ({
+      if (usersData && usersData.length > 0 && !usersError) {
+        const mapped = usersData.map((d) => ({
           id: d.id,
           name: d.full_name,
           nim: d.nim,
-          prodi: d.prodi,
+          prodi: d.prodi || 'S1 Sistem Informasi',
           role_kkn: d.role_kkn || 'Mahasiswa KKN',
           avatar_url: d.avatar_url || '/kkn_member_1.png',
           email: d.email,
@@ -334,39 +307,25 @@ export const SupabaseService = {
         return localKknTeamStore;
       }
     } catch (e) {
-      console.warn('KKN Team query error:', e);
+      console.warn('KKN Team query exception:', e);
     }
 
-    if (!localKknTeamStore || localKknTeamStore.length === 0) {
-      localKknTeamStore = [...INITIAL_KKN_TEAM];
+    // 3. If cache is present in memory
+    if (localKknTeamStore && localKknTeamStore.length > 0) {
+      return localKknTeamStore;
     }
+
+    // 4. Fallback to INITIAL_KKN_TEAM
+    localKknTeamStore = [...INITIAL_KKN_TEAM];
     return localKknTeamStore;
   },
 
   async updateKKNTeamMember(member: TeamMember): Promise<TeamMember[]> {
-    // Generate valid UUID if missing or mock id
-    const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(member.id);
-    const dbId = isValidUUID ? member.id : undefined;
-
-    const dbObj: any = {
-      full_name: member.name,
-      nim: member.nim || `NIM-${Date.now()}`,
-      prodi: member.prodi || 'S1 Sistem Informasi',
-      role: 'mahasiswa',
-      role_kkn: member.role_kkn || 'Mahasiswa KKN',
-      avatar_url: member.avatar_url || '/kkn_member_1.png',
-      email: member.email || `${member.nim || Date.now()}@fasilkom.ac.id`,
-      phone: member.description || '',
-    };
-
-    if (dbId) {
-      dbObj.id = dbId;
-    }
-
+    // 1. Update in-memory store
     if (!localKknTeamStore) {
       localKknTeamStore = [...INITIAL_KKN_TEAM];
     }
-    const idx = localKknTeamStore.findIndex((m) => m.id === member.id);
+    const idx = localKknTeamStore.findIndex((m) => m.id === member.id || m.nim === member.nim);
     if (idx !== -1) {
       localKknTeamStore[idx] = { ...member };
     } else {
@@ -374,25 +333,39 @@ export const SupabaseService = {
     }
 
     try {
-      if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
+      }
     } catch (e) {}
 
+    // 2. Persist to rt_settings (JSON store in Supabase)
     try {
-      const { data, error } = await supabase.from('users').upsert([dbObj]).select();
-      if (error) {
-        console.warn('Supabase update user error:', error);
-      } else if (data && data[0]) {
-        member.id = data[0].id;
-        const updatedIdx = localKknTeamStore.findIndex((m) => m.nim === member.nim);
-        if (updatedIdx !== -1) {
-          localKknTeamStore[updatedIdx].id = data[0].id;
-          try {
-            if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
-          } catch (e) {}
-        }
-      }
+      const currentSettings = await this.fetchSettings();
+      currentSettings.kkn_team_list = [...localKknTeamStore];
+      await this.updateSettings(currentSettings);
     } catch (e) {
-      console.warn('KKN Team update exception:', e);
+      console.warn('Failed saving KKN team to rt_settings:', e);
+    }
+
+    // 3. Also update public.users table in Supabase
+    try {
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(member.id);
+      const dbObj: any = {
+        full_name: member.name,
+        nim: member.nim || `NIM-${Date.now()}`,
+        prodi: member.prodi || 'S1 Sistem Informasi',
+        role: 'mahasiswa',
+        role_kkn: member.role_kkn || 'Mahasiswa KKN',
+        avatar_url: member.avatar_url || '/kkn_member_1.png',
+        email: member.email || `${member.nim || Date.now()}@fasilkom.ac.id`,
+        phone: member.description || '',
+      };
+      if (isValidUUID) {
+        dbObj.id = member.id;
+      }
+      await supabase.from('users').upsert([dbObj]);
+    } catch (e) {
+      console.warn('Failed upserting KKN member to users table:', e);
     }
 
     return [...localKknTeamStore];
@@ -402,18 +375,30 @@ export const SupabaseService = {
     if (localKknTeamStore) {
       localKknTeamStore = localKknTeamStore.filter((m) => m.id !== id);
       try {
-        if (typeof localStorage !== 'undefined') localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('rt35_kkn_team_cache', JSON.stringify(localKknTeamStore));
+        }
       } catch (e) {}
     }
+
+    // Persist deletion to rt_settings
+    try {
+      const currentSettings = await this.fetchSettings();
+      currentSettings.kkn_team_list = localKknTeamStore ? [...localKknTeamStore] : [];
+      await this.updateSettings(currentSettings);
+    } catch (e) {
+      console.warn('Failed updating settings after KKN member deletion:', e);
+    }
+
     try {
       const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
       if (isValidUUID) {
         await supabase.from('users').delete().eq('id', id);
       }
     } catch (e) {
-      console.warn('KKN Team delete error:', e);
+      console.warn('KKN Team delete error from users table:', e);
     }
-    return this.fetchKKNTeam();
+    return this.fetchKKNTeam(true);
   },
 
   // PROKER KKN CRUD
@@ -507,38 +492,40 @@ export const SupabaseService = {
         let emergency_title = firstRow.emergency_title || '';
         let emergency_description = '';
         
-          let vision = '';
-          let mission = '';
-          let history = '';
-          let boundary_north = '';
-          let boundary_south = '';
-          let boundary_east = '';
-          let boundary_west = '';
-          let kk_list = [];
-          let messages_list = [];
+        let vision = '';
+        let mission = '';
+        let history = '';
+        let boundary_north = '';
+        let boundary_south = '';
+        let boundary_east = '';
+        let boundary_west = '';
+        let kk_list: any[] = [];
+        let messages_list: any[] = [];
+        let kkn_team_list: any[] = [];
 
-          if (firstRow.emergency_description) {
-            try {
-              const extra = JSON.parse(firstRow.emergency_description);
-              maps_coordinate = extra.maps_coordinate || '';
-              syarat_surat = extra.syarat_surat || '';
-              kontak_darurat = extra.kontak_darurat || '';
-              emergency_description = extra.emergency_description || '';
-              
-              if (extra.vision) vision = extra.vision;
-              if (extra.mission) mission = extra.mission;
-              if (extra.history) history = extra.history;
-              if (extra.boundary_north) boundary_north = extra.boundary_north;
-              if (extra.boundary_south) boundary_south = extra.boundary_south;
-              if (extra.boundary_east) boundary_east = extra.boundary_east;
-              if (extra.boundary_west) boundary_west = extra.boundary_west;
-              if (extra.kk_list) kk_list = extra.kk_list;
-              if (extra.messages_list) messages_list = extra.messages_list;
-            } catch (jsonErr) {
-              console.warn('Failed to parse emergency_description as JSON:', jsonErr);
-              emergency_description = firstRow.emergency_description;
-            }
+        if (firstRow.emergency_description) {
+          try {
+            const extra = JSON.parse(firstRow.emergency_description);
+            maps_coordinate = extra.maps_coordinate || '';
+            syarat_surat = extra.syarat_surat || '';
+            kontak_darurat = extra.kontak_darurat || '';
+            emergency_description = extra.emergency_description || '';
+            
+            if (extra.vision) vision = extra.vision;
+            if (extra.mission) mission = extra.mission;
+            if (extra.history) history = extra.history;
+            if (extra.boundary_north) boundary_north = extra.boundary_north;
+            if (extra.boundary_south) boundary_south = extra.boundary_south;
+            if (extra.boundary_east) boundary_east = extra.boundary_east;
+            if (extra.boundary_west) boundary_west = extra.boundary_west;
+            if (extra.kk_list) kk_list = extra.kk_list;
+            if (extra.messages_list) messages_list = extra.messages_list;
+            if (extra.kkn_team_list) kkn_team_list = extra.kkn_team_list;
+          } catch (jsonErr) {
+            console.warn('Failed to parse emergency_description as JSON:', jsonErr);
+            emergency_description = firstRow.emergency_description;
           }
+        }
           return {
             ...firstRow,
             emergency_title,
@@ -554,7 +541,8 @@ export const SupabaseService = {
             boundary_east,
             boundary_west,
             kk_list,
-            messages_list
+            messages_list,
+            kkn_team_list
           } as RTSettings;
       }
     } catch (e) {
@@ -588,7 +576,8 @@ export const SupabaseService = {
       boundary_east: settings.boundary_east || '',
       boundary_west: settings.boundary_west || '',
       kk_list: settings.kk_list || [],
-      messages_list: settings.messages_list || []
+      messages_list: settings.messages_list || [],
+      kkn_team_list: settings.kkn_team_list || []
     };
     const dbObj: any = {
       portal_name: settings.portal_name,
