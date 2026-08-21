@@ -403,161 +403,127 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
           </div>
         </div>
 
-        {/* PROGRAM KERJA (PROKER) SECTION - HORIZONTAL SWIPE / CAROUSEL SHOWCASE */}
-        <div id="proker-kkn" className="p-6 sm:p-10 bg-white border border-slate-200 rounded-3xl sm:rounded-[36px] shadow-sm space-y-8 scroll-mt-20">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-6">
-            <div className="space-y-2 max-w-2xl">
-              <span className="inline-block text-[10px] font-black uppercase tracking-wider text-[#0b5665] bg-[#0b5665]/10 px-4 py-1.5 rounded-full border border-[#0b5665]/20">
-                Program Kerja & Dokumentasi Aksi
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight uppercase">
-                Program Kerja KKN Kelompok 7
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 font-bold leading-relaxed">
-                Geser (swipe) ke samping untuk menjelajahi dokumentasi pelaksanaan, target capaian, dan progress pengabdian masyarakat di RT 35 Manggar.
-              </p>
-            </div>
-
-            {/* Slider Navigation Buttons */}
-            {localProkerList.length > 0 && (
-              <div className="flex items-center space-x-2 shrink-0 self-start md:self-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const el = document.getElementById('proker-slider-container');
-                    if (el) el.scrollBy({ left: -360, behavior: 'smooth' });
-                  }}
-                  className="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-[#0b5665] hover:text-white text-slate-700 font-black flex items-center justify-center transition-all active:scale-90 border border-slate-200 shadow-sm cursor-pointer"
-                  title="Geser ke kiri"
-                >
-                  <ArrowRight className="w-5 h-5 rotate-180" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const el = document.getElementById('proker-slider-container');
-                    if (el) el.scrollBy({ left: 360, behavior: 'smooth' });
-                  }}
-                  className="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-[#0b5665] hover:text-white text-slate-700 font-black flex items-center justify-center transition-all active:scale-90 border border-slate-200 shadow-sm cursor-pointer"
-                  title="Geser ke kanan"
-                >
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
+        {/* PROGRAM KERJA (PROKER) SECTION - MATCHING REFERENCE DESIGN */}
+        <div id="proker-kkn" className="p-6 sm:p-10 bg-slate-50/70 border border-slate-200/80 rounded-3xl sm:rounded-[36px] shadow-sm space-y-6 scroll-mt-20">
+          
+          {/* Header Section from Reference */}
+          <div className="text-center max-w-3xl mx-auto space-y-2.5">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0b5665] tracking-tight">
+              Warta Program Kerja KKN
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+              Dapatkan informasi terbaru seputar program kerja dan pengabdian masyarakat KKN Kelompok 7 di RT 35 Manggar.
+            </p>
           </div>
 
-          {/* Cards Horizontal Carousel */}
+          {/* Full-width Pill Button from Reference */}
+          <div className="max-w-4xl mx-auto w-full px-2">
+            <div className="w-full py-2.5 px-6 rounded-full bg-[#0b5665] hover:bg-[#08424e] text-white font-bold text-xs sm:text-sm text-center shadow-sm transition-all duration-200 select-none">
+              Daftar Program Kerja & Dokumentasi Aksi
+            </div>
+          </div>
+
+          {/* Cards Showcase: Swipeable on Mobile, Responsive Grid on Desktop */}
           {localProkerList.length === 0 ? (
-            <div className="text-center py-16 text-slate-400 font-bold text-xs bg-slate-50 rounded-3xl border border-slate-200">
+            <div className="text-center py-16 text-slate-400 font-bold text-xs bg-white rounded-3xl border border-slate-200 max-w-4xl mx-auto">
               Belum ada program kerja terdaftar.
             </div>
           ) : (
-            <div
-              id="proker-slider-container"
-              className="flex gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scroll-smooth no-scrollbar -mx-2 px-2"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {localProkerList.map((item: any) => (
-                <div
-                  key={item.id}
-                  onClick={() => handleSelectProker(item)}
-                  className="group w-[290px] sm:w-[340px] md:w-[370px] shrink-0 snap-start bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-[#0b5665]/50 hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer"
-                >
-                  <div>
-                    {/* Photo Header with floating Status Badge */}
-                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100 border-b border-slate-100">
-                      {item.image_url ? (
-                        <img
-                          src={item.image_url}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50">
-                          <Briefcase className="w-10 h-10 opacity-30 group-hover:scale-110 transition-transform duration-300" />
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-2">Dokumentasi Proker</span>
+            <div className="max-w-6xl mx-auto">
+              {/* Swipeable Container on Mobile/Tablet & Grid on Desktop */}
+              <div
+                className="flex lg:grid lg:grid-cols-3 gap-5 overflow-x-auto lg:overflow-x-visible pb-4 pt-1 snap-x snap-mandatory scroll-smooth no-scrollbar -mx-2 px-2"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {localProkerList.map((item: any) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleSelectProker(item)}
+                    className="group bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-[#0b5665]/40 transition-all duration-200 flex flex-col justify-between p-4 sm:p-5 w-[280px] sm:w-[320px] lg:w-auto shrink-0 snap-start cursor-pointer"
+                  >
+                    <div>
+                      {/* Image Container */}
+                      <div className="relative aspect-[16/10] w-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 border border-slate-100 mb-3.5">
+                        {item.image_url ? (
+                          <img
+                            src={item.image_url}
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+                            <Briefcase className="w-9 h-9 opacity-30 group-hover:scale-110 transition-transform duration-300" />
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mt-1.5">Dokumentasi Proker</span>
+                          </div>
+                        )}
+
+                        {/* Floating Status Badge */}
+                        <div className="absolute top-2.5 right-2.5 pointer-events-none">
+                          <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm backdrop-blur-xs border ${
+                            item.status === 'Completed'
+                              ? 'bg-emerald-500 text-white border-emerald-600'
+                              : item.status === 'In Progress'
+                                ? 'bg-amber-500 text-white border-amber-600'
+                                : 'bg-slate-800 text-white border-slate-900'
+                          }`}>
+                            {item.status === 'Completed' ? '✓ Selesai' : item.status === 'In Progress' ? '● Berjalan' : '○ Rencana'}
+                          </span>
                         </div>
-                      )}
-
-                      {/* Status & Category Overlays */}
-                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-                        <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/95 text-slate-800 shadow-sm border border-slate-200/60 backdrop-blur-xs">
-                          {item.category}
-                        </span>
-                        <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm backdrop-blur-xs border ${
-                          item.status === 'Completed'
-                            ? 'bg-emerald-500 text-white border-emerald-600'
-                            : item.status === 'In Progress'
-                              ? 'bg-amber-500 text-white border-amber-600'
-                              : 'bg-slate-800 text-white border-slate-900'
-                        }`}>
-                          {item.status === 'Completed' ? '✓ Selesai' : item.status === 'In Progress' ? '● Berjalan' : '○ Rencana'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Card Content Body */}
-                    <div className="p-5 sm:p-6 space-y-2.5">
-                      <div className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Target: {item.target_date}</span>
                       </div>
 
-                      <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-[#0b5665] transition-colors line-clamp-2">
+                      {/* Title matching reference */}
+                      <h3 className="text-[#0b5665] font-black text-sm sm:text-[15px] leading-snug line-clamp-2 group-hover:underline">
                         {item.title}
                       </h3>
 
-                      <p className="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2">
+                      {/* Description matching reference */}
+                      <p className="text-xs sm:text-[13px] text-slate-600 font-normal leading-relaxed line-clamp-3 mt-1.5 mb-3">
                         {item.description}
                       </p>
                     </div>
-                  </div>
 
-                  {/* Card Footer: Progress & Action */}
-                  <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-0 space-y-3.5">
-                    {/* Progress Bar with Capaian Percentage */}
-                    <div className="space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-150">
-                      <div className="flex items-center justify-between text-[11px] font-black">
-                        <span className="text-slate-600">Capaian Target</span>
-                        <span className={`font-black ${
-                          item.progress_percent === 100
-                            ? 'text-emerald-600'
-                            : item.progress_percent >= 50
-                              ? 'text-[#0b5665]'
-                              : 'text-amber-600'
-                        }`}>
+                    {/* Footer with Date & Progress */}
+                    <div className="pt-2 border-t border-slate-150/80 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="text-emerald-700 font-extrabold text-xs">
+                          {item.target_date || 'Agustus 2026'}
+                        </span>
+                        <span className="text-[11px] font-black text-[#0b5665]">
                           {item.progress_percent}%
                         </span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden">
+                      
+                      {/* Mini Capaian Progress Bar */}
+                      <div className="w-full h-1.5 rounded-full bg-slate-150 overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all duration-700 ${
+                          className={`h-full rounded-full transition-all duration-500 ${
                             item.progress_percent === 100
-                              ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                              ? 'bg-emerald-500'
                               : item.progress_percent >= 50
-                                ? 'bg-gradient-to-r from-[#0b5665] to-emerald-500'
-                                : 'bg-gradient-to-r from-amber-500 to-amber-600'
+                                ? 'bg-[#0b5665]'
+                                : 'bg-amber-500'
                           }`}
                           style={{ width: `${item.progress_percent}%` }}
                         />
                       </div>
                     </div>
-
-                    {/* PIC info and Detail Button */}
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs font-bold text-slate-500">
-                      <div className="min-w-0 pr-2">
-                        <span className="text-[9px] text-slate-400 block font-bold uppercase">PIC Proker:</span>
-                        <span className="text-slate-800 font-black text-xs truncate block">{item.pic_name}</span>
-                      </div>
-                      <span className="text-[11px] font-black text-[#0b5665] group-hover:translate-x-1 transition-transform shrink-0 flex items-center gap-1">
-                        <span>Rincian</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </span>
-                    </div>
                   </div>
+                ))}
+              </div>
+
+              {/* Dot Indicators matching reference */}
+              {localProkerList.length > 1 && (
+                <div className="flex items-center justify-center space-x-1.5 pt-3">
+                  {localProkerList.slice(0, 5).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        idx === 0 ? 'w-4 bg-[#0b5665]' : 'w-1.5 bg-slate-300'
+                      }`}
+                    />
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
