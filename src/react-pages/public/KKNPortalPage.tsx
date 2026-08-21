@@ -45,19 +45,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
       .channel('realtime-kkn-public-sync')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'users' },
-        async () => {
-          const updated = await SupabaseService.fetchKKNTeam(true);
-          setLocalKknTeam(updated);
-        }
-      )
-      .subscribe();
-
-    const settingsChannel = supabase
-      .channel('realtime-settings-kkn-public-sync')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'rt_settings' },
+        { event: '*', schema: 'public', table: 'kkn_team' },
         async () => {
           const updated = await SupabaseService.fetchKKNTeam(true);
           setLocalKknTeam(updated);
@@ -69,7 +57,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
       .channel('realtime-proker-public-sync')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'rt_proker_kkn' },
+        { event: '*', schema: 'public', table: 'proker' },
         async () => {
           const updated = await SupabaseService.fetchProker();
           setLocalProkerList(updated);
@@ -79,7 +67,6 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
 
     return () => {
       supabase.removeChannel(teamChannel);
-      supabase.removeChannel(settingsChannel);
       supabase.removeChannel(prokerChannel);
     };
   }, []);

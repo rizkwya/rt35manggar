@@ -278,6 +278,20 @@ export const App = () => {
           }
         }
       )
+    const kknTeamChannel = supabase
+      .channel('realtime-kkn-team')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'kkn_team' },
+        async () => {
+          try {
+            const updatedTeam = await SupabaseService.fetchKKNTeam(true);
+            setKknTeam(updatedTeam);
+          } catch (e) {
+            console.warn('Realtime KKN team sync failed:', e);
+          }
+        }
+      )
       .subscribe();
 
     return () => {
@@ -286,6 +300,7 @@ export const App = () => {
       supabase.removeChannel(announceChannel);
       supabase.removeChannel(demoChannel);
       supabase.removeChannel(usersChannel);
+      supabase.removeChannel(kknTeamChannel);
     };
   }, []);
 
