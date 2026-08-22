@@ -60,7 +60,7 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
     { name: 'PNS/TNI/Polri', jumlah: demographics.prof_pns || 0, color: '#475569' }, // Solid Slate 600
     { name: 'Karyawan Swasta', jumlah: demographics.prof_swasta || 0, color: '#475569' },
     { name: 'Wiraswasta/Dagang', jumlah: demographics.prof_wiraswasta || 0, color: '#475569' },
-    { name: 'Nelayan/Petani/Buruh', jumlah: demographics.prof_nelayan || 0, color: '#475569' },
+    { name: 'Petani/Nelayan/Buruh', jumlah: demographics.prof_nelayan || 0, color: '#475569' },
     { name: 'IRT/Pelajar/Lainnya', jumlah: demographics.prof_lainnya || 0, color: '#475569' },
   ];
 

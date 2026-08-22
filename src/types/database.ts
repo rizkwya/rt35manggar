@@ -173,7 +173,7 @@ export interface KKMember {
   gender: 'Laki-laki' | 'Perempuan';
   birthDate: string; // YYYY-MM-DD
   education: 'SD' | 'SMP' | 'SMA' | 'Sarjana/Diploma' | 'Tidak Sekolah';
-  job: 'PNS' | 'Swasta' | 'Wiraswasta' | 'Nelayan' | 'Ibu Rumah Tangga' | 'Buruh' | 'Pelajar/Mahasiswa' | 'Pensiunan' | 'Lainnya';
+  job: 'PNS' | 'Swasta' | 'Wiraswasta' | 'Petani' | 'Nelayan' | 'Ibu Rumah Tangga' | 'Buruh' | 'Pelajar/Mahasiswa' | 'Pensiunan' | 'Lainnya';
   registrationDate?: string; // YYYY-MM-DD for Dukcapil tracking
   isUmkm?: boolean;
   umkmName?: string;

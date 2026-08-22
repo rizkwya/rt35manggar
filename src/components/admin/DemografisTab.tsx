@@ -87,7 +87,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
   const [memberBirthDate, setMemberBirthDate] = useState('');
   const [memberBirthPlace, setMemberBirthPlace] = useState('');
   const [memberEducation, setMemberEducation] = useState<'SD' | 'SMP' | 'SMA' | 'Sarjana/Diploma' | 'Tidak Sekolah'>('Tidak Sekolah');
-  const [memberJob, setMemberJob] = useState<'PNS' | 'Swasta' | 'Wiraswasta' | 'Nelayan' | 'Ibu Rumah Tangga' | 'Buruh' | 'Pelajar/Mahasiswa' | 'Pensiunan' | 'Lainnya'>('Lainnya');
+  const [memberJob, setMemberJob] = useState<'PNS' | 'Swasta' | 'Wiraswasta' | 'Petani' | 'Nelayan' | 'Ibu Rumah Tangga' | 'Buruh' | 'Pelajar/Mahasiswa' | 'Pensiunan' | 'Lainnya'>('Lainnya');
   const [memberRegDate, setMemberRegDate] = useState('');
   const [memberIsUmkm, setMemberIsUmkm] = useState(false);
   const [memberUmkmName, setMemberUmkmName] = useState('');
@@ -520,7 +520,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
             if (m.job === 'PNS') prof_pns++;
             else if (m.job === 'Swasta') prof_swasta++;
             else if (m.job === 'Wiraswasta') prof_wiraswasta++;
-            else if (m.job === 'Nelayan' || m.job === 'Buruh') prof_nelayan++;
+            else if (m.job === 'Petani' || m.job === 'Nelayan' || m.job === 'Buruh') prof_nelayan++;
             else prof_lainnya++;
 
             if (m.isUmkm) total_umkm++;
@@ -934,7 +934,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
     { name: 'PNS/TNI/Polri', jumlah: demographics.prof_pns || 0 },
     { name: 'Karyawan Swasta', jumlah: demographics.prof_swasta || 0 },
     { name: 'Wiraswasta/Dagang', jumlah: demographics.prof_wiraswasta || 0 },
-    { name: 'Nelayan/Buruh', jumlah: demographics.prof_nelayan || 0 },
+    { name: 'Petani/Nelayan/Buruh', jumlah: demographics.prof_nelayan || 0 },
     { name: 'IRT/Pelajar/Lainnya', jumlah: demographics.prof_lainnya || 0 },
   ];
 
@@ -1372,6 +1372,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                           <option value="PNS">PNS / TNI / Polri</option>
                           <option value="Swasta">Karyawan Swasta</option>
                           <option value="Wiraswasta">Wiraswasta / UMKM</option>
+                          <option value="Petani">Petani / Sektor Pertanian & Perkebunan</option>
                           <option value="Nelayan">Nelayan / Sektor Maritim</option>
                           <option value="Ibu Rumah Tangga">Ibu Rumah Tangga (IRT)</option>
                           <option value="Buruh">Buruh Harian Lepas</option>
