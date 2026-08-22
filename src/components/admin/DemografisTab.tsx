@@ -1224,6 +1224,7 @@ export const DemografisTab: React.FC<DemografisTabProps> = ({
                           onChange={(e) => setMemberRelationship(e.target.value)}
                           className="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200 text-sm font-black text-slate-850"
                         >
+                          <option value="Kepala Keluarga">Kepala Keluarga</option>
                           <option value="Suami">Suami</option>
                           <option value="Istri">Istri</option>
                           <option value="Anak">Anak</option>
