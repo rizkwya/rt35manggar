@@ -340,16 +340,40 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 pt-2 text-xs font-bold text-slate-500 border-t border-slate-100">
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-slate-400 font-extrabold uppercase">PJ Kegiatan</span>
-                    <p className="text-slate-800 truncate">{selectedProker.pic_name}</p>
+                
+                {/* Modern Status, Target Date & Full PIC Details */}
+                <div className="pt-3 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="space-y-0.5">
+                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Status</span>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider ${
+                        selectedProker.status === 'Completed'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+                          : selectedProker.status === 'In Progress'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          selectedProker.status === 'Completed' ? 'bg-emerald-500' : selectedProker.status === 'In Progress' ? 'bg-amber-500' : 'bg-slate-400'
+                        }`} />
+                        {selectedProker.status === 'Completed' ? 'Completed' : selectedProker.status === 'In Progress' ? 'In Progress' : 'Planned'}
+                      </span>
+                    </div>
+
+                    {selectedProker.target_date && (
+                      <div className="space-y-0.5 text-left sm:text-right">
+                        <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Target / Pelaksanaan</span>
+                        <span className="text-xs font-bold text-slate-700">{selectedProker.target_date}</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-slate-400 font-extrabold uppercase">Status</span>
-                    <p className={`font-black uppercase text-[10px] ${
-                      selectedProker.status === 'Completed' ? 'text-emerald-600' : 'text-amber-600'
-                    }`}>{selectedProker.status}</p>
+
+                  {/* PJ Kegiatan Full Width with Clean Styling */}
+                  <div className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100/80 space-y-1">
+                    <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Penanggung Jawab (PJ)</span>
+                    <p className="text-xs sm:text-sm font-black text-slate-800 leading-snug break-words">
+                      {selectedProker.pic_name || 'Tim KKN Kelompok Manggar 2'}
+                    </p>
                   </div>
                 </div>
               </div>
