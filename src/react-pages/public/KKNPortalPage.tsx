@@ -448,14 +448,24 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
               Sistem Informasi Portal RT 35 Manggar ini dirancang, dibangun, dan dihibahkan oleh mahasiswa Kuliah Kerja Nyata (KKN) Kelompok Manggar 2 Universitas Mulia Balikpapan sebagai program kerja utama digitalisasi pelayanan administrasi kependudukan.
             </p>
 
-            {/* BUTTONS */}
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            {/* ACTION BUTTONS (MODERN DUAL PILL) */}
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-2">
               <button
-                onClick={onBackToHome}
-                className="px-6 py-3 rounded-full bg-white text-slate-900 font-extrabold text-xs hover:bg-slate-100 transition-all shadow-md flex items-center space-x-2 active:scale-95"
+                type="button"
+                onClick={() => scrollToSection('proker-kkn')}
+                className="px-6 py-3 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm transition-all duration-200 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 flex items-center space-x-2 active:scale-95 cursor-pointer"
               >
-                <Home className="w-4 h-4 text-[#0b5665]" />
-                <span>Beranda Portal RT</span>
+                <Briefcase className="w-4 h-4 text-slate-950" />
+                <span>Lihat Program Kerja</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onBackToHome}
+                className="px-6 py-3 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-black text-xs sm:text-sm transition-all duration-200 border border-white/30 shadow-md flex items-center space-x-2 active:scale-95 cursor-pointer"
+              >
+                <Home className="w-4 h-4 text-white" />
+                <span>Kembali ke Beranda RT</span>
               </button>
             </div>
 
@@ -509,7 +519,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
         </div>
 
         {/* SHOWCASE PROKER SECTION: Reference Style */}
-        <div className="space-y-8">
+        <div id="proker-kkn" className="space-y-8 scroll-mt-20">
           
           {/* Header Section from Reference */}
           <div className="text-center max-w-3xl mx-auto space-y-2.5">
