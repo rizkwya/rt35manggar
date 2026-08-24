@@ -60,7 +60,7 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem: in
   let bannerUrl = '';
   let subtitle = '';
   let body = pageItem.custom_content || '';
-  let gridItems: { title: string; description: string; image_url?: string; badge?: string; summary?: string; created_at?: string; }[] = [];
+  let gridItems: { title: string; description: string; image_url?: string; badge?: string; summary?: string; created_at?: string; author?: string; }[] = [];
 
   if (pageItem.custom_content?.trim().startsWith('{')) {
     try {
@@ -150,13 +150,13 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem: in
 
             {/* Author profile card */}
             <div className="flex items-center space-x-3 pt-2">
-              <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black">
-                RT
+              <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black shrink-0 shadow-xs">
+                {(selectedGridItem.author || 'Pengurus RT 35').substring(0, 2).toUpperCase()}
               </div>
-              <div className="text-xs font-bold text-slate-705">
-                <p className="text-slate-900 font-black">Pengurus RT 35</p>
+              <div className="text-xs font-bold text-slate-700 min-w-0">
+                <p className="text-slate-900 font-black truncate">{selectedGridItem.author || 'Pengurus RT 35'}</p>
                 {selectedGridItem.created_at && (
-                  <p className="text-[10px] text-slate-405 mt-0.5">
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-bold">
                     Dokumentasi tanggal {new Date(selectedGridItem.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </p>
                 )}

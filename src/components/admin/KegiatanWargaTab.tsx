@@ -25,6 +25,8 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
   const [editingKegiatanIdx, setEditingKegiatanIdx] = useState<number | null>(null);
   const [kegiatanTitle, setKegiatanTitle] = useState('');
   const [kegiatanBadge, setKegiatanBadge] = useState('');
+  const [kegiatanAuthor, setKegiatanAuthor] = useState('Pengurus RT 35');
+  const [kegiatanDate, setKegiatanDate] = useState(new Date().toISOString().split('T')[0]);
   const [kegiatanSummary, setKegiatanSummary] = useState('');
   const [kegiatanDesc, setKegiatanDesc] = useState('');
   const [kegiatanImageUrl, setKegiatanImageUrl] = useState('');
@@ -128,12 +130,11 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
       const newItem = {
         title: kegiatanTitle,
         badge: kegiatanBadge,
+        author: kegiatanAuthor.trim() || 'Pengurus RT 35',
+        created_at: kegiatanDate ? new Date(kegiatanDate).toISOString() : new Date().toISOString(),
         summary: getPlainSummary(kegiatanDesc),
         description: kegiatanDesc,
         image_url: kegiatanImageUrl,
-        created_at: editingKegiatanIdx !== null && updatedGridItems[editingKegiatanIdx]?.created_at
-          ? updatedGridItems[editingKegiatanIdx].created_at
-          : new Date().toISOString()
       };
 
       if (editingKegiatanIdx !== null) {
@@ -156,6 +157,8 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
       setEditingKegiatanIdx(null);
       setKegiatanTitle('');
       setKegiatanBadge('');
+      setKegiatanAuthor('Pengurus RT 35');
+      setKegiatanDate(new Date().toISOString().split('T')[0]);
       setKegiatanSummary('');
       setKegiatanDesc('');
       setKegiatanImageUrl('');
@@ -390,6 +393,36 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
               </p>
             </div>
 
+            {/* Penulis / Dokumentator & Tanggal Kegiatan */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-500">
+                  Penulis / Dokumentator
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Panitia HUT RI & Tim KKN"
+                  value={kegiatanAuthor}
+                  onChange={(e) => setKegiatanAuthor(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-slate-800 disabled:opacity-60"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-500">
+                  Tanggal Kegiatan
+                </label>
+                <input
+                  type="date"
+                  value={kegiatanDate}
+                  onChange={(e) => setKegiatanDate(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs font-semibold text-slate-808 focus:outline-none focus:border-slate-800 disabled:opacity-60"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <label className="block text-xs font-black uppercase tracking-wider text-slate-500">Deskripsi Kegiatan (Mendukung Rich Text)</label>
               <div className={loading ? 'opacity-60 pointer-events-none' : ''}>
@@ -474,6 +507,8 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                   setEditingKegiatanIdx(null);
                   setKegiatanTitle('');
                   setKegiatanBadge('');
+                  setKegiatanAuthor('Pengurus RT 35');
+                  setKegiatanDate(new Date().toISOString().split('T')[0]);
                   setKegiatanSummary('');
                   setKegiatanDesc('');
                   setKegiatanImageUrl('');
@@ -511,7 +546,7 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                     <div className="w-14 h-14 rounded-xl bg-slate-200 shrink-0" />
                     <div className="space-y-2 flex-grow">
                       <div className="h-3.5 bg-slate-200 rounded w-1/4" />
-                      <div className="h-4.5 bg-slate-200 rounded w-2/3" />
+                      <div className="h-4.5 bg-slate-250 rounded w-2/3" />
                     </div>
                   </div>
                 )}
@@ -570,11 +605,15 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                           <p className="text-xs text-slate-500 leading-relaxed font-medium line-clamp-2 break-words">
                             {item.summary || getPreviewText(item.description)}
                           </p>
-                          {item.created_at && (
-                            <p className="text-[10px] text-slate-400 font-bold">
-                              {new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </p>
-                          )}
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold flex-wrap pt-0.5">
+                            <span>Oleh: <strong className="text-slate-700 font-black">{item.author || 'Pengurus RT 35'}</strong></span>
+                            {item.created_at && (
+                              <>
+                                <span>•</span>
+                                <span>{new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -585,6 +624,8 @@ export const KegiatanWargaTab: React.FC<KegiatanWargaTabProps> = ({
                             setEditingKegiatanIdx(originalIdx);
                             setKegiatanTitle(item.title || '');
                             setKegiatanBadge(item.badge || '');
+                            setKegiatanAuthor(item.author || 'Pengurus RT 35');
+                            setKegiatanDate(item.created_at ? item.created_at.split('T')[0] : new Date().toISOString().split('T')[0]);
                             setKegiatanSummary(item.summary || '');
                             setKegiatanDesc(item.description || '');
                             setKegiatanImageUrl(item.image_url || '');
