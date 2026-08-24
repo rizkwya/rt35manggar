@@ -129,13 +129,22 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem: in
 
         <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-md space-y-6">
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-[9px] uppercase font-black px-2.5 py-1 rounded bg-slate-900 text-white shadow-sm">
-                {selectedGridItem.badge || 'Kegiatan Warga'}
-              </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              {((selectedGridItem.badge || 'Kegiatan Warga')
+                .split(',')
+                .map((b: string) => b.trim())
+                .filter(Boolean)
+              ).map((b: string, bIdx: number) => (
+                <span 
+                  key={bIdx} 
+                  className="text-[10px] uppercase font-black px-3 py-1 rounded-lg bg-slate-900 text-white shadow-xs break-words max-w-full inline-block"
+                >
+                  {b}
+                </span>
+              ))}
             </div>
             
-            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight break-words">
               {selectedGridItem.title}
             </h1>
 
@@ -265,15 +274,24 @@ export const CustomPageDetail: React.FC<CustomPageDetailProps> = ({ pageItem: in
                     </div>
                   )}
                   
-                  <div className="p-5 flex-grow flex flex-col justify-between">
-                    <div className="space-y-1">
-                      <h4 className="text-base font-black text-slate-900 leading-snug group-hover:text-slate-700 transition-colors line-clamp-2">
+                  <div className="p-5 flex-grow flex flex-col justify-between space-y-3">
+                    <div className="space-y-2">
+                      {item.badge && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {item.badge.split(',').map((b: string) => b.trim()).filter(Boolean).slice(0, 2).map((b: string, bIdx: number) => (
+                            <span key={bIdx} className="px-2 py-0.5 text-[9px] font-extrabold bg-[#85A389]/15 text-[#38663e] rounded-md border border-[#85A389]/30 uppercase tracking-wide truncate max-w-[160px] inline-block">
+                              {b}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <h4 className="text-base font-black text-slate-900 leading-snug group-hover:text-slate-700 transition-colors line-clamp-2 break-words">
                         {item.title}
                       </h4>
-                      <p className="text-[11px] text-slate-400 font-bold">
-                        {new Date(item.created_at || new Date().toISOString()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                      </p>
                     </div>
+                    <p className="text-[11px] text-slate-400 font-bold">
+                      {new Date(item.created_at || new Date().toISOString()).toLocaleDateString('id-ID', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </p>
                   </div>
                 </div>
               ))}
