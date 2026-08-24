@@ -12,7 +12,8 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
   newsList,
   onBackToHome
 }) => {
-  const [localNewsList, setLocalNewsList] = useState<NewsPost[]>(newsList);
+  const [localNewsList, setLocalNewsList] = useState<NewsPost[]>(newsList || []);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['Semua']);
   const [selectedArticle, setSelectedArticle] = useState<NewsPost | null>(null);
@@ -46,9 +47,24 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
     return () => window.removeEventListener('popstate', checkSlug);
   }, [localNewsList]);
 
-  // Sync prop changes and subscribe to realtime updates
+  // Fetch live news on mount & subscribe to realtime updates
   useEffect(() => {
-    setLocalNewsList(newsList);
+    let isMounted = true;
+
+    const loadLiveNews = async () => {
+      try {
+        const live = await SupabaseService.fetchNews();
+        if (isMounted && Array.isArray(live)) {
+          setLocalNewsList(live);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch live news:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadLiveNews();
 
     const channel = supabase
       .channel('realtime-news-list-public')
@@ -57,15 +73,18 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
         { event: '*', schema: 'public', table: 'news' },
         async () => {
           const updated = await SupabaseService.fetchNews();
-          setLocalNewsList(updated);
+          if (isMounted && Array.isArray(updated)) {
+            setLocalNewsList(updated);
+          }
         }
       )
       .subscribe();
 
     return () => {
+      isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, [newsList]);
+  }, []);
 
   const handleSelectArticle = (article: NewsPost | null) => {
     if (article) {
@@ -96,12 +115,17 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
     }
   };
 
-  // Filter & Search Logic
+  // Filter & Search Logic with case-insensitive category matching
   const filteredArticles = localNewsList.filter((item) => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.summary.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategories.includes('Semua') || selectedCategories.includes(item.category);
+    const q = searchQuery.toLowerCase().trim();
+    const titleMatch = (item.title || '').toLowerCase().includes(q);
+    const contentMatch = (item.content || '').toLowerCase().includes(q);
+    const summaryMatch = (item.summary || '').toLowerCase().includes(q);
+    const matchesSearch = !q || titleMatch || contentMatch || summaryMatch;
+
+    const itemCat = (item.category || '').trim().toLowerCase();
+    const matchesCategory = selectedCategories.includes('Semua') || 
+                            selectedCategories.some(c => c.trim().toLowerCase() === itemCat);
     return matchesSearch && matchesCategory;
   });
 
@@ -229,43 +253,55 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
           {/* Cards Grid */}
           <div className="space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedArticles.map((item) => (
-                <div 
-                  key={item.id}
-                  onClick={() => handleSelectArticle(item)}
-                  className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer group"
-                >
-                  <div>
-                    {/* Card Cover Image */}
-                    {item.image_url ? (
-                      <div className="h-52 w-full overflow-hidden relative border-b border-slate-100 bg-slate-50">
-                        <img 
-                          src={item.image_url} 
-                          alt={item.title} 
-                          className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-52 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
-                        <BookOpen className="w-10 h-10 text-slate-400 opacity-40 group-hover:scale-110 transition-transform duration-500" />
-                      </div>
-                    )}
-
-                    {/* Card Body */}
-                    <div className="p-6 space-y-2">
-                      <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-slate-700 transition-colors line-clamp-2">
-                        {item.title}
-                      </h3>
-                      
-                      <p className="text-[11px] text-slate-400 font-bold">
-                        {new Date(item.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                      </p>
+              {loading && localNewsList.length === 0 ? (
+                Array.from({ length: 3 }).map((_, idx) => (
+                  <div key={idx} className="bg-white border border-slate-200 rounded-3xl overflow-hidden animate-pulse shadow-sm">
+                    <div className="h-52 w-full bg-slate-200" />
+                    <div className="p-6 space-y-3">
+                      <div className="h-4.5 bg-slate-200 rounded-lg w-3/4" />
+                      <div className="h-3 bg-slate-200 rounded-md w-1/3" />
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                paginatedArticles.map((item) => (
+                  <div 
+                    key={item.id}
+                    onClick={() => handleSelectArticle(item)}
+                    className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer group"
+                  >
+                    <div>
+                      {/* Card Cover Image */}
+                      {item.image_url ? (
+                        <div className="h-52 w-full overflow-hidden relative border-b border-slate-100 bg-slate-50">
+                          <img 
+                            src={item.image_url} 
+                            alt={item.title} 
+                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-52 w-full bg-slate-50 flex items-center justify-center relative border-b border-slate-100">
+                          <BookOpen className="w-10 h-10 text-slate-400 opacity-40 group-hover:scale-110 transition-transform duration-500" />
+                        </div>
+                      )}
 
-              {filteredArticles.length === 0 && (
+                      {/* Card Body */}
+                      <div className="p-6 space-y-2">
+                        <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-[#0b5665] transition-colors line-clamp-2">
+                          {item.title}
+                        </h3>
+                        
+                        <p className="text-[11px] text-slate-400 font-bold">
+                          {new Date(item.created_at).toLocaleDateString('id-ID', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+
+              {!loading && filteredArticles.length === 0 && (
                 <div className="col-span-full text-center py-12 text-slate-400 font-bold text-xs bg-white rounded-3xl border border-slate-200">
                   Tidak ada berita kegiatan ditemukan.
                 </div>
