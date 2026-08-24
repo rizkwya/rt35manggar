@@ -75,7 +75,7 @@ export const Footer: React.FC<FooterProps> = ({ settings: initialSettings }) => 
               <p className="text-[10px] font-black text-[#5F8D4E] uppercase tracking-wider">Kolaborasi Pengabdian Mulia & Warga</p>
             </div>
             <p className="text-xs text-slate-650 leading-relaxed max-w-md">
-              {activeSettings?.portal_description || 'Platform digitalisasi pelayanan publik resmi RT 35 Kelurahan Manggar, Kecamatan Balikpapan Timur, Kota Balikpapan. Menghadirkan informasi transparansi data warga pesisir yang terintegrasi bersama Tim KKN Kelompok 7 Universitas Mulia.'}
+              {activeSettings?.portal_description || 'Platform digitalisasi pelayanan publik resmi RT 35 Kelurahan Manggar, Kecamatan Balikpapan Timur, Kota Balikpapan. Menghadirkan informasi transparansi data warga yang terintegrasi bersama Tim KKN Kelompok Manggar 2 Universitas Mulia.'}
             </p>
           </div>
  

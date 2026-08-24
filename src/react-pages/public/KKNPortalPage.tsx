@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, GraduationCap, Clock, Award, ArrowLeft, ArrowRight, MapPin, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle2, GraduationCap, Clock, Award, ArrowLeft, ArrowRight, MapPin, Briefcase, ChevronLeft, ChevronRight, Home, Users } from 'lucide-react';
 import { ProkerItem, TeamMember, RTSettings } from '../../types/database';
 import { SupabaseService, supabase } from '../../lib/supabase';
 
@@ -415,31 +415,26 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
             
             {/* HERO TITLE */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1] drop-shadow-sm">
-              KKN Kelompok 7 <br />
+              KKN Kelompok Manggar 2 <br />
               <span className="text-amber-400">Universitas Mulia</span>
             </h1>
 
             {/* SUBTITLE */}
             <p className="text-white/85 max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed font-bold drop-shadow-sm">
-              Sistem Informasi Portal RT 35 Manggar ini dirancang, dibangun, dan dihibahkan oleh mahasiswa Kuliah Kerja Nyata (KKN) Kelompok 7 Universitas Mulia Balikpapan sebagai program kerja utama digitalisasi pelayanan administrasi kependudukan.
+              Sistem Informasi Portal RT 35 Manggar ini dirancang, dibangun, dan dihibahkan oleh mahasiswa Kuliah Kerja Nyata (KKN) Kelompok Manggar 2 Universitas Mulia Balikpapan sebagai program kerja utama digitalisasi pelayanan administrasi kependudukan.
             </p>
 
             {/* BUTTONS */}
             <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
               <button
                 onClick={onBackToHome}
-                className="py-3 px-6 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-black transition-all border border-white/20 flex items-center space-x-2 active:scale-98"
+                className="px-6 py-3 rounded-full bg-white text-slate-900 font-extrabold text-xs hover:bg-slate-100 transition-all shadow-md flex items-center space-x-2 active:scale-95"
               >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Kembali ke Beranda</span>
-              </button>
-              <button
-                onClick={() => scrollToSection('tim-mahasiswa')}
-                className="py-3 px-6 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition-all flex items-center space-x-2 active:scale-98 shadow-md shadow-amber-500/10"
-              >
-                <span>Lihat Profil Mahasiswa</span>
+                <Home className="w-4 h-4 text-[#0b5665]" />
+                <span>Beranda Portal RT</span>
               </button>
             </div>
+
           </div>
         </div>
 
@@ -474,23 +469,23 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
             </div>
             <div>
               <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Jumlah Proker</p>
-              <h4 className="text-sm sm:text-base font-black text-slate-800">{localProkerList.length} Program Utama</h4>
+              <h4 className="text-xl sm:text-2xl font-black text-slate-900">{localProkerList.length} Program</h4>
             </div>
           </div>
 
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center space-x-4">
-            <div className="p-3.5 rounded-2xl bg-[#0b5665]/10 text-[#0b5665] border border-[#0b5665]/20">
-              <GraduationCap className="w-6 h-6" />
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+              <Users className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Tim Pengabdi</p>
-              <h4 className="text-sm sm:text-base font-black text-slate-800">{localKknTeam.length} Mahasiswa S1</h4>
+              <p className="text-xs text-slate-500 font-black uppercase tracking-wider">Anggota Tim</p>
+              <h4 className="text-xl sm:text-2xl font-black text-slate-900">{localKknTeam.length} Mahasiswa</h4>
             </div>
           </div>
         </div>
 
-        {/* PROGRAM KERJA (PROKER) SECTION - MATCHING REFERENCE DESIGN */}
-        <div id="proker-kkn" className="p-6 sm:p-10 bg-slate-50/70 border border-slate-200/80 rounded-3xl sm:rounded-[36px] shadow-sm space-y-6 scroll-mt-20">
+        {/* SHOWCASE PROKER SECTION: Reference Style */}
+        <div className="space-y-8">
           
           {/* Header Section from Reference */}
           <div className="text-center max-w-3xl mx-auto space-y-2.5">
@@ -498,7 +493,7 @@ export const KKNPortalPage: React.FC<KKNPortalPageProps> = ({ prokerList: initia
               Warta Program Kerja KKN
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
-              Dapatkan informasi terbaru seputar program kerja dan pengabdian masyarakat KKN Kelompok 7 di RT 35 Manggar.
+              Dapatkan informasi terbaru seputar program kerja dan pengabdian masyarakat KKN Kelompok Manggar 2 di RT 35 Manggar.
             </p>
           </div>
 

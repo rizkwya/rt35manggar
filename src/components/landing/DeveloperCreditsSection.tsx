@@ -21,11 +21,11 @@ export const DeveloperCreditsSection: React.FC<DeveloperCreditsSectionProps> = (
             
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
               Sistem Informasi Dikembangkan Oleh <br />
-              <span className="text-[#0b5665]">KKN Kelompok 7 Universitas Mulia</span>
+              <span className="text-[#0b5665]">KKN Kelompok Manggar 2 Universitas Mulia</span>
             </h2>
             
             <p className="text-slate-550 text-xs sm:text-sm leading-relaxed font-bold">
-              Website Portal Warga RT 35 Manggar ini dirancang, dibangun, dan dihibahkan oleh mahasiswa Kuliah Kerja Nyata (KKN) Kelompok 7 Universitas Mulia Balikpapan sebagai bakti nyata digitalisasi pelayanan administrasi kependudukan di tingkat rukun tetangga.
+              Website Portal Warga RT 35 Manggar ini dirancang, dibangun, dan dihibahkan oleh mahasiswa Kuliah Kerja Nyata (KKN) Kelompok Manggar 2 Universitas Mulia Balikpapan sebagai bakti nyata digitalisasi pelayanan administrasi kependudukan di tingkat rukun tetangga.
             </p>
 
             {/* QUICK FEATURE BADGES */}

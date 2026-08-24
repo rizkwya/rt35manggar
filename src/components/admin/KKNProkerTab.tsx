@@ -268,7 +268,7 @@ export const KKNProkerTab: React.FC<KKNProkerTabProps> = ({
       
       {/* HEADER SECTION */}
       <div>
-        <h2 className="text-xl font-extrabold text-slate-900">Program Kerja KKN Kelompok 7</h2>
+        <h2 className="text-xl font-extrabold text-slate-900">Program Kerja KKN Kelompok Manggar 2</h2>
         <p className="text-xs text-slate-500 font-semibold mt-1">
           Kelola program kerja pengabdian masyarakat, target capaian, progress, dokumentasi foto, dan PIC penanggung jawab.
         </p>

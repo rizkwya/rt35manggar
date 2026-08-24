@@ -238,7 +238,7 @@ export const PortalSettingsTab: React.FC<PortalSettingsTabProps> = ({
 
           <div>
             <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1.5">
-              Lokasi Posko KKN Kelompok 7
+              Lokasi Posko KKN Kelompok Manggar 2
             </label>
             <input
               type="text"

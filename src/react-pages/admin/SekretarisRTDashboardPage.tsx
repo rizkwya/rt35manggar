@@ -338,7 +338,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
         onUpdateKknTeam(res);
       }
       setEditingKKNId(null);
-      showSuccess('Data tim mahasiswa KKN Kelompok 7 berhasil disimpan!');
+      showSuccess('Data tim mahasiswa KKN Kelompok Manggar 2 berhasil disimpan!');
     } catch (err: any) {
       console.error('Error saving KKN member:', err);
       alert('Gagal menyimpan perubahan tim KKN: ' + err.message);
@@ -674,7 +674,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
               }`}
             >
               <Users className="w-4.5 h-4.5" />
-              <span>Tim KKN Kelompok 7</span>
+              <span>Tim KKN Kelompok Manggar 2</span>
             </button>
 
             <button
