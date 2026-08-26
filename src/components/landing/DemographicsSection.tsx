@@ -30,38 +30,36 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
   }, []);
 
   const genderData = [
-    { name: 'Pria', value: demographics.total_pria || 0, color: '#1e293b' }, // Slate 800
-    { name: 'Wanita', value: demographics.total_wanita || 0, color: '#cbd5e1' }, // Slate 300
+    { name: 'Pria', value: demographics.total_pria || 0, color: '#2563eb' }, // Vibrant Royal Blue
+    { name: 'Wanita', value: demographics.total_wanita || 0, color: '#f43f5e' }, // Vibrant Rose Pink
   ];
 
   const ageChartData = [
-    { name: 'Balita (<5 thn)', value: demographics.total_balita || 0, color: '#f59e0b' }, // Amber 500
-    { name: 'Usia Kerja (15-60)', value: demographics.total_usia_produktif || 0, color: '#1e293b' }, // Slate 800
-    { name: 'Lansia (>60 thn)', value: demographics.total_lansia || 0, color: '#94a3b8' }, // Slate 400
+    { name: 'Balita (<5 thn)', value: demographics.total_balita || 0, color: '#0ea5e9' }, // Sky Blue
+    { name: 'Usia Kerja (15-60)', value: demographics.total_usia_produktif || 0, color: '#10b981' }, // Emerald Green
+    { name: 'Lansia (>60 thn)', value: demographics.total_lansia || 0, color: '#f59e0b' }, // Amber Orange
   ];
 
-
-
   const ageData = [
-    { group: 'Balita (<5 thn)', total: demographics.total_balita || 0, icon: '👶', color: 'bg-slate-50 text-slate-800 border-slate-200' },
-    { group: 'Usia Kerja (15-60)', total: demographics.total_usia_produktif || 0, icon: '💼', color: 'bg-slate-50 text-slate-800 border-slate-200' },
-    { group: 'Lansia (>60 thn)', total: demographics.total_lansia || 0, icon: '👵', color: 'bg-slate-50 text-slate-800 border-slate-200' },
+    { group: 'Balita (<5 thn)', total: demographics.total_balita || 0, icon: '👶', color: 'bg-gradient-to-br from-sky-50 to-sky-100/60 text-sky-950 border-sky-200' },
+    { group: 'Usia Kerja (15-60)', total: demographics.total_usia_produktif || 0, icon: '💼', color: 'bg-gradient-to-br from-emerald-50 to-emerald-100/60 text-emerald-950 border-emerald-200' },
+    { group: 'Lansia (>60 thn)', total: demographics.total_lansia || 0, icon: '👵', color: 'bg-gradient-to-br from-amber-50 to-amber-100/60 text-amber-950 border-amber-200' },
   ];
 
   const educationData = [
-    { name: 'SD/Sederajat', value: demographics.edu_sd || 0, color: '#0f172a' }, // Slate 900
-    { name: 'SMP/Sederajat', value: demographics.edu_smp || 0, color: '#334155' }, // Slate 700
-    { name: 'SMA/Sederajat', value: demographics.edu_sma || 0, color: '#475569' }, // Slate 600
-    { name: 'Diploma/Sarjana', value: demographics.edu_pt || 0, color: '#64748b' }, // Slate 500
-    { name: 'Belum/Tdk Sekolah', value: demographics.edu_tidak_sekolah || 0, color: '#94a3b8' }, // Slate 400
+    { name: 'SD/Sederajat', value: demographics.edu_sd || 0, color: '#f97316' }, // Vivid Orange
+    { name: 'SMP/Sederajat', value: demographics.edu_smp || 0, color: '#eab308' }, // Vivid Yellow/Amber
+    { name: 'SMA/Sederajat', value: demographics.edu_sma || 0, color: '#3b82f6' }, // Vivid Blue
+    { name: 'Diploma/Sarjana', value: demographics.edu_pt || 0, color: '#10b981' }, // Vivid Emerald
+    { name: 'Belum/Tdk Sekolah', value: demographics.edu_tidak_sekolah || 0, color: '#8b5cf6' }, // Vivid Purple
   ];
 
   const professionData = [
-    { name: 'PNS/TNI/Polri', jumlah: demographics.prof_pns || 0, color: '#475569' }, // Solid Slate 600
-    { name: 'Karyawan Swasta', jumlah: demographics.prof_swasta || 0, color: '#475569' },
-    { name: 'Wiraswasta/Dagang', jumlah: demographics.prof_wiraswasta || 0, color: '#475569' },
-    { name: 'Petani/Nelayan/Buruh', jumlah: demographics.prof_nelayan || 0, color: '#475569' },
-    { name: 'IRT/Pelajar/Lainnya', jumlah: demographics.prof_lainnya || 0, color: '#475569' },
+    { name: 'PNS/TNI/Polri', jumlah: demographics.prof_pns || 0, color: '#3b82f6' }, // Royal Blue
+    { name: 'Karyawan Swasta', jumlah: demographics.prof_swasta || 0, color: '#0d9488' }, // Teal
+    { name: 'Wiraswasta/Dagang', jumlah: demographics.prof_wiraswasta || 0, color: '#f59e0b' }, // Amber
+    { name: 'Petani/Nelayan/Buruh', jumlah: demographics.prof_nelayan || 0, color: '#16a34a' }, // Forest Green
+    { name: 'IRT/Pelajar/Lainnya', jumlah: demographics.prof_lainnya || 0, color: '#6366f1' }, // Indigo Purple
   ];
 
   // Get unique list of years from registration/exit dates in database, plus a standard 2020-future range
@@ -200,76 +198,83 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
         </div>
 
         {/* METRIC CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="premium-card p-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          <div className="bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30 border-2 border-emerald-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all rounded-3xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider">Kepala Keluarga</span>
-              <div className="p-2.5 rounded-2xl bg-[#0b5665]/10 text-[#0b5665]">
+              <span className="text-[10px] sm:text-xs font-black text-emerald-800 uppercase tracking-wider">Kepala Keluarga</span>
+              <div className="p-2.5 rounded-2xl bg-emerald-500 text-white shadow-sm shadow-emerald-500/20">
                 <Home className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-black text-slate-900 leading-none">{demographics.total_kk}</span>
-              <span className="text-xs text-slate-500 ml-1.5 font-bold">KK</span>
+              <span className="text-3xl sm:text-4xl font-black text-emerald-950 leading-none">{demographics.total_kk}</span>
+              <span className="text-xs text-emerald-700 ml-1.5 font-black">KK</span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2 font-semibold">Terdata Aktif di Lingkungan</p>
+            <p className="text-[11px] text-emerald-600/80 mt-2 font-bold">Terdata Aktif di Lingkungan</p>
           </div>
 
-          <div className="premium-card p-6">
+          <div className="bg-gradient-to-br from-blue-50/80 via-white to-blue-50/30 border-2 border-blue-200/80 shadow-sm hover:shadow-md hover:border-blue-300 transition-all rounded-3xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider">Total Penduduk</span>
-              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600">
+              <span className="text-[10px] sm:text-xs font-black text-blue-800 uppercase tracking-wider">Total Penduduk</span>
+              <div className="p-2.5 rounded-2xl bg-blue-600 text-white shadow-sm shadow-blue-600/20">
                 <Users className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-black text-slate-900 leading-none">{demographics.total_warga}</span>
-              <span className="text-xs text-slate-500 ml-1.5 font-bold">Jiwa</span>
+              <span className="text-3xl sm:text-4xl font-black text-blue-950 leading-none">{demographics.total_warga}</span>
+              <span className="text-xs text-blue-700 ml-1.5 font-black">Jiwa</span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2 font-semibold">Laki-laki & Perempuan</p>
+            <p className="text-[11px] text-blue-600/80 mt-2 font-bold">Laki-laki & Perempuan</p>
           </div>
 
-          <div className="premium-card p-6">
+          <div className="bg-gradient-to-br from-teal-50/80 via-white to-teal-50/30 border-2 border-teal-200/80 shadow-sm hover:shadow-md hover:border-teal-300 transition-all rounded-3xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider">Usia Produktif</span>
-              <div className="p-2.5 rounded-2xl bg-[#0b5665]/10 text-[#0b5665]">
+              <span className="text-[10px] sm:text-xs font-black text-teal-800 uppercase tracking-wider">Usia Produktif</span>
+              <div className="p-2.5 rounded-2xl bg-teal-600 text-white shadow-sm shadow-teal-600/20">
                 <TrendingUp className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-black text-slate-900 leading-none">{demographics.total_usia_produktif}</span>
-              <span className="text-xs text-slate-500 ml-1.5 font-bold">Jiwa</span>
+              <span className="text-3xl sm:text-4xl font-black text-teal-950 leading-none">{demographics.total_usia_produktif}</span>
+              <span className="text-xs text-teal-700 ml-1.5 font-black">Jiwa</span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2 font-semibold">Rentang Usia 15 - 60 Tahun</p>
+            <p className="text-[11px] text-teal-600/80 mt-2 font-bold">Rentang Usia 15 - 60 Tahun</p>
           </div>
 
-          <div className="premium-card p-6">
+          <div className="bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 border-2 border-amber-200/80 shadow-sm hover:shadow-md hover:border-amber-300 transition-all rounded-3xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider">Usaha / UMKM</span>
-              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600">
+              <span className="text-[10px] sm:text-xs font-black text-amber-800 uppercase tracking-wider">Usaha / UMKM</span>
+              <div className="p-2.5 rounded-2xl bg-amber-500 text-white shadow-sm shadow-amber-500/20">
                 <Store className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-black text-slate-900 leading-none">{demographics.total_umkm}</span>
-              <span className="text-xs text-slate-500 ml-1.5 font-bold">Unit</span>
+              <span className="text-3xl sm:text-4xl font-black text-amber-950 leading-none">{demographics.total_umkm}</span>
+              <span className="text-xs text-amber-700 ml-1.5 font-black">Unit</span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2 font-semibold">Usaha Mandiri Warga RT</p>
+            <p className="text-[11px] text-amber-600/80 mt-2 font-bold">Usaha Mandiri Warga RT</p>
           </div>
         </div>
 
         {/* CHARTS SECTION */}
         <div className="space-y-8">
-          {/* ROW 1: Rasio Gender & Estimasi Pendapatan */}
+          {/* ROW 1: Rasio Gender & Statistik Usia */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* DONUT CHART: DEMOGRAFI GENDER */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-slate-800 flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-[#0b5665]" />
-                  <span>Rasio Pembagian Gender</span>
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">Perbandingan jumlah warga berjenis kelamin pria dan wanita</p>
+            <div className="p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200 shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center space-x-2.5">
+                    <span className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
+                      <Users className="w-5 h-5" />
+                    </span>
+                    <span>Rasio Pembagian Gender</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1 font-semibold">Perbandingan jumlah warga berjenis kelamin pria dan wanita</p>
+                </div>
+                <span className="hidden sm:inline-block px-3 py-1 bg-blue-50 text-blue-700 font-extrabold text-[11px] rounded-full border border-blue-200">
+                  Gender
+                </span>
               </div>
 
               <div className="h-64 w-full relative flex items-center justify-center">
@@ -285,82 +290,104 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
                       dataKey="value"
                     >
                       {genderData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                        <Cell key={`cell-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={2} />
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#334155' }}
+                      contentStyle={{ backgroundColor: '#fff', borderColor: '#cbd5e1', borderRadius: '14px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                     />
-                    <Legend verticalAlign="bottom" height={36} />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36} 
+                      formatter={(value) => <span className="text-xs font-black text-slate-800 mr-2">{value}</span>}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-6">
-                  <span className="text-2xl font-black text-slate-800">{demographics.total_warga}</span>
-                  <span className="text-[10px] text-slate-500 uppercase font-semibold">Total Jiwa</span>
+                  <span className="text-3xl font-black text-slate-900">{demographics.total_warga}</span>
+                  <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider">Total Jiwa</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-105 text-center">
-                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                  <p className="text-xs text-slate-700 font-extrabold">Warga Laki-Laki</p>
-                  <p className="text-base font-black text-slate-950 mt-0.5">
-                    {demographics.total_pria} <span className="text-xs text-slate-500 font-semibold">({demographics.total_warga > 0 ? Math.round((demographics.total_pria / demographics.total_warga) * 100) : 0}%)</span>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-4 border-t border-slate-100 text-center">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-3 sm:p-4 rounded-2xl border-2 border-blue-200 shadow-xs">
+                  <div className="inline-flex items-center space-x-1 text-xs text-blue-800 font-black mb-1">
+                    <span>👨</span>
+                    <span>Warga Laki-Laki</span>
+                  </div>
+                  <p className="text-lg sm:text-2xl font-black text-blue-950">
+                    {demographics.total_pria} <span className="text-xs text-blue-700 font-extrabold">({demographics.total_warga > 0 ? Math.round((demographics.total_pria / demographics.total_warga) * 100) : 0}%)</span>
                   </p>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                  <p className="text-xs text-slate-700 font-extrabold">Warga Perempuan</p>
-                  <p className="text-base font-black text-slate-950 mt-0.5">
-                    {demographics.total_wanita} <span className="text-xs text-slate-500 font-semibold">({demographics.total_warga > 0 ? Math.round((demographics.total_wanita / demographics.total_warga) * 100) : 0}%)</span>
+                <div className="bg-gradient-to-br from-rose-50 to-rose-100/50 p-3 sm:p-4 rounded-2xl border-2 border-rose-200 shadow-xs">
+                  <div className="inline-flex items-center space-x-1 text-xs text-rose-800 font-black mb-1">
+                    <span>👩</span>
+                    <span>Warga Perempuan</span>
+                  </div>
+                  <p className="text-lg sm:text-2xl font-black text-rose-950">
+                    {demographics.total_wanita} <span className="text-xs text-rose-700 font-extrabold">({demographics.total_warga > 0 ? Math.round((demographics.total_wanita / demographics.total_warga) * 100) : 0}%)</span>
                   </p>
                 </div>
               </div>
             </div>
 
             {/* KELOMPOK USIA WARGA */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-                  <TrendingUp className="w-5 h-5 text-slate-700" />
-                  <span>Statistik Kelompok Usia</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">Pembagian demografi warga berdasarkan rentang usia di RT 35</p>
+            <div className="p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200 shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center space-x-2.5">
+                    <span className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                      <TrendingUp className="w-5 h-5" />
+                    </span>
+                    <span>Statistik Kelompok Usia</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1 font-semibold">Pembagian demografi warga berdasarkan rentang usia di RT 35</p>
+                </div>
+                <span className="hidden sm:inline-block px-3 py-1 bg-amber-50 text-amber-700 font-extrabold text-[11px] rounded-full border border-amber-200">
+                  Usia
+                </span>
               </div>
 
-              <div className="h-48 w-full relative flex items-center justify-center">
+              <div className="h-64 w-full relative flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={ageChartData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={3}
+                      innerRadius={65}
+                      outerRadius={95}
+                      paddingAngle={5}
                       dataKey="value"
                     >
                       {ageChartData.map((entry, index) => (
-                        <Cell key={`cell-age-${index}`} fill={entry.color} stroke="none" />
+                        <Cell key={`cell-age-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={2} />
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#334155' }}
+                      contentStyle={{ backgroundColor: '#fff', borderColor: '#cbd5e1', borderRadius: '14px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                       formatter={(value: any) => [`${value} Jiwa`, 'Jumlah']}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36} 
+                      formatter={(value) => <span className="text-xs font-black text-slate-800 mr-2">{value}</span>}
                     />
                   </PieChart>
                 </ResponsiveContainer>
                 {/* Centered Total */}
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-2xl font-black text-slate-900">{demographics.total_warga}</span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Total Jiwa</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-6">
+                  <span className="text-3xl font-black text-slate-900">{demographics.total_warga}</span>
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Total Jiwa</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2.5 pt-4 border-t border-slate-100">
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 pt-4 border-t border-slate-100">
                 {ageData.map((item, idx) => (
-                  <div key={idx} className={`p-2.5 rounded-2xl border ${item.color} text-center space-y-1 shadow-sm flex flex-col items-center justify-center`}>
-                    <span className="text-base">{item.icon}</span>
-                    <p className="text-[8px] font-black tracking-tight uppercase opacity-90 leading-none">{item.group.split(' ')[0]}</p>
-                    <p className="text-sm font-black mt-0.5">{item.total} <span className="text-[9px] font-normal opacity-70">Jiwa</span></p>
+                  <div key={idx} className={`p-3 rounded-2xl border-2 ${item.color} text-center space-y-1 shadow-xs flex flex-col items-center justify-center`}>
+                    <span className="text-xl sm:text-2xl">{item.icon}</span>
+                    <p className="text-[10px] font-black tracking-tight uppercase leading-none">{item.group.split(' ')[0]}</p>
+                    <p className="text-base sm:text-lg font-black mt-0.5">{item.total} <span className="text-[10px] font-bold opacity-80">Jiwa</span></p>
                   </div>
                 ))}
               </div>
@@ -370,13 +397,20 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
           {/* ROW 2: Tingkat Pendidikan & Jenis Profesi */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* PIE CHART: TINGKAT PENDIDIKAN */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-                  <Landmark className="w-5 h-5 text-slate-700" />
-                  <span>Distribusi Tingkat Pendidikan</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">Pembagian jenjang pendidikan terakhir warga RT 35</p>
+            <div className="p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200 shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center space-x-2.5">
+                    <span className="p-2 rounded-xl bg-purple-500/10 text-purple-600">
+                      <Landmark className="w-5 h-5" />
+                    </span>
+                    <span>Distribusi Tingkat Pendidikan</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1 font-semibold">Pembagian jenjang pendidikan terakhir warga RT 35</p>
+                </div>
+                <span className="hidden sm:inline-block px-3 py-1 bg-purple-50 text-purple-700 font-extrabold text-[11px] rounded-full border border-purple-200">
+                  Pendidikan
+                </span>
               </div>
 
               <div className="h-64 w-full relative flex items-center justify-center">
@@ -392,27 +426,48 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
                       dataKey="value"
                     >
                       {educationData.map((entry, index) => (
-                        <Cell key={`cell-edu-${index}`} fill={entry.color} stroke="none" />
+                        <Cell key={`cell-edu-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={2} />
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#334155' }}
+                      contentStyle={{ backgroundColor: '#fff', borderColor: '#cbd5e1', borderRadius: '14px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                       formatter={(value: any) => [`${value} Jiwa`, 'Jumlah']}
                     />
-                    <Legend verticalAlign="bottom" height={40} wrapperStyle={{ fontSize: '10px' }} />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={44} 
+                      wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '8px' }} 
+                      formatter={(value) => <span className="text-[11px] font-black text-slate-800">{value}</span>}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
+              </div>
+
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-4 border-t border-slate-100 text-center">
+                {educationData.map((edu, idx) => (
+                  <div key={idx} className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 truncate" title={edu.name}>{edu.name}</p>
+                    <p className="text-sm font-black text-slate-900 mt-0.5" style={{ color: edu.color }}>{edu.value}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* HORIZONTAL BAR CHART: JENIS PROFESI */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-                  <Store className="w-5 h-5 text-slate-700" />
-                  <span>Mata Pencaharian & Profesi Warga</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">Pembagian rumpun pekerjaan warga aktif di RT 35</p>
+            <div className="p-6 sm:p-8 rounded-3xl bg-white border-2 border-slate-200 shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center space-x-2.5">
+                    <span className="p-2 rounded-xl bg-teal-500/10 text-teal-600">
+                      <Store className="w-5 h-5" />
+                    </span>
+                    <span>Mata Pencaharian & Profesi Warga</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1 font-semibold">Pembagian rumpun pekerjaan warga aktif di RT 35</p>
+                </div>
+                <span className="hidden sm:inline-block px-3 py-1 bg-teal-50 text-teal-700 font-extrabold text-[11px] rounded-full border border-teal-200">
+                  Profesi
+                </span>
               </div>
 
               <div className="h-64 w-full">
@@ -420,21 +475,34 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
                   <BarChart
                     data={professionData}
                     layout="vertical"
-                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    margin={{ top: 10, right: 20, left: 10, bottom: 0 }}
                   >
-                    <XAxis type="number" tick={{ fill: '#475569', fontSize: 10 }} />
-                    <YAxis dataKey="name" type="category" width={110} tick={{ fill: '#475569', fontSize: 10 }} />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                    <XAxis type="number" tick={{ fill: '#475569', fontSize: 11, fontWeight: 'bold' }} />
+                    <YAxis dataKey="name" type="category" width={115} tick={{ fill: '#1e293b', fontSize: 10, fontWeight: 'bold' }} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#334155' }}
+                      contentStyle={{ backgroundColor: '#fff', borderColor: '#cbd5e1', borderRadius: '14px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                       formatter={(value: any) => [`${value} Jiwa`, 'Jumlah']}
                     />
-                    <Bar dataKey="jumlah" radius={[0, 6, 6, 0]}>
+                    <Bar dataKey="jumlah" radius={[0, 8, 8, 0]}>
                       {professionData.map((entry, index) => (
                         <Cell key={`bar-prof-${index}`} fill={entry.color} />
                       ))}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-4 border-t border-slate-100 text-center">
+                {professionData.map((prof, idx) => (
+                  <div key={idx} className="bg-slate-50 p-2 rounded-xl border border-slate-200 text-left flex items-center justify-between px-3">
+                    <div className="flex items-center space-x-2 truncate">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: prof.color }}></span>
+                      <span className="text-[10px] font-bold text-slate-700 truncate" title={prof.name}>{prof.name}</span>
+                    </div>
+                    <span className="text-xs font-black text-slate-900 ml-1">{prof.jumlah}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
