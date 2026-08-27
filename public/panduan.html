@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buku Panduan Pengelolaan Website Portal RT 35 Manggar</title>
+  <title>SOP & Buku Panduan Pengelolaan Website Portal RT 35 Manggar</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
     
     * {
       box-sizing: border-box;
@@ -16,46 +16,47 @@
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       color: #1e293b;
-      line-height: 1.6;
-      background: #f8fafc;
-      padding: 40px 20px;
+      line-height: 1.65;
+      background: #f1f5f9;
+      padding: 40px 16px;
     }
     
-    .book-container {
-      max-width: 850px;
+    .book-wrapper {
+      max-width: 900px;
       margin: 0 auto;
       background: #ffffff;
-      padding: 56px 48px;
+      padding: 64px 56px;
       border-radius: 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
       border: 1px solid #e2e8f0;
     }
     
-    .cover-header {
-      text-align: center;
-      padding-bottom: 32px;
-      border-bottom: 3px solid #0b5665;
-      margin-bottom: 40px;
-    }
-    
-    .badge {
-      display: inline-block;
-      padding: 6px 18px;
+    /* COVER & HEADER */
+    .doc-meta-banner {
       background: #0b5665;
       color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 12px;
       font-size: 11px;
       font-weight: 800;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      letter-spacing: 1.2px;
-      border-radius: 999px;
-      margin-bottom: 16px;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    
+    .cover-title-section {
+      text-align: center;
+      padding-bottom: 32px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 40px;
     }
     
     h1 {
       font-size: 24px;
       font-weight: 800;
       color: #0f172a;
-      line-height: 1.3;
+      line-height: 1.35;
       margin-bottom: 12px;
     }
     
@@ -65,38 +66,58 @@
       font-weight: 600;
     }
     
-    .meta-box {
-      background: #f1f5f9;
-      padding: 16px 20px;
-      border-radius: 14px;
-      margin-top: 24px;
+    /* SYSTEM METADATA GRID */
+    .meta-table-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin: 24px 0;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
       font-size: 12.5px;
-      font-weight: 600;
-      color: #334155;
-      text-align: left;
     }
     
+    .meta-item strong {
+      display: block;
+      color: #64748b;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+    
+    .meta-item span {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .meta-item a {
+      color: #0284c7;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    
+    /* CHAPTER HEADINGS */
     h2 {
       font-size: 17px;
       font-weight: 800;
       color: #0b5665;
-      margin-top: 36px;
+      margin-top: 40px;
       margin-bottom: 16px;
       padding-bottom: 8px;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 2px solid #f1f5f9;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
     
     h3 {
       font-size: 14.5px;
       font-weight: 700;
       color: #0f172a;
-      margin-top: 20px;
+      margin-top: 22px;
       margin-bottom: 8px;
     }
     
@@ -113,6 +134,15 @@
     
     li {
       margin-bottom: 6px;
+    }
+    
+    /* CARDS & HIGHLIGHTS */
+    .card-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+      border-radius: 14px;
+      margin: 14px 0;
     }
     
     .highlight-card {
@@ -133,20 +163,24 @@
       font-size: 13px;
     }
     
-    .step-box {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      padding: 18px 20px;
-      border-radius: 14px;
-      margin: 14px 0;
+    .code-badge {
+      font-family: 'JetBrains Mono', monospace;
+      background: #e2e8f0;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
     }
     
+    /* CONTACT CARD */
     .contact-card {
       background: linear-gradient(135deg, #0b5665 0%, #063842 100%);
       color: #ffffff;
-      padding: 24px;
-      border-radius: 18px;
-      margin-top: 24px;
+      padding: 28px;
+      border-radius: 20px;
+      margin-top: 36px;
+      box-shadow: 0 10px 25px rgba(11, 86, 101, 0.2);
     }
     
     .contact-card h3 {
@@ -156,28 +190,37 @@
       margin-bottom: 12px;
     }
     
-    .contact-card p, .contact-card li {
+    .contact-card p {
       color: #e2e8f0;
       font-size: 13px;
-      margin-bottom: 6px;
-    }
-    
-    .contact-card strong {
-      color: #ffffff;
+      margin-bottom: 16px;
     }
     
     .contact-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
-      margin-top: 14px;
     }
     
     .contact-pill {
       background: rgba(255, 255, 255, 0.12);
-      padding: 12px 16px;
-      border-radius: 12px;
+      padding: 14px 18px;
+      border-radius: 14px;
       border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .contact-pill div:first-child {
+      font-size: 11px;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .contact-pill div:last-child {
+      font-size: 14px;
+      font-weight: 800;
+      color: #38bdf8;
     }
     
     .footer-note {
@@ -190,23 +233,25 @@
       font-weight: 600;
     }
     
+    /* PRINT BUTTON */
     .print-btn {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
+      bottom: 28px;
+      right: 28px;
       background: #0b5665;
       color: #ffffff;
-      padding: 12px 24px;
+      padding: 14px 28px;
       border-radius: 999px;
-      font-weight: 700;
-      font-size: 13px;
-      box-shadow: 0 6px 18px rgba(11, 86, 101, 0.4);
+      font-weight: 800;
+      font-size: 13.5px;
+      box-shadow: 0 8px 24px rgba(11, 86, 101, 0.4);
       cursor: pointer;
       border: none;
       display: flex;
       align-items: center;
       gap: 8px;
       transition: all 0.2s;
+      z-index: 100;
     }
     
     .print-btn:hover {
@@ -219,14 +264,18 @@
         background: #ffffff;
         padding: 0;
       }
-      .book-container {
+      .book-wrapper {
         box-shadow: none;
         border: none;
-        padding: 20px;
+        padding: 0;
         max-width: 100%;
       }
       .print-btn {
         display: none;
+      }
+      @page {
+        margin: 20mm;
+        size: A4;
       }
     }
   </style>
@@ -237,128 +286,169 @@
     🖨️ Cetak / Simpan PDF
   </button>
 
-  <div class="book-container">
-    <div class="cover-header">
-      <div class="badge">Buku Panduan Resmi</div>
+  <div class="book-wrapper">
+    <!-- COVER SECTION -->
+    <div class="cover-title-section">
+      <div class="doc-meta-banner">Standard Operating Procedure (SOP) & User Manual</div>
       <h1>BUKU PEDOMAN PENGELOLAAN SISTEM INFORMASI & PORTAL RESMI RT 35 MANGGAR</h1>
-      <p class="subtitle">Panduan Operasional Mandiri untuk Sekretaris RT & Jajaran Pengurus RT 35 Kelurahan Manggar</p>
+      <p class="subtitle">Panduan Baku Operasional Mandiri untuk Sekretaris RT & Jajaran Pengurus RT 35 Kelurahan Manggar</p>
       
-      <div class="meta-box">
-        <div><strong>Disusun Oleh:</strong> KKN Kel. Manggar 2 Univ. Mulia</div>
-        <div><strong>PIC Sistem:</strong> Gusti Ihsanuddin</div>
-        <div><strong>Tahun Pengabdian:</strong> 2026</div>
-        <div><strong>Status Sistem:</strong> Production (Ready)</div>
+      <!-- METADATA BOX -->
+      <div class="meta-table-box">
+        <div class="meta-item">
+          <strong>Nomor Dokumen</strong>
+          <span>SOP/UM-KKN/RT35-MGR/2026/001</span>
+        </div>
+        <div class="meta-item">
+          <strong>Alamat Domain Resmi</strong>
+          <span><a href="https://www.rt35manggar.my.id" target="_blank">www.rt35manggar.my.id</a></span>
+        </div>
+        <div class="meta-item">
+          <strong>Lembaga Pelaksana</strong>
+          <span>KKN Kel. Manggar 2 Univ. Mulia</span>
+        </div>
+        <div class="meta-item">
+          <strong>Penanggung Jawab (PIC)</strong>
+          <span>Gusti Ihsanuddin</span>
+        </div>
+        <div class="meta-item">
+          <strong>Tahun Pengabdian</strong>
+          <span>2026</span>
+        </div>
+        <div class="meta-item">
+          <strong>Status Sistem</strong>
+          <span style="color: #10b981;">Production (Live & Handed Over)</span>
+        </div>
       </div>
     </div>
 
-    <h2>1. Akses Masuk & Login Pengurus</h2>
-    <div class="step-box">
+    <!-- BAB 1 -->
+    <h2>1. Hak Akses Masuk & Otentikasi Pengurus (Login)</h2>
+    <div class="card-box">
       <ol>
-        <li>Buka web browser dan akses halaman login: <strong><code>https://rt35manggar.vercel.app/login</code></strong></li>
-        <li>Masukkan Username: <strong><code>sekretaris</code></strong></li>
+        <li>Buka web browser dan akses gerbang login: <br>
+          <strong style="color: #0b5665;"><a href="https://www.rt35manggar.my.id/login" target="_blank">https://www.rt35manggar.my.id/login</a></strong>
+        </li>
+        <li style="margin-top: 8px;">Masukkan Username: <span class="code-badge">sekretaris</span></li>
         <li>Masukkan Kata Sandi Resmi yang telah diserahterimakan.</li>
         <li>Klik tombol hijau <strong>"Masuk ke Dashboard"</strong>.</li>
       </ol>
     </div>
     <div class="warning-card">
-      ⚠️ <strong>Penting:</strong> Selalu klik tombol <strong>Keluar / Logout</strong> di pojok kanan atas layar setelah selesai mengelola data demi menjaga privasi dan keamanan berkas kependudukan warga.
+      ⚠️ <strong>Standar Keamanan:</strong> Selalu klik tombol <strong>Keluar / Logout</strong> di pojok kanan atas setelah selesai mengelola data demi melindungi kerahasiaan berkas kependudukan warga RT 35.
     </div>
 
-    <h2>2. Pengelolaan Data Kependudukan & Demografi</h2>
-    <p>Modul ini digunakan untuk mengelola data Kartu Keluarga (KK) dan data seluruh anggota keluarga warga RT 35.</p>
+    <!-- BAB 2 -->
+    <h2>2. SOP Manajemen Data Kependudukan & Demografi</h2>
+    <p>Modul ini terletak pada menu <strong>Data Demografis</strong> (<span class="code-badge">/admin/demografis</span>) untuk memelihara basis data Kartu Keluarga (KK) dan anggotanya.</p>
     
-    <h3>A. Menambah Kartu Keluarga (KK) Baru:</h3>
+    <h3>A. Prosedur Menambah Kartu Keluarga (KK) Baru:</h3>
     <ul>
-      <li>Masuk ke menu <strong>Data Demografis</strong> &rarr; Klik tombol <strong>"+ Tambah Kartu Keluarga"</strong>.</li>
-      <li>Ketikkan 16 digit Nomor KK, Nama Lengkap Kepala Keluarga, Alamat Rumah / Blok, dan Nomor WhatsApp.</li>
+      <li>Klik tombol hijau <strong>"+ Tambah Kartu Keluarga"</strong>.</li>
+      <li>Masukkan 16 digit Nomor KK, Nama Lengkap Kepala Keluarga, Alamat Rumah / Blok, dan Nomor WhatsApp aktif warga.</li>
       <li>Klik <strong>"Simpan Kartu Keluarga"</strong>.</li>
     </ul>
 
-    <h3>B. Menambah & Mengedit Anggota Keluarga:</h3>
+    <h3>B. Prosedur Menambah & Mengedit Anggota Keluarga:</h3>
     <ul>
       <li>Cari nama kepala keluarga pada tabel KK &rarr; Klik tombol <strong>"Kelola Anggota"</strong>.</li>
-      <li>Klik <strong>"+ Tambah Anggota"</strong> lalu lengkapi NIK 16 digit, Nama, Hubungan Keluarga (Kepala Keluarga, Istri, Anak, dll), Tanggal Lahir, Pendidikan Terakhir, dan Pekerjaan (Petani/Perkebunan, Nelayan, Swasta, dll).</li>
+      <li>Klik <strong>"+ Tambah Anggota"</strong> lalu lengkapi NIK 16 digit, Nama Lengkap, Hubungan Keluarga (Kepala Keluarga, Istri, Anak, dll), Tanggal Lahir, Pendidikan Terakhir, dan Pekerjaan (Petani/Perkebunan, Nelayan, Swasta, dll).</li>
       <li>Klik <strong>"Simpan Anggota"</strong>.</li>
     </ul>
     <div class="highlight-card">
-      💡 <strong>Otomatisasi Sistem:</strong> Seluruh grafik statistik di beranda publik (Rasio Gender, Kelompok Usia Balita/Kerja/Lansia, Tingkat Pendidikan, dan Pekerjaan) akan <strong>terhitung dan terbarui secara otomatis</strong> tanpa perlu perhitungan manual.
+      💡 <strong>Kalkulasi Otomatis Sistem:</strong> Seluruh grafik statistik di beranda publik (Rasio Gender, Kelompok Usia Balita/Kerja/Lansia, Pendidikan, dan Profesi) akan <strong>terkalkulasi dan terbarui otomatis secara real-time</strong> tanpa perlu perhitungan manual.
     </div>
 
-    <h2>3. Publikasi Liputan Kegiatan Warga & Berita</h2>
+    <!-- BAB 3 -->
+    <h2>3. SOP Publikasi Liputan Kegiatan Warga & Warta Berita</h2>
     <h3>A. Menerbitkan Liputan Kegiatan Warga:</h3>
     <ul>
       <li>Buka menu <strong>Kegiatan Warga</strong> &rarr; Klik <strong>"+ Tambah Kegiatan Baru"</strong>.</li>
-      <li>Isi Judul Kegiatan, Nama Penulis / Dokumentator (misal: <em>Sekretariat RT 35</em>), Tanggal Pelaksanaan, Kategori Kegiatan, dan unggah Foto Sampul.</li>
-      <li>Tuliskan deskripsi ringkas jalannya acara lalu klik <strong>"Terbitkan Kegiatan"</strong>.</li>
+      <li>Isi Judul Kegiatan, Nama Penulis / Dokumentator (misal: <em>Sekretariat RT 35</em>), Tanggal Pelaksanaan, Kategori Kegiatan, dan unggah Foto Sampul Kegiatan.</li>
+      <li>Tuliskan ringkasan jalannya acara lalu klik <strong>"Terbitkan Kegiatan"</strong>. Berita kegiatan akan langsung terbit di halaman publik <span class="code-badge">/page/kegiatan-warga</span>.</li>
     </ul>
 
     <h3>B. Menerbitkan Warta Berita Lingkungan:</h3>
     <ul>
       <li>Buka menu <strong>Berita RT</strong> &rarr; Klik <strong>"+ Tambah Berita"</strong>.</li>
-      <li>Masukkan judul berita, kategori, foto, dan isi berita, lalu klik <strong>"Publikasikan Berita"</strong>.</li>
+      <li>Masukkan judul berita, kategori warta, foto pendukung, dan isi berita, lalu klik <strong>"Publikasikan Berita"</strong>. Berita langsung aktif di <span class="code-badge">/berita</span>.</li>
     </ul>
 
-    <h2>4. Papan Pengumuman & Informasi Siaga Warga</h2>
+    <!-- BAB 4 -->
+    <h2>4. SOP Papan Pengumuman & Informasi Siaga Warga</h2>
     <ul>
       <li>Buka menu <strong>Papan Pengumuman</strong> &rarr; Klik <strong>"+ Buat Pengumuman"</strong>.</li>
-      <li>Pilih Kategori: <strong>🔴 Siaga / Darurat</strong> (pemadaman air/listrik/kebakaran), <strong>🟡 Agenda Lingkungan</strong> (posyandu/gotong royong), atau <strong>🔵 Informasi Umum</strong>.</li>
+      <li>Pilih Kategori Urgensi: 
+        <br>&bull; <strong>🔴 Siaga / Darurat:</strong> Info pemadaman listrik/air mendadak, peringatan cuaca, atau keamanan.
+        <br>&bull; <strong>🟡 Agenda Lingkungan:</strong> Jadwal posyandu, kerja bakti massal, arisan, rapat warga.
+        <br>&bull; <strong>🔵 Informasi Umum:</strong> Info bansos kelurahan, pendataan program pemerintah.
+      </li>
       <li>Ketikkan pesan secara ringkas dan padat lalu klik <strong>"Simpan & Publikasikan"</strong>.</li>
     </ul>
 
-    <h2>5. Pengelolaan Fasilitas Lingkungan RT</h2>
+    <!-- BAB 5 -->
+    <h2>5. SOP Inventarisasi Fasilitas Lingkungan RT</h2>
     <ul>
       <li>Buka menu <strong>Fasilitas RT</strong> &rarr; Klik <strong>"+ Tambah Fasilitas"</strong>.</li>
-      <li>Masukkan nama sarana prasarana (Balai Pertemuan, Pos Kamling, Lapangan), lokasi, kondisi fisik, dan foto fasilitas.</li>
+      <li>Masukkan nama sarana prasarana (Balai Pertemuan, Pos Kamling, Lapangan Olahraga, Tempat Pengolahan Sampah), lokasi, kondisi fisik (<em>Sangat Baik, Baik, Perlu Perbaikan</em>), dan foto fasilitas.</li>
+      <li>Klik <strong>"Simpan Fasilitas"</strong> agar dapat diakses warga melalui halaman <span class="code-badge">/fasilitas</span>.</li>
     </ul>
 
-    <h2>6. Kotak Aspirasi & Layanan Surat Warga</h2>
+    <!-- BAB 6 -->
+    <h2>6. SOP Kotak Aspirasi & Layanan Surat Warga Online</h2>
     <ul>
-      <li>Buka menu <strong>Kotak Aspirasi</strong> untuk melihat pesan aduan dan permohonan surat yang dikirim warga secara online.</li>
-      <li>Gunakan tombol <strong>"Hubungi via WhatsApp"</strong> untuk merespons warga secara cepat dan ubah status laporan menjadi <em>Diproses</em> atau <em>Selesai</em>.</li>
+      <li>Buka menu <strong>Kotak Aspirasi</strong> untuk memantau pesan aduan dan permohonan surat yang diajukan warga.</li>
+      <li>Gunakan tombol cepat <strong>"Hubungi via WhatsApp"</strong> untuk langsung merespons warga secara personal.</li>
+      <li>Perbarui status laporan dari <em>Pending</em> &rarr; <em>Diproses</em> &rarr; <em>Selesai</em>.</li>
     </ul>
 
-    <h2>7. Pengaturan Kontak, Syarat Surat & Lokasi RT</h2>
+    <!-- BAB 7 -->
+    <h2>7. SOP Pengaturan Kontak, Syarat Surat & Lokasi RT</h2>
     <ul>
-      <li>Buka menu <strong>Pengaturan Sistem</strong> untuk mengubah nomor WhatsApp resmi pelayanan RT, daftar syarat pengurusan surat pengantar, maupun nomor kontak darurat lingkungan.</li>
-      <li>Klik <strong>"Simpan Pengaturan"</strong> di bagian bawah halaman.</li>
+      <li>Buka menu <strong>Pengaturan Sistem</strong> (<span class="code-badge">/admin/settings</span>) untuk memperbarui nomor WhatsApp resmi pengurus, daftar persyaratan surat pengantar RT, maupun nomor telepon darurat lingkungan.</li>
+      <li>Klik tombol <strong>"Simpan Pengaturan"</strong> di bagian bawah halaman.</li>
     </ul>
 
-    <h2>8. Standar Pengunggahan Foto & Media</h2>
-    <div class="step-box">
+    <!-- BAB 8 -->
+    <h2>8. Standar Pengunggahan Media Foto</h2>
+    <div class="card-box">
       <ul>
-        <li><strong>Format Foto:</strong> JPG, JPEG, PNG, atau WebP.</li>
-        <li><strong>Ukuran yang Dianjurkan:</strong> Maksimal 1 MB – 2 MB per foto agar website tetap dibuka super cepat oleh warga yang mengakses lewat smartphone.</li>
-        <li><strong>Tips Praktis:</strong> Kirimkan foto kamera HP ke WhatsApp terlebih dahulu sebelum diunggah agar terkompresi otomatis dengan kualitas tetap jernih.</li>
+        <li><strong>Format Gambar:</strong> JPG, JPEG, PNG, atau WebP.</li>
+        <li><strong>Ukuran yang Direkomendasikan:</strong> Maksimal 1 MB – 2 MB per foto agar website tetap sangat cepat saat diakses warga menggunakan smartphone.</li>
+        <li><strong>Tips Praktis:</strong> Foto dari kamera HP dapat dikirimkan ke WhatsApp terlebih dahulu sebelum diunggah agar otomatis terkompresi ringan tanpa pecah.</li>
       </ul>
     </div>
 
     <!-- KONTAK DUKUNGAN RESMI -->
     <div class="contact-card">
       <h3>📞 Kontak Bantuan & Dukungan Teknis Pengembang</h3>
-      <p>Apabila Bapak/Ibu pengurus RT 35 mengalami kendala teknis, lupa kata sandi, atau memerlukan konsultasi lanjutan mengenai sistem website, silakan langsung menghubungi narahubung resmi:</p>
+      <p>Apabila Bapak/Ibu pengurus RT 35 memerlukan bantuan teknis lanjutan, pemulihan akun, atau konsultasi sistem, silakan menghubungi narahubung resmi:</p>
       
       <div class="contact-grid">
         <div class="contact-pill">
-          <div><strong>Penanggung Jawab (PIC Web):</strong></div>
-          <div style="font-size: 14px; font-weight: 800; margin-top: 4px; color: #38bdf8;">Gusti Ihsanuddin</div>
-          <div style="font-size: 11.5px; opacity: 0.85;">KKN Kel. Manggar 2 Univ. Mulia</div>
+          <div>Penanggung Jawab (PIC Web)</div>
+          <div>Gusti Ihsanuddin</div>
         </div>
 
         <div class="contact-pill">
-          <div><strong>No. Telepon / WhatsApp:</strong></div>
-          <div style="font-size: 14px; font-weight: 800; margin-top: 4px; color: #38bdf8;">085821550980</div>
-          <div style="font-size: 11.5px; opacity: 0.85;">Aktif 24 Jam</div>
+          <div>No. Telepon / WhatsApp</div>
+          <div>085821550980</div>
         </div>
 
-        <div class="contact-pill" style="grid-column: 1 / -1;">
-          <div><strong>Alamat Email Resmi:</strong></div>
-          <div style="font-size: 13.5px; font-weight: 800; margin-top: 4px; color: #38bdf8;">gustiihsanuddin08@gmail.com</div>
+        <div class="contact-pill">
+          <div>Alamat Email Resmi</div>
+          <div style="font-size: 13px;">gustiihsanuddin08@gmail.com</div>
+        </div>
+
+        <div class="contact-pill">
+          <div>Domain Resmi Website</div>
+          <div style="font-size: 13px;">www.rt35manggar.my.id</div>
         </div>
       </div>
     </div>
 
     <div class="footer-note">
-      Buku Pedoman ini diserahterimakan secara resmi kepada Sekretaris & Jajaran Pengurus RT 35 Kelurahan Manggar (Tahun 2026).
+      Buku Pedoman ini diserahterimakan secara resmi oleh KKN Kelompok Manggar 2 Universitas Mulia kepada Sekretariat RT 35 Kelurahan Manggar (Tahun 2026).
     </div>
   </div>
 

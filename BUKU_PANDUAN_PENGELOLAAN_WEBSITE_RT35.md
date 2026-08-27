@@ -1,194 +1,206 @@
-# 📘 BUKU PEDOMAN PENGELOLAAN SISTEM INFORMASI & PORTAL RESMI RT 35 KELURAHAN MANGGAR
+# STANDARD OPERATING PROCEDURE & USER MANUAL
+## SISTEM INFORMASI & PORTAL LAYANAN PUBLIK DIGITAL RT 35 MANGGAR
 
-**Penyusun:** Tim KKN Kelompok Manggar 2 – Universitas Mulia  
-**Penanggung Jawab Sistem (PIC):** Gusti Ihsanuddin  
-**Sasaran Pengguna:** Sekretaris RT & Jajaran Pengurus RT 35 Kelurahan Manggar  
-**Versi Sistem:** 1.0 (Production Release)  
-**Tahun Pengabdian:** 2026  
-
----
-
-## 📑 DAFTAR ISI LENGKAP
-1. [Pendahuluan & Hak Akses Pengurus](#1-pendahuluan--hak-akses-pengurus)
-2. [Akses Masuk (Login) & Pengamanan Akun](#2-akses-masuk-login--pengamanan-akun)
-3. [Panduan Modul 1: Manajemen Data Kependudukan & Demografi](#3-panduan-modul-1-manajemen-data-kependudukan--demografi)
-4. [Panduan Modul 2: Publikasi Liputan Kegiatan Warga](#4-panduan-modul-2-publikasi-liputan-kegiatan-warga)
-5. [Panduan Modul 3: Penerbitan Warta Berita Lingkungan](#5-panduan-modul-3-penerbitan-warta-berita-lingkungan)
-6. [Panduan Modul 4: Papan Pengumuman & Informasi Siaga Warga](#6-panduan-modul-4-papan-pengumuman--informasi-siaga-warga)
-7. [Panduan Modul 5: Pemetaan & Pengelolaan Fasilitas Lingkungan](#7-panduan-modul-5-pemetaan--pengelolaan-fasilitas-lingkungan)
-8. [Panduan Modul 6: Kotak Aspirasi & Layanan Aduan Warga Online](#8-panduan-modul-6-kotak-aspirasi--layanan-aduan-warga-online)
-9. [Panduan Modul 7: Pengaturan Kontak RT, Syarat Surat & Lokasi](#9-panduan-modul-7-pengaturan-kontak-rt-syarat-surat--lokasi)
-10. [Panduan Teknis: Standar Pengunggahan Foto & Media](#10-panduan-teknis-standar-pengunggahan-foto--media)
-11. [Kontak Bantuan & Dukungan Teknis Pengembang](#11-kontak-bantuan--dukungan-teknis-pengembang)
+```
+================================================================================
+NOMOR DOKUMEN       : SOP/UM-KKN/RT35-MGR/2026/001
+EDISI / VERSI       : 1.0 (Official Production Release)
+STATUS DOKUMEN      : RELEASED & HANDED OVER
+ALAMAT RESMI DOMAIN : https://www.rt35manggar.my.id
+HALAMAN LOGIN ADMIN : https://www.rt35manggar.my.id/login
+LEMBAGA PELAKSANA   : TIM KKN KELOMPOK MANGGAR 2 – UNIVERSITAS MULIA
+PENANGGUNG JAWAB    : GUSTI IHSANUDDIN
+KONTAK TEKNIS       : 085821550980 | gustiihsanuddin08@gmail.com
+SASARAN PENGGUNA    : SEKRETARIS RT & JAJARAN PENGURUS RT 35 KELURAHAN MANGGAR
+TANGGAL SERAH TERIMA: AGUSTUS 2026
+================================================================================
+```
 
 ---
 
-## 1. PENDAHULUAN & HAK AKSES PENGURUS
-Website Portal Resmi RT 35 Kelurahan Manggar adalah inovasi digital berbasis web (*Web-Based Portal*) yang dibangun untuk mempermudah sekretariat RT dalam mendokumentasikan arsip kependudukan, mempublikasikan kegiatan lingkungan, menyebarkan pengumuman siaga, serta menerima aspirasi warga secara cepat dan transparan.
+## 🏛️ LEMBAR PENGESAHAN & BERITA ACARA SERAH TERIMA SISTEM
 
-Seluruh data yang diinputkan oleh Sekretaris RT di panel admin akan **otomatis terhubung secara real-time** dengan halaman publik yang dapat dibaca oleh warga di:
-👉 **`https://rt35manggar.vercel.app`**
+Dokumen Manual Operasional dan Buku Pedoman Sistem Informasi ini disusun secara resmi sebagai panduan baku pengelolaan mandiri Website Portal Pelayanan Publik RT 35 Kelurahan Manggar, Kecamatan Balikpapan Timur.
+
+Sistem perangkat lunak beserta seluruh basis data kependudukan telah diserahterimakan secara penuh oleh **Tim KKN Kelompok Manggar 2 Universitas Mulia** kepada **Sekretaris RT & Pengurus RT 35 Kelurahan Manggar** untuk dipergunakan demi kemaslahatan dan keterbukaan informasi warga.
 
 ---
 
-## 2. AKSES MASUK (LOGIN) & PENGAMANAN AKUN
+## 📑 DAFTAR ISI SISTEMATIS
+* [BAB I: GAMBARAN UMUM & ARSITEKTUR SISTEM](#bab-i-gambaran-umum--arsitektur-sistem)
+* [BAB II: HAK AKSES, AUTENTIKASI & KEAMANAN AKUN](#bab-ii-hak-akses-autentikasi--keamanan-akun)
+* [BAB III: SOP MANAJEMEN DATA KEPENDUDUKAN & DEMOGRAFI](#bab-iii-sop-manajemen-data-kependudukan--demografi)
+* [BAB IV: SOP PUBLIKASI KEGIATAN WARGA & ARSIP DIGITAL](#bab-iv-sop-publikasi-kegiatan-warga--arsip-digital)
+* [BAB V: SOP PENERBITAN WARTA BERITA LINGKUNGAN](#bab-v-sop-penerbitan-warta-berita-lingkungan)
+* [BAB VI: SOP PENYEBARAN PENGUMUMAN & INFORMASI SIAGA](#bab-vi-sop-penyebaran-pengumuman--informasi-siaga)
+* [BAB VII: SOP INVENTARISASI & PEMETAAN FASILITAS RT](#bab-vii-sop-inventarisasi--pemetaan-fasilitas-rt)
+* [BAB VIII: SOP KOTAK ASPIRASI & PENANGANAN LAPORAN WARGA](#bab-viii-sop-kotak-aspirasi--penanganan-laporan-warga)
+* [BAB IX: SOP KONFIGURASI PROFIL, LAYANAN SURAT & KONTAK RT](#bab-ix-sop-konfigurasi-profil-layanan-surat--kontak-rt)
+* [BAB X: STANDAR PENGELOLAAN MEDIA & PEMELIHARAAN SISTEM](#bab-x-standar-pengelolaan-media--pemeliharaan-sistem)
+* [BAB XI: DUKUNGAN TEKNIS & SERVICE LEVEL AGREEMENT (SLA)](#bab-xi-dukungan-teknis--service-level-agreement-sla)
 
-### A. Langkah-Langkah Masuk ke Dashboard Admin:
-1. Buka browser (Google Chrome / Safari / Edge) di laptop, tablet, atau HP Anda.
-2. Buka alamat: **`https://rt35manggar.vercel.app/login`** (atau klik menu **Login Pengurus** di bagian paling bawah/footer website).
-3. Masukkan informasi login resmi:
+---
+
+## BAB I: GAMBARAN UMUM & ARSITEKTUR SISTEM
+
+### 1.1 Identitas Sistem
+* **Nama Sistem:** Portal Pelayanan Publik & Sistem Informasi Kependudukan RT 35 Manggar.
+* **Alamat Domain Publik:** **`https://www.rt35manggar.my.id`**
+* **Arsitektur Aplikasi:** Astro Framework SSG + React Interactive Component + PostgreSQL Supabase Real-time Cloud Engine.
+
+### 1.2 Tujuan Utama Implementasi
+1. **Transparansi Kependudukan:** Menyajikan agregat statistik jumlah KK, penduduk, rasio gender, distribusi usia, dan mata pencaharian warga secara otomatis.
+2. **Digitalisasi Pelayanan Administrasi:** Menyediakan informasi persyaratan surat pengantar RT dan form aduan warga 24 jam.
+3. **Pusat Warta & Dokumentasi Lingkungan:** Mengabadikan kegiatan gotong royong, perayaan kemerdekaan, dan agenda sosial secara terstruktur.
+
+---
+
+## BAB II: HAK AKSES, AUTENTIKASI & KEAMANAN AKUN
+
+### 2.1 Alur Masuk Administrator (*Admin Login*)
+1. Buka browser pada komputer atau smartphone.
+2. Akses gerbang otentikasi: **`https://www.rt35manggar.my.id/login`**
+3. Masukkan kredensial resmi pengurus:
    * **Username:** `sekretaris`
-   * **Password:** *(Gunakan kata sandi resmi yang telah diserahterimakan)*
-4. Klik tombol hijau **"Masuk ke Dashboard"**.
-5. Anda akan diarahkan ke halaman utama **Dashboard Sekretaris RT**.
+   * **Password:** *(Gunakan password resmi yang diserahterimakan)*
+4. Klik tombol **"Masuk ke Dashboard"**.
 
-### B. Prosedur Keluar Akun (*Logout*):
-* Setelah selesai melakukan penginputan atau pengeditan data, klik tombol **"Keluar / Logout"** di pojok kanan atas layar demi menjaga privasi dan keamanan basis data kependudukan warga RT 35.
+### 2.2 Prosedur Keamanan Sesi (*Session Security*)
+* **Logout Mandiri:** Wajib menekan tombol **"Keluar / Logout"** setelah selesai melakukan pembaruan data.
+* **Kerahasiaan Kredensial:** Dilarang mendistribusikan username dan password kepada pihak di luar struktur pengurus RT 35 guna melindungi data privat kependudukan (NIK dan Nomor KK warga).
 
 ---
 
-## 3. PANDUAN MODUL 1: MANAJEMEN DATA KEPENDUDUKAN & DEMOGRAFI
+## BAB III: SOP MANAJEMEN DATA KEPENDUDUKAN & DEMOGRAFI
 
-Modul ini adalah pusat data kependudukan RT 35 yang mencakup data Kartu Keluarga (KK) dan data setiap anggota keluarga.
+Modul ini berlokasi di menu **Data Demografis** (`/admin/demografis`).
 
-### A. Menambahkan Kartu Keluarga (KK) Baru:
-1. Klik menu **Data Demografis** di menu samping (sidebar).
-2. Klik tombol hijau **"+ Tambah Kartu Keluarga"**.
-3. Isi kolom formulir:
-   * **Nomor KK:** Masukkan 16 digit Nomor Kartu Keluarga.
-   * **Nama Kepala Keluarga:** Masukkan nama lengkap kepala rumah tangga.
-   * **Alamat Rumah / Blok:** Masukkan alamat domisili (Contoh: *Jl. Mulawarman RT 35 Blok C No. 04*).
-   * **Nomor Telepon / WhatsApp:** Masukkan nomor kontak aktif warga.
-4. Klik tombol **"Simpan Kartu Keluarga"**.
+### 3.1 Prosedur Entri Kartu Keluarga (KK) Baru
+1. Klik tombol **"+ Tambah Kartu Keluarga"**.
+2. Masukkan **16 Digit Nomor KK** yang tertera pada berkas fisik.
+3. Masukkan **Nama Lengkap Kepala Keluarga**.
+4. Masukkan **Alamat Domisili / Blok Rumah** (Contoh: *Jl. Mulawarman RT 35 No. 12*).
+5. Masukkan **Nomor WhatsApp / Telepon** warga.
+6. Klik **"Simpan Kartu Keluarga"**.
 
-### B. Menambahkan Anggota Keluarga di dalam KK:
-1. Cari nama kepala keluarga di tabel KK menggunakan kolom pencarian instan.
-2. Klik tombol **"Kelola Anggota"** (ikon rincian keluarga).
-3. Klik tombol **"+ Tambah Anggota"**, lalu lengkapi:
-   * **NIK:** 16 digit Nomor Induk Kependudukan.
-   * **Nama Lengkap:** Nama anggota keluarga.
-   * **Jenis Kelamin:** Pilih *Laki-laki* atau *Perempuan*.
-   * **Hubungan Keluarga:** Pilih *Kepala Keluarga, Istri, Anak, Orang Tua, atau Famili Lain*.
-   * **Tanggal Lahir:** Pilih tanggal, bulan, dan tahun lahir (sistem otomatis menghitung kelompok umur balita, usia produktif, atau lansia).
-   * **Tingkat Pendidikan Terakhir:** Pilih *SD, SMP, SMA, Sarjana/Diploma, atau Belum Sekolah*.
-   * **Pekerjaan Utama:** Pilih *Petani/Perkebunan, Nelayan, Karyawan Swasta, PNS/TNI/Polri, Wiraswasta/Dagang, atau IRT/Pelajar/Lainnya*.
+### 3.2 Prosedur Entri & Pengelolaan Anggota Keluarga
+1. Gunakan kolom pencarian instan untuk menemukan data KK yang bersangkutan.
+2. Klik tombol **"Kelola Anggota"**.
+3. Klik **"+ Tambah Anggota"**, lalu lengkapi atribut data:
+   * **NIK:** 16 digit angka.
+   * **Nama Anggota & Jenis Kelamin:** (Laki-laki / Perempuan).
+   * **Hubungan Keluarga:** *Kepala Keluarga, Istri, Anak, Orang Tua, atau Famili Lain*.
+   * **Tanggal Lahir:** (Menentukan klasifikasi balita, usia produktif, atau lansia secara otomatis).
+   * **Pendidikan Terakhir:** *SD, SMP, SMA, Sarjana/Diploma, Belum/Tidak Sekolah*.
+   * **Mata Pencaharian:** *Petani/Perkebunan, Nelayan, Karyawan Swasta, PNS/TNI/Polri, Wiraswasta/Dagang, IRT/Pelajar/Lainnya*.
 4. Klik **"Simpan Anggota"**.
 
-### C. Mengedit & Menghapus Data Warga:
-* **Mengedit Anggota:** Klik tombol pensil (*Edit*) pada baris nama anggota keluarga yang ingin diperbaiki, perbarui datanya, lalu klik *Simpan Perubahan*.
-* **Menghapus Anggota:** Klik tombol tempat sampah (*Hapus*) jika ada warga yang pindah domisili atau mutasi keluar.
-
-> 💡 **Kalkulasi Otomatis Sistem:** Sekretaris RT **tidak perlu menghitung manual** total jiwa, rasio pria/wanita, kelompok balita/lansia, maupun persentase pekerjaan. Sistem web secara otomatis mengkalkulasi dan memperbarui seluruh grafik beranda publik seketika.
+### 3.3 Otomatisasi Perhitungan Data Kependudukan
+* Sistem web telah dilengkapi algoritma kalkulasi reaktif. Setiap kali ada penambahan atau perubahan data KK, **seluruh grafik statistik di halaman depan beranda publik akan terkalkulasi ulang secara otomatis** tanpa membutuhkan perhitungan manual.
 
 ---
 
-## 4. PANDUAN MODUL 2: PUBLIKASI LIPUTAN KEGIATAN WARGA
+## BAB IV: SOP PUBLIKASI KEGIATAN WARGA & ARSIP DIGITAL
 
-Modul ini berfungsi untuk mengarsipkan kegiatan gotong royong, perayaan kemerdekaan, posyandu, dan agenda sosial RT 35.
+Modul ini berlokasi di menu **Kegiatan Warga** (`/admin/kegiatan-warga`).
 
-### A. Menerbitkan Liputan Baru:
-1. Buka menu **Kegiatan Warga** &rarr; Klik **"+ Tambah Kegiatan Baru"**.
-2. Lengkapi isian formulir:
-   * **Judul Kegiatan:** (Contoh: *Gotong Royong Pembersihan Saluran Air & Drainase RT 35*).
-   * **Penulis / Dokumentator:** Masukkan nama penulis (Contoh: *Sekretariat RT 35* atau nama Anda).
-   * **Tanggal Pelaksanaan:** Tentukan tanggal acara diadakan.
-   * **Kategori Kegiatan:** Pilih kategori (Gotong Royong, Peringatan HUT RI, Posyandu, Pertemuan Warga, Keagamaan).
-   * **Foto Sampul Utama:** Unggah foto dokumentasi terbaik acara.
-   * **Uraian / Isi Liputan:** Tuliskan deskripsi ringkas jalannya acara, jumlah warga yang hadir, dan capaian kegiatan.
-3. Klik **"Terbitkan Kegiatan"**. Dokumentasi akan langsung tampil di halaman publik `/page/kegiatan-warga`.
-
----
-
-## 5. PANDUAN MODUL 3: PENERBITAN WARTA BERITA LINGKUNGAN
-
-Modul ini digunakan untuk mempublikasikan artikel berita penting seputar lingkungan RT 35 dan kelurahan.
-
-1. Buka menu **Berita RT** &rarr; Klik **"+ Tambah Berita"**.
-2. Isi formulir:
-   * **Judul Berita:** Tuliskan judul warta yang menarik dan informatif.
-   * **Kategori Berita:** Pilih kategori (*Kegiatan Utama, Pengumuman, Pembangunan, Pemberdayaan, Lainnya*).
-   * **Gambar Utama Berita:** Unggah gambar pendukung artikel.
-   * **Isi Lengkap Berita:** Tuliskan isi berita secara terperinci.
-3. Klik **"Publikasikan Berita"**. Berita langsung terbit secara *real-time* di halaman `/berita`.
+1. Klik tombol **"+ Tambah Kegiatan Baru"**.
+2. Isi formulir publikasi:
+   * **Judul Kegiatan:** Tuliskan nama kegiatan yang jelas (Contoh: *Peringatan HUT Kemerdekaan RI Ke-81 Lingkungan RT 35*).
+   * **Penulis / Dokumentator:** Masukkan nama pengarsip (Contoh: *Sekretariat RT 35*).
+   * **Tanggal Kegiatan:** Pilih tanggal pelaksanaan.
+   * **Kategori Kegiatan:** Pilih kategori (*Gotong Royong, Peringatan HUT RI, Posyandu, Pertemuan Warga, Keagamaan*).
+   * **Foto Sampul:** Unggah foto dokumentasi utama kegiatan.
+   * **Uraian Kegiatan:** Tuliskan deskripsi ringkas pelaksanaan kegiatan.
+3. Klik **"Terbitkan Kegiatan"**. Dokumentasi akan langsung terbit pada halaman publik **`/page/kegiatan-warga`**.
 
 ---
 
-## 6. PANDUAN MODUL 4: PAPAN PENGUMUMAN & INFORMASI SIAGA WARGA
+## BAB V: SOP PENERBITAN WARTA BERITA LINGKUNGAN
 
-Modul ini berfungsi untuk menyebarkan informasi mendesak atau pengumuman agenda rutin yang tampil di bagian atas beranda website.
+Modul ini berlokasi di menu **Berita RT** (`/admin/berita`).
 
-1. Buka menu **Papan Pengumuman** &rarr; Klik **"+ Buat Pengumuman"**.
+1. Klik tombol **"+ Tambah Berita"**.
+2. Masukkan **Judul Berita**, **Kategori Warta**, **Gambar Berita**, dan **Isi Teks Berita**.
+3. Klik **"Publikasikan Berita"**.
+4. Berita akan langsung terbit seketika di halaman publik **`/berita`**.
+
+---
+
+## BAB VI: SOP PENYEBARAN PENGUMUMAN & INFORMASI SIAGA
+
+Modul ini berlokasi di menu **Papan Pengumuman** (`/admin/pengumuman`).
+
+1. Klik tombol **"+ Buat Pengumuman"**.
 2. Pilih Kategori & Tingkat Urgensi:
-   * 🔴 **Siaga / Darurat:** Digunakan untuk info pemadaman listrik/air, peringatan banjir, atau waspada keamanan.
-   * 🟡 **Agenda Lingkungan:** Digunakan untuk jadwal posyandu balita/lansia, kerja bakti, atau arisan warga.
-   * 🔵 **Informasi Umum:** Digunakan untuk info bansos, pendataan kelurahan, atau himbauan kebersihan.
-3. Masukkan **Judul Pengumuman** dan **Isi Pengumuman**.
-4. Klik **"Simpan & Publikasikan"**. Pengumuman langsung aktif di beranda web.
+   * 🔴 **Siaga / Darurat:** Digunakan untuk pemadaman air/listrik mendadak atau himbauan keamanan.
+   * 🟡 **Agenda Lingkungan:** Digunakan untuk jadwal posyandu, kerja bakti, atau pertemuan pengurus.
+   * 🔵 **Informasi Umum:** Digunakan untuk pengumuman bantuan sosial atau program kelurahan.
+3. Masukkan **Judul** dan **Isi Pesan Singkat**.
+4. Klik **"Simpan & Publikasikan"**. Pengumuman akan langsung muncul di bagian teratas beranda website.
 
 ---
 
-## 7. PANDUAN MODUL 5: PEMETAAN & PENGELOLAAN FASILITAS LINGKUNGAN
+## BAB VII: SOP INVENTARISASI & PEMETAAN FASILITAS RT
 
-Modul ini mencatat sarana dan prasarana umum yang ada di lingkungan RT 35 agar diketahui seluruh warga.
+Modul ini berlokasi di menu **Fasilitas RT** (`/admin/fasilitas`).
 
-1. Buka menu **Fasilitas RT** &rarr; Klik **"+ Tambah Fasilitas"**.
-2. Isi informasi fasilitas:
-   * **Nama Fasilitas:** (Contoh: *Balai Pertemuan Warga RT 35, Pos Kamling Utama, Lapangan Olahraga, Bank Sampah Mandiri*).
-   * **Lokasi / Alamat:** Keterangan letak fasilitas di lingkungan.
-   * **Kondisi Fasilitas:** Pilih *Sangat Baik, Baik, atau Perlu Perbaikan*.
-   * **Foto Fasilitas:** Unggah foto fisik sarana prasarana.
-   * **Deskripsi Singkat:** Keterangan jam operasional atau fasilitas pendukung.
-3. Klik **"Simpan Fasilitas"**. Fasilitas dapat dilihat warga di halaman `/fasilitas`.
+1. Klik tombol **"+ Tambah Fasilitas"**.
+2. Masukkan nama fasilitas umum (Balai Pertemuan, Pos Kamling, Lapangan Olahraga), lokasi, deskripsi, kondisi fisik (*Sangat Baik, Baik, Perlu Perbaikan*), dan unggah foto sarana.
+3. Klik **"Simpan Fasilitas"**. Data dapat diakses publik pada menu **`/fasilitas`**.
 
 ---
 
-## 8. PANDUAN MODUL 6: KOTAK ASPIRASI & LAYANAN ADUAN WARGA ONLINE
+## BAB VIII: SOP KOTAK ASPIRASI & PENANGANAN LAPORAN WARGA
 
-Warga dapat mengirimkan saran, kritik, pengaduan lingkungan, maupun permohonan surat secara mandiri melalui form online.
+Modul ini berlokasi di menu **Kotak Aspirasi** (`/admin/aspirasi`).
 
-1. Buka menu **Kotak Aspirasi & Layanan Warga**.
-2. Pada tabel pesan masuk, Anda dapat melihat:
-   * Nama Warga, Nomor WhatsApp, Tanggal Masuk, dan Isi Aspirasi / Laporan.
-3. **Tindak Lanjut Laporan:**
-   * Klik tombol **"Hubungi via WhatsApp"** untuk langsung membalas warga secara personal melalui aplikasi WhatsApp.
-   * Ubah status penanganan laporan:
-     * 🟡 *Pending:* Pesan baru masuk belum ditinjau.
-     * 🔵 *Diproses:* Sedang ditindaklanjuti pengurus RT.
-     * 🟢 *Selesai:* Pengaduan atau permohonan telah terselesaikan.
+1. Sekretaris RT memeriksa daftar laporan dan aduan online warga yang masuk secara berkala.
+2. **Respon Cepat via WhatsApp:** Klik tombol *Hubungi via WhatsApp* pada baris aduan untuk langsung berkomunikasi dengan warga pelapor.
+3. **Pembaruan Status Laporan:**
+   * 🟡 *Pending:* Laporan baru masuk dan belum diproses.
+   * 🔵 *Diproses:* Sedang ditindaklanjuti oleh pengurus RT / seksi terkait.
+   * 🟢 *Selesai:* Masalah atau aduan telah berhasil diselesaikan.
 
 ---
 
-## 9. PANDUAN MODUL 7: PENGATURAN KONTAK RT, SYARAT SURAT & LOKASI
+## BAB IX: SOP KONFIGURASI PROFIL, LAYANAN SURAT & KONTAK RT
 
-Gunakan menu ini untuk memperbarui profil dan kontak resmi sekretariat RT 35:
+Modul ini berlokasi di menu **Pengaturan Sistem** (`/admin/settings`).
 
-1. Buka menu **Pengaturan Sistem** (`/admin/settings`).
-2. Kolom yang dapat diperbarui sewaktu-waktu:
-   * **Nomor WhatsApp Resmi Pelayanan RT:** Nomor yang akan menerima notifikasi dari warga.
-   * **Alamat Balai RT / Posko:** Keterangan alamat fisik balai pertemuan.
-   * **Daftar Syarat Pengurusan Surat Pengantar:** Daftar berkas fisik yang wajib dibawa warga ke rumah Ketua RT (misal: *Fotokopi KTP, Fotokopi KK, Surat Pernyataan*).
-   * **Nomor Kontak Darurat Lingkungan:** Nomor telepon darurat Babinsa, Bhabinkamtibmas, Puskesmas Manggar, dan Damkar.
-3. Klik tombol **"Simpan Pengaturan"** di bagian bawah halaman.
-
----
-
-## 10. PANDUAN TEKNIS: STANDAR PENGUNGGAHAN FOTO & MEDIA
-
-Agar website tetap bekerja dengan kecepatan tinggi dan hemat kuota internet bagi warga yang mengakses lewat smartphone:
-* **Format Foto yang Didukung:** JPG, JPEG, PNG, dan WebP.
-* **Ukuran File yang Dianjurkan:** Maksimal **1 MB – 2 MB** per foto.
-* **Tips Praktis:** Sebelum mengunggah foto dari kamera HP yang berukuran besar (misal 5MB–10MB), kirimkan foto terlebih dahulu ke WhatsApp (atau lakukan *screenshot*) agar ukurannya otomatis terkompresi ringan tanpa mengurangi kejernihan gambar.
+1. Kolom konfigurasi yang dapat disesuaikan:
+   * **Nomor WhatsApp Resmi Pelayanan RT:** Nomor penerima konfirmasi warga.
+   * **Alamat Balai Pertemuan / Posko:** Keterangan lokasi fisik sekretariat.
+   * **Daftar Syarat Surat Pengantar:** Petunjuk berkas yang wajib dibawa warga ke rumah Ketua RT (misal: Fotokopi KTP, KK, Surat Pengantar).
+   * **Kontak Darurat Wilayah:** Nomor telepon Babinsa, Bhabinkamtibmas, Puskesmas Manggar, dan Damkar.
+2. Klik tombol **"Simpan Pengaturan"** di akhir halaman.
 
 ---
 
-## 11. KONTAK BANTUAN & DUKUNGAN TEKNIS PENGEMBANG
+## BAB X: STANDAR PENGELOLAAN MEDIA & PEMELIHARAAN SISTEM
 
-Apabila Bapak/Ibu Sekretaris RT atau jajaran pengurus RT 35 mengalami kendala teknis, lupa kata sandi, atau membutuhkan panduan lanjutan terkait sistem informasi ini, silakan langsung menghubungi kontak pengembang resmi:
-
-* **Penanggung Jawab Sistem (PIC Web):** **Gusti Ihsanuddin**
-* **Institusi Pelaksana:** KKN Kelompok Manggar 2 – Universitas Mulia Balikpapan
-* **No. Telepon / WhatsApp:** **`085821550980`**
-* **Alamat Email:** **`gustiihsanuddin08@gmail.com`**
+1. **Spesifikasi Foto yang Diunggah:**
+   * Format yang didukung: **JPG, PNG, WebP**.
+   * Batas ukuran yang disarankan: **Maksimal 1 MB – 2 MB** per file gambar.
+   * Rekomendasi: Sebelum diunggah, foto dari kamera HP dapat dikirimkan ke WhatsApp terlebih dahulu agar otomatis terkompresi ringan tanpa mengurangi kualitas visual di website.
+2. **Keandalan Server & Cloud Database:**
+   * Basis data tersimpan pada cloud engine PostgreSQL Supabase dengan sistem pencadangan (*automated backup*) berkala 24 jam.
 
 ---
-*Buku Pedoman ini diserahterimakan secara resmi kepada Sekretaris dan Jajaran Pengurus RT 35 Kelurahan Manggar.*
+
+## BAB XI: DUKUNGAN TEKNIS & SERVICE LEVEL AGREEMENT (SLA)
+
+Apabila pengurus RT 35 membutuhkan bantuan teknis darurat, pemulihan akun (*password recovery*), atau penambahan modul lanjutan, silakan menghubungi narahubung teknis resmi pengembang:
+
+```
+================================================================================
+LEMBAGA PENGEMBANG : TIM KKN KELOMPOK MANGGAR 2 – UNIVERSITAS MULIA
+PENANGGUNG JAWAB   : GUSTI IHSANUDDIN (PIC SISTEM & WEB PORTAL)
+NOMOR TELEPON / WA : 085821550980 (Layanan Konsultasi 24 Jam)
+ALAMAT EMAIL RESMI : gustiihsanuddin08@gmail.com
+DOMAIN RESMI WEB   : https://www.rt35manggar.my.id
+================================================================================
+```
+
+---
+*Dokumen ini diterbitkan secara sah dan diserahkan sebagai aset digital milik RT 35 Kelurahan Manggar.*
