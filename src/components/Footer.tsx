@@ -140,14 +140,8 @@ export const Footer: React.FC<FooterProps> = ({ settings: initialSettings }) => 
 
         {/* Footer Bottom Division */}
         <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© 2026 Pemerintah RT 35 Kelurahan Manggar. Hak Cipta Dilindungi.</p>
-          <div className="flex items-center space-x-4">
-            <span>Dikelola oleh Pengurus RT 35 & Tim KKN Universitas Mulia</span>
-            <span className="text-slate-300">|</span>
-            <a href="/login" className="hover:text-[#0b5665] font-semibold transition-colors">
-              Login Pengurus
-            </a>
-          </div>
+          <p>© 2026 RT 35 Kelurahan Manggar. Hak Cipta Dilindungi.</p>
+          <p>Dikelola oleh Pengurus RT 35 & Tim KKN Universitas Mulia</p>
         </div>
 
       </div>
