@@ -33,3 +33,6 @@ dist-ssr
 dist/
 dist-ssr/
 
+# Confidential Handbooks (Local Only)
+BUKU_PANDUAN_PENGELOLAAN_WEBSITE_RT35.*
+public/panduan.html
