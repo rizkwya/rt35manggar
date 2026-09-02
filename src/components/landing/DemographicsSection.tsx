@@ -545,40 +545,50 @@ export const DemographicsSection: React.FC<DemographicsSectionProps> = ({ settin
             </div>
 
             <div 
-              className="flex md:flex-col items-start md:items-stretch overflow-x-auto md:overflow-y-auto md:overflow-x-hidden gap-4 pb-4 md:pb-2 md:max-h-[520px] snap-x snap-mandatory w-full"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              className="flex flex-col space-y-4 w-full md:max-h-[560px] md:overflow-y-auto md:pr-1.5"
+              style={{ scrollbarWidth: 'thin' }}
             >
               {announcements.length === 0 ? (
-                <p className="text-slate-400 text-xs text-center py-8 w-full">Belum ada pengumuman baru dari pengurus RT.</p>
+                <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 text-center text-xs text-slate-400 font-medium w-full">
+                  Belum ada pengumuman baru dari pengurus RT.
+                </div>
               ) : (
                 announcements.map((item) => (
                   <div
                     key={item.id}
-                    className={`min-w-[85%] sm:min-w-[450px] md:min-w-0 flex-shrink-0 snap-start p-5 rounded-2xl border transition-all duration-200 ${
+                    className={`w-full p-5 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all duration-200 ${
                       item.is_urgent
-                        ? 'bg-rose-50 border-rose-200 text-rose-800'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-400'
+                        ? 'bg-rose-50/70 border-rose-200 ring-1 ring-rose-300/50 shadow-xs'
+                        : 'bg-slate-50/80 border-slate-200/90 hover:bg-white hover:border-slate-300 shadow-xs'
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <span className={`text-[9px] uppercase font-black px-2.5 py-0.5 rounded-md ${
-                            item.is_urgent ? 'bg-rose-600 text-white animate-pulse' : 'bg-slate-100 text-slate-800 border border-slate-200'
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-md ${
+                            item.is_urgent 
+                              ? 'bg-rose-600 text-white shadow-xs' 
+                              : 'bg-slate-200/80 text-slate-800 border border-slate-300/60'
                           }`}>
                             {item.category}
                           </span>
                           <span className="text-xs text-slate-500 font-semibold">{item.date}</span>
                         </div>
-                        <h4 className="text-sm sm:text-base font-extrabold text-slate-800 pt-1">{item.title}</h4>
+                        <h4 className="text-base sm:text-lg font-black text-slate-900 pt-1 leading-snug break-words">
+                          {item.title}
+                        </h4>
                       </div>
                       {item.is_urgent && (
-                        <ShieldAlert className="w-4.5 h-4.5 text-rose-600 shrink-0" />
+                        <div className="p-2 rounded-xl bg-rose-100 text-rose-600 shrink-0" title="Pengumuman Penting / Mendesak">
+                          <ShieldAlert className="w-5 h-5" />
+                        </div>
                       )}
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-650 mt-3 leading-relaxed whitespace-pre-line break-all break-words">{item.content}</p>
-                    <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
-                      <span>Penerbit: <strong className="text-slate-700">{item.author}</strong></span>
+                    <div className="text-sm sm:text-[15px] text-slate-700 mt-3.5 leading-relaxed sm:leading-7 whitespace-pre-line break-words font-normal">
+                      {item.content}
+                    </div>
+                    <div className="mt-4 pt-3.5 border-t border-slate-200/70 flex items-center justify-between text-xs text-slate-500">
+                      <span>Penerbit: <strong className="text-slate-800 font-bold">{item.author}</strong></span>
                     </div>
                   </div>
                 ))

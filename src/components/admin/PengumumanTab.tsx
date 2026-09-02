@@ -168,15 +168,21 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Uraian / Isi Detail Informasi</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Uraian / Isi Detail Informasi</label>
+              <span className="text-[11px] text-slate-400 font-normal">Mendukung multi-paragraf</span>
+            </div>
             <textarea
-              rows={4}
-              placeholder="Tulis berita lengkap, tempat, dan ketentuan warga..."
+              rows={6}
+              placeholder="Tulis informasi lengkap, agenda, tempat, dan ketentuan warga... (Gunakan Enter untuk membuat paragraf atau baris baru)"
               value={newContent}
               onChange={(e) => setNewContent(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-800 focus:bg-white"
+              className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-normal text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-800 focus:bg-white transition-all min-h-[150px] leading-relaxed"
               required
             />
+            <p className="text-[11px] text-slate-400 font-medium mt-1">
+              Tip: Tekan <strong>Enter</strong> untuk membuat baris atau jarak antar paragraf.
+            </p>
           </div>
 
           <div className="flex items-center space-x-2 pt-1">
@@ -240,63 +246,68 @@ export const PengumumanTab: React.FC<PengumumanTabProps> = ({
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {paginatedAnnouncements.map((item) => (
                   <div
                     key={item.id}
-                    className={`p-5 rounded-2xl border transition-all duration-200 bg-white border-slate-200 relative group flex justify-between items-start ${
-                      item.is_urgent ? 'ring-2 ring-rose-500/20 border-rose-200' : ''
+                    className={`p-5 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all duration-200 bg-white border-slate-200 relative group flex flex-col justify-between items-stretch gap-3 ${
+                      item.is_urgent ? 'ring-2 ring-rose-500/20 border-rose-200 bg-rose-50/20' : ''
                     }`}
                   >
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-md ${
-                            item.is_urgent
-                              ? 'bg-rose-100 text-rose-700'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}
-                        >
-                          {item.category}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-bold flex items-center space-x-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{item.date}</span>
-                        </span>
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`text-[9px] uppercase font-black px-2.5 py-0.5 rounded-md ${
+                              item.is_urgent
+                                ? 'bg-rose-100 text-rose-700'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            {item.category}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-semibold flex items-center space-x-1">
+                            <Clock className="w-3 h-3" />
+                            <span>{item.date}</span>
+                          </span>
+                        </div>
+
+                        <div className="flex space-x-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleEditAnnouncement(item)}
+                            disabled={loading}
+                            className="p-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200 transition-all active:scale-95"
+                            title="Ubah warta"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAnnouncement(item.id)}
+                            disabled={loading}
+                            className="p-1.5 rounded-lg bg-rose-50 text-rose-650 hover:bg-rose-100 border border-rose-100/50 transition-all active:scale-95"
+                            title="Hapus pengumuman"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
-                      <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
-                        {item.title}
+                      <h4 className="text-base font-extrabold text-slate-900 leading-snug break-words flex items-center gap-1.5">
+                        <span>{item.title}</span>
                         {item.is_urgent && (
-                          <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse inline-block" />
+                          <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse inline-block shrink-0" title="Penting / Mendesak" />
                         )}
                       </h4>
-                      <p className="text-xs text-slate-500 leading-relaxed max-w-xl whitespace-pre-line break-all break-words">{item.content}</p>
                       
-                      <div className="text-[10px] text-slate-400 font-bold pt-1.5">
-                        Penerbit: <strong className="text-slate-600">{item.author}</strong>
+                      <div className="text-xs sm:text-sm text-slate-700 leading-relaxed max-w-2xl whitespace-pre-line break-words font-normal pt-1">
+                        {item.content}
                       </div>
-                    </div>
-
-                    <div className="flex space-x-1.5 shrink-0 self-start">
-                      <button
-                        type="button"
-                        onClick={() => handleEditAnnouncement(item)}
-                        disabled={loading}
-                        className="p-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-250 transition-all active:scale-95"
-                        title="Ubah warta"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteAnnouncement(item.id)}
-                        disabled={loading}
-                        className="p-1.5 rounded-lg bg-rose-50 text-rose-650 hover:bg-rose-100 border border-rose-100/50 transition-all active:scale-95"
-                        title="Hapus pengumuman"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      
+                      <div className="text-[11px] text-slate-400 font-medium pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <span>Penerbit: <strong className="text-slate-700 font-bold">{item.author}</strong></span>
+                      </div>
                     </div>
                   </div>
                 ))}
