@@ -37,16 +37,26 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
     <section 
       id="beranda" 
       className="relative min-h-[92vh] lg:min-h-screen flex flex-col justify-between pt-36 pb-36 overflow-hidden bg-[#0b5665] text-white"
-      style={{
-        backgroundImage: 'linear-gradient(to bottom, rgba(11, 86, 101, 0.72) 0%, rgba(6, 48, 57, 0.85) 100%), url("https://images.unsplash.com/photo-1473448912268-2022ce9509d8?q=80&w=2041")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'scroll'
-      }}
     >
+      {/* Background Video with Cinematic Dark/Teal Overlay */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?q=80&w=2041"
+          className="w-full h-full object-cover scale-[1.10] origin-top-left"
+        >
+          <source src="/hero.mp4" type="video/mp4" />
+        </video>
+        {/* Semi-transparent gradient overlay for text contrast and elegant teal atmosphere */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0b5665]/75 via-[#0b5665]/60 to-[#063039]/90" />
+      </div>
+
       {/* Dynamic particles or soft glowing auras */}
-      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none z-[1]" />
+      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[150px] pointer-events-none z-[1]" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-8 flex-grow flex flex-col justify-center items-center pt-8">
 
