@@ -247,3 +247,26 @@ export interface DevBroadcast {
   timestamp: string;
   is_active?: boolean;
 }
+
+export interface RTSuratRequest {
+  id: string;
+  nik: string;
+  nama_pemohon: string;
+  tempat_lahir?: string;
+  tanggal_lahir?: string;
+  jenis_kelamin?: string;
+  agama?: string;
+  pekerjaan?: string;
+  alamat: string;
+  phone_wa: string;
+  jenis_surat: string;
+  keperluan: string;
+  status: 'menunggu' | 'disetujui' | 'ditolak';
+  nomor_surat?: string;
+  token_hash?: string;
+  alasan_penolakan?: string;
+  approved_by?: string;
+  approved_at?: string;
+  created_at?: string;
+}
+

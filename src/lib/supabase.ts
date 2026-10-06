@@ -13,7 +13,8 @@ import {
   RTFacility,
   FamilyCard,
   FamilyMember,
-  DevBroadcast
+  DevBroadcast,
+  RTSuratRequest
 } from '../types/database';
 import { 
   INITIAL_DEMOGRAPHICS, 
@@ -31,13 +32,15 @@ export * from './initialData';
 
 export const SUPABASE_URL = 
   (import.meta as any).env?.VITE_SUPABASE_URL || 
-  (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_URL : null) ||
-  'https://atmqjbhrillqeehblizb.supabase.co';
+  (import.meta as any).env?.PUBLIC_SUPABASE_URL ||
+  (typeof process !== 'undefined' ? (process.env?.VITE_SUPABASE_URL || process.env?.PUBLIC_SUPABASE_URL) : null) ||
+  'https://your-project.supabase.co';
 
 export const SUPABASE_ANON_KEY = 
   (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 
-  (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_ANON_KEY : null) ||
-  'sb_publishable_IryU9qLP-a_NDi1ItVlZ9A_hqCs6uqf';
+  (import.meta as any).env?.PUBLIC_SUPABASE_ANON_KEY ||
+  (typeof process !== 'undefined' ? (process.env?.VITE_SUPABASE_ANON_KEY || process.env?.PUBLIC_SUPABASE_ANON_KEY) : null) ||
+  'your-anon-key-placeholder';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -944,5 +947,201 @@ export const SupabaseService = {
       console.warn('clearActiveDevBroadcast error:', e);
       return false;
     }
+  },
+
+  // ==========================================
+  // MODUL E-SURAT (HMAC-SHA256 & QR CODE)
+  // ==========================================
+
+  /**
+   * Cek keberadaan warga berdasarkan 16 digit NIK dari tabel family_members
+   * Mengambil data biodata & alamat kartu keluarga secara otomatis
+   */
+  async checkCitizenByNIK(nik: string): Promise<{
+    found: boolean;
+    member?: FamilyMember;
+    alamat?: string;
+  }> {
+    try {
+      const cleanNik = nik.trim();
+      if (!cleanNik || cleanNik.length < 16) {
+        return { found: false };
+      }
+
+      const { data: member, error } = await supabase
+        .from('family_members')
+        .select('*')
+        .eq('nik', cleanNik)
+        .maybeSingle();
+
+      if (error || !member) {
+        return { found: false };
+      }
+
+      // Ambil alamat dari kartu keluarga terkait jika tersedia
+      let alamat = 'RT 35 Kelurahan Manggar, Balikpapan Timur';
+      if (member.family_card_id) {
+        const { data: card } = await supabase
+          .from('family_cards')
+          .select('alamat, rt_rw')
+          .eq('id', member.family_card_id)
+          .maybeSingle();
+        if (card && card.alamat) {
+          alamat = `${card.alamat}${card.rt_rw ? ', ' + card.rt_rw : ''}`;
+        }
+      }
+
+      return {
+        found: true,
+        member: member as FamilyMember,
+        alamat
+      };
+    } catch (e) {
+      console.error('checkCitizenByNIK error:', e);
+      return { found: false };
+    }
+  },
+
+  /**
+   * Mengajukan surat baru oleh warga
+   */
+  async submitSuratRequest(req: Partial<RTSuratRequest>): Promise<{ success: boolean; data?: RTSuratRequest; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('rt_surat_requests')
+        .insert([{
+          nik: req.nik?.trim(),
+          nama_pemohon: req.nama_pemohon?.trim(),
+          tempat_lahir: req.tempat_lahir?.trim() || null,
+          tanggal_lahir: req.tanggal_lahir || null,
+          jenis_kelamin: req.jenis_kelamin || null,
+          agama: req.agama || null,
+          pekerjaan: req.pekerjaan?.trim() || null,
+          alamat: req.alamat?.trim() || 'RT 35 Kelurahan Manggar',
+          phone_wa: req.phone_wa?.trim() || '',
+          jenis_surat: req.jenis_surat || 'Surat Pengantar RT',
+          keperluan: req.keperluan?.trim() || 'Keperluan administrasi',
+          status: 'menunggu'
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data: data as RTSuratRequest };
+    } catch (e: any) {
+      console.error('submitSuratRequest error:', e);
+      return { success: false, error: e.message || 'Gagal mengajukan surat' };
+    }
+  },
+
+  /**
+   * Mengambil riwayat pengajuan surat seorang warga berdasarkan NIK
+   */
+  async fetchSuratHistoryByNIK(nik: string): Promise<RTSuratRequest[]> {
+    try {
+      const cleanNik = nik.trim();
+      const { data, error } = await supabase
+        .from('rt_surat_requests')
+        .select('*')
+        .eq('nik', cleanNik)
+        .order('created_at', { ascending: false });
+
+      if (data && !error) return data as RTSuratRequest[];
+    } catch (e) {
+      console.error('fetchSuratHistoryByNIK error:', e);
+    }
+    return [];
+  },
+
+  /**
+   * Mengambil seluruh permohonan surat (khusus dashboard Sekretaris RT)
+   */
+  async fetchAllSuratRequests(): Promise<RTSuratRequest[]> {
+    try {
+      const { data, error } = await supabase
+        .from('rt_surat_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (data && !error) return data as RTSuratRequest[];
+    } catch (e) {
+      console.error('fetchAllSuratRequests error:', e);
+    }
+    return [];
+  },
+
+  /**
+   * Menyetujui surat permohonan, mencatat nomor surat & token tanda tangan digital
+   */
+  async approveSuratRequest(
+    id: string,
+    nomorSurat: string,
+    tokenHash: string,
+    approvedBy: string = 'Ketua RT 35'
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('rt_surat_requests')
+        .update({
+          status: 'disetujui',
+          nomor_surat: nomorSurat,
+          token_hash: tokenHash,
+          approved_by: approvedBy,
+          approved_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      console.error('approveSuratRequest error:', e);
+      return false;
+    }
+  },
+
+  /**
+   * Menolak surat permohonan dengan alasan tertentu
+   */
+  async rejectSuratRequest(
+    id: string,
+    alasan: string,
+    approvedBy: string = 'Ketua RT 35'
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('rt_surat_requests')
+        .update({
+          status: 'ditolak',
+          alasan_penolakan: alasan,
+          approved_by: approvedBy,
+          approved_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      console.error('rejectSuratRequest error:', e);
+      return false;
+    }
+  },
+
+  /**
+   * Memvalidasi keaslian surat berdasarkan token hash HMAC-SHA256
+   */
+  async verifySuratByToken(tokenHash: string): Promise<RTSuratRequest | null> {
+    try {
+      const cleanToken = tokenHash.trim();
+      const { data, error } = await supabase
+        .from('rt_surat_requests')
+        .select('*')
+        .eq('token_hash', cleanToken)
+        .maybeSingle();
+
+      if (data && !error) return data as RTSuratRequest;
+    } catch (e) {
+      console.error('verifySuratByToken error:', e);
+    }
+    return null;
   }
 };
