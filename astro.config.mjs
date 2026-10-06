@@ -11,6 +11,7 @@ export default defineConfig({
     sitemap()
   ],
   vite: {
+    envPrefix: ['VITE_', 'PUBLIC_'],
     ssr: {
       noExternal: ['lucide-react', 'recharts']
     }
