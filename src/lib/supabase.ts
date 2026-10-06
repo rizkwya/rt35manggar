@@ -34,13 +34,13 @@ export const SUPABASE_URL =
   (import.meta as any).env?.VITE_SUPABASE_URL || 
   (import.meta as any).env?.PUBLIC_SUPABASE_URL ||
   (typeof process !== 'undefined' ? (process.env?.VITE_SUPABASE_URL || process.env?.PUBLIC_SUPABASE_URL) : null) ||
-  'https://atmqjbhrillqeehblizb.supabase.co';
+  'https://your-project.supabase.co';
 
 export const SUPABASE_ANON_KEY = 
   (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 
   (import.meta as any).env?.PUBLIC_SUPABASE_ANON_KEY ||
   (typeof process !== 'undefined' ? (process.env?.VITE_SUPABASE_ANON_KEY || process.env?.PUBLIC_SUPABASE_ANON_KEY) : null) ||
-  'sb_publishable_IryU9qLP-a_NDi1ItVlZ9A_hqCs6uqf';
+  'your-anon-key-placeholder';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
