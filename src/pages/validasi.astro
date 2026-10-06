@@ -1,0 +1,41 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ValidasiSuratComponent } from '../components/surat/ValidasiSuratComponent';
+import { Navbar } from '../components/Navbar';
+import { Footer } from '../components/Footer';
+import { SupabaseService } from '../lib/supabase';
+import { INITIAL_SETTINGS, INITIAL_NAV_ITEMS } from '../lib/initialData';
+
+let settings = INITIAL_SETTINGS;
+let navItems = INITIAL_NAV_ITEMS;
+
+try {
+  const [sData, nvData] = await Promise.all([
+    SupabaseService.fetchSettings(),
+    SupabaseService.fetchNavItems()
+  ]);
+  if (sData) settings = sData;
+  if (nvData) navItems = nvData;
+} catch (err) {
+  console.warn("Validation page server fetch failed:", err);
+}
+---
+
+<Layout title="Verifikasi Keabsahan Dokumen Digital – RT 35 Kelurahan Manggar">
+  <Navbar 
+    currentRole="public" 
+    userProfile={null} 
+    onOpenAuth={() => { window.location.href = '/login'; }}
+    onOpenDashboard={() => { window.location.href = '/admin/dashboard'; }}
+    onLogout={() => {}} 
+    activeSection="validasi" 
+    navItems={navItems}
+    client:load
+  />
+
+  <main class="flex-grow pt-20 md:pt-24">
+    <ValidasiSuratComponent client:load />
+  </main>
+
+  <Footer settings={settings} client:load />
+</Layout>

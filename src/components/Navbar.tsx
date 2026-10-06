@@ -8,7 +8,8 @@ import {
   PieChart, 
   GraduationCap,
   X,
-  PhoneCall
+  PhoneCall,
+  FileText
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -135,6 +136,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       window.location.href = '/berita';
       return;
     }
+    if (item.target_id === 'surat') {
+      window.location.href = '/surat';
+      return;
+    }
     if (item.type === 'anchor') {
       if (setActiveSection) {
         setActiveSection(item.target_id);
@@ -247,21 +252,32 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* RIGHT ACTION BUTTONS */}
-        <div className="hidden md:flex items-center justify-end space-x-3 shrink-0 lg:w-[260px] xl:w-[300px]">
+        <div className="hidden md:flex items-center justify-end space-x-2.5 shrink-0 lg:w-[320px] xl:w-[360px]">
           
+          {/* E-Surat RT Pill Button */}
+          <button
+            onClick={() => {
+              window.location.href = '/surat';
+            }}
+            className="px-3.5 py-2.5 rounded-full font-black text-xs transition-all shadow-sm flex items-center space-x-1.5 active:scale-98 bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>E-Surat RT</span>
+          </button>
+
           {/* Lapor Tamu Pill (Simkopdes style) */}
           <button
             onClick={() => {
               window.location.href = '/?tab=wajib_lapor#kontak-layanan';
             }}
-            className={`px-4.5 py-2.5 rounded-full font-black text-xs transition-all shadow-sm flex items-center space-x-1.5 active:scale-98 ${
+            className={`px-4 py-2.5 rounded-full font-black text-xs transition-all shadow-sm flex items-center space-x-1.5 active:scale-98 ${
               scrolled
                 ? 'bg-[#0b5665] hover:bg-[#08424e] text-white'
                 : 'bg-white hover:bg-white/95 text-[#0b5665]'
             }`}
           >
             <PhoneCall className="w-3.5 h-3.5" />
-            <span>Lapor Tamu 24 Jam</span>
+            <span>Lapor Tamu</span>
           </button>
 
           {localRole === 'public' ? (
@@ -361,6 +377,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className={`pt-4 border-t flex flex-col space-y-3 ${
             scrolled ? 'border-slate-100' : 'border-white/10'
           }`}>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                window.location.href = '/surat';
+              }}
+              className="w-full py-3 rounded-full font-black text-xs transition-all shadow-sm text-center flex items-center justify-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Layanan E-Surat RT (Online)</span>
+            </button>
+
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
