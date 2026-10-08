@@ -36,13 +36,12 @@ import { FasilitasTab } from '../../components/admin/FasilitasTab';
 import { NewsTab } from '../../components/admin/NewsTab';
 import { AspirasiTab } from '../../components/admin/AspirasiTab';
 import { KKNProkerTab } from '../../components/admin/KKNProkerTab';
-import { LayananSuratTab } from '../../components/admin/LayananSuratTab';
 
 interface SekretarisRTDashboardProps {
   user: UserProfile;
   onLogout: () => void;
   onUserProfileUpdate?: (profile: UserProfile) => void;
-  activeTab?: 'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi' | 'layanan_surat';
+  activeTab?: 'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi';
   onChangeTab?: (path: string) => void;
   settings?: RTSettings;
   onSettingsUpdate?: (settings: RTSettings) => void;
@@ -93,7 +92,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
   facilitiesList,
   onUpdateFacilitiesList
 }) => {
-  const [activeTab, setActiveTab] = useState<'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi' | 'layanan_surat'>('demografis');
+  const [activeTab, setActiveTab] = useState<'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi'>('demografis');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -472,7 +471,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
     }
   };
 
-  const handleTabClick = (tabId: 'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi' | 'layanan_surat') => {
+  const handleTabClick = (tabId: 'demografis' | 'pengumuman' | 'pengurus' | 'kkn_team' | 'kkn_proker' | 'portal_settings' | 'menu_navigation' | 'kegiatan_warga' | 'fasilitas' | 'berita' | 'aspirasi') => {
     setActiveTab(tabId);
     setSidebarOpen(false);
     
@@ -487,8 +486,7 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
       kegiatan_warga: '/admin/kegiatan-warga',
       fasilitas: '/admin/fasilitas',
       berita: '/admin/berita',
-      aspirasi: '/admin/aspirasi',
-      layanan_surat: '/admin/layanan-surat'
+      aspirasi: '/admin/aspirasi'
     };
 
     if (onChangeTab) {
@@ -583,23 +581,6 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
             >
               <TrendingUp className="w-4.5 h-4.5" />
               <span>Statistik Warga (Demografi)</span>
-            </button>
-
-            <button
-              onClick={() => handleTabClick('layanan_surat')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all ${
-                activeTab === 'layanan_surat' 
-                  ? 'bg-white text-slate-900 shadow-sm' 
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <FileText className="w-4.5 h-4.5 text-emerald-400" />
-                <span>Layanan E-Surat (QR Code)</span>
-              </div>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Resmi
-              </span>
             </button>
 
             <button
@@ -940,11 +921,6 @@ export const SekretarisRTDashboardPage: React.FC<SekretarisRTDashboardProps> = (
             settings={settings}
             onSettingsUpdate={onSettingsUpdate}
           />
-        )}
-
-        {/* LAYANAN E-SURAT TAB */}
-        {activeTab === 'layanan_surat' && (
-          <LayananSuratTab />
         )}
 
         {/* 2. PENGUMUMAN TAB */}

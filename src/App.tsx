@@ -749,14 +749,13 @@ export const App = () => {
       case '/admin/fasilitas':
       case '/admin/berita':
       case '/admin/aspirasi':
-      case '/admin/layanan-surat':
       case '/admin-rt':
       case '/admin/orders':
         if (!userProfile || (currentRole !== 'sekretaris_rt' && currentRole !== 'developer')) {
           return <LoginPage onLoginSuccess={handleLoginSuccess} onBackToHome={() => navigateTo(lastPublicPath)} />;
         }
         
-        let dashboardTab: 'demografis' | 'pengumuman' | 'pengurus' | 'portal_settings' | 'kegiatan_warga' | 'kkn_team' | 'kkn_proker' | 'menu_navigation' | 'fasilitas' | 'berita' | 'aspirasi' | 'layanan_surat' = 'demografis';
+        let dashboardTab: 'demografis' | 'pengumuman' | 'pengurus' | 'portal_settings' | 'kegiatan_warga' | 'kkn_team' | 'kkn_proker' | 'menu_navigation' | 'fasilitas' | 'berita' | 'aspirasi' = 'demografis';
         if (basePath === '/admin/pengumuman') dashboardTab = 'pengumuman';
         else if (basePath === '/admin/pengurus') dashboardTab = 'pengurus';
         else if (basePath === '/admin/settings') dashboardTab = 'portal_settings';
@@ -767,7 +766,6 @@ export const App = () => {
         else if (basePath === '/admin/fasilitas') dashboardTab = 'fasilitas';
         else if (basePath === '/admin/berita') dashboardTab = 'berita';
         else if (basePath === '/admin/aspirasi') dashboardTab = 'aspirasi';
-        else if (basePath === '/admin/layanan-surat') dashboardTab = 'layanan_surat';
 
         return (
           <SekretarisRTDashboardPage 
